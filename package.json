@@ -36,5 +36,8 @@
 		"vitest": "^1.2.0",
 		"wrangler": "^3.6.1"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"modern-normalize": "^2.0.0"
+	}
 }

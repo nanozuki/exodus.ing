@@ -1,0 +1,6 @@
+@import 'node_modules/modern-normalize/modern-normalize.css';
+
+body {
+	color: #2c363c;
+	background-color: #f0edec;
+}
