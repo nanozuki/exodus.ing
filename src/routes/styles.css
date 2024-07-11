@@ -1,6 +1,7 @@
 @import '../../node_modules/modern-normalize/modern-normalize.css';
 
 :root {
+	/* colors */
 	--primary-bg: #faf4ed;
 	--secondary-bg: #fffaf3;
 	--teritary-bg: #f2e9e1;
@@ -13,12 +14,17 @@
 	--sel-color: #dfdad9;
 	--hint-color: #f4ede8;
 
-	--red: #b4637a;
-	--green: #286983;
-	--yellow: #ea9d34;
-	--blue: #56949f;
-	--magenta: #907aa9;
-	--cyan: #d7827e;
+	--red: #b4637a; /* error, cancel */
+	--green: #286983; /* success, confirm */
+	--yellow: #ea9d34; /* warning */
+	--blue: #56949f; /* info */
+	--magenta: #907aa9; /* hints, special */
+	--cyan: #d7827e; /* modified */
+
+	/* typography */
+	--sans-serif: 'IBM Plex Sans', 'Noto Sans SC', sans-serif;
+	--serif: 'IBM Plex Serif', 'Noto Serif SC', serif;
+	--monospace: 'IBM Plex Mono', 'Noto Mono', monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -50,4 +56,66 @@ html {
 	transition:
 		background-color 0.5s ease-in-out,
 		color 0.5s ease-in-out;
+	font-family: var(--sans-serif);
+	font-size: 1rem; /* 16 */
+	line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+	font-family: var(--serif);
+	font-weight: bold;
+	margin-top: 1.25em;
+	margin-bottom: 1rem;
+}
+
+h1 {
+	font-size: 2rem; /* 32px */
+}
+
+h2 {
+	font-size: 1.75rem; /* 28 */
+}
+
+h3 {
+	font-size: 1.5rem; /* 24 */
+}
+
+h4 {
+	font-size: 1.25rem; /* 20 */
+}
+
+h5 {
+	font-size: 1.125rem; /* 18 */
+}
+
+h6 {
+	font-size: 1rem; /* 16 */
+	font-weight: bold;
+	margin-top: 1.25em;
+	margin-bottom: 1rem;
+}
+
+p {
+	margin-top: 0;
+	margin-bottom: 1em;
+}
+
+small {
+	font-size: 0.875rem; /* 14 */
+	color: var(--secondary-fg);
+}
+
+.design h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+	margin-top: 0;
+	margin-bottom: 0;
 }
