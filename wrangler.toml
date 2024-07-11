@@ -25,7 +25,7 @@ NODE_VERSION = "20.14.0"
 
 # Bind a D1 database. D1 is Cloudflare’s native serverless SQL database.
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#d1-databases
-# [[d1_databases]]
+[[d1_databases]]
 binding = "EXODUSING_DB"
 database_name = "exodus-ing"
 database_id = "fafc0684-b91c-4195-8e70-e317f0ed2441"
