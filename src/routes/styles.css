@@ -1,6 +1,53 @@
-@import 'node_modules/modern-normalize/modern-normalize.css';
+@import '../../node_modules/modern-normalize/modern-normalize.css';
 
-body {
-	color: #2c363c;
-	background-color: #f0edec;
+:root {
+	--primary-bg: #faf4ed;
+	--secondary-bg: #fffaf3;
+	--teritary-bg: #f2e9e1;
+
+	--primary-fg: #575279;
+	--secondary-fg: #797593;
+	--teritary-fg: #9893a5;
+
+	--boder-color: #cecacd;
+	--sel-color: #dfdad9;
+	--hint-color: #f4ede8;
+
+	--red: #b4637a;
+	--green: #286983;
+	--yellow: #ea9d34;
+	--blue: #56949f;
+	--magenta: #907aa9;
+	--cyan: #d7827e;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--primary-bg: #191724;
+		--secondary-bg: #1f1d2e;
+		--teritary-bg: #26233a;
+
+		--primary-fg: #e0def4;
+		--secondary-fg: #908caa;
+		--teritary-fg: #6e6a86;
+
+		--boder-color: #524f67;
+		--sel-color: #403d52;
+		--hint-color: #21202e;
+
+		--red: #eb6f92;
+		--green: #31748f;
+		--yellow: #f6c177;
+		--blue: #9ccfd8;
+		--magenta: #c4a7e7;
+		--cyan: #ebbcba;
+	}
+}
+
+html {
+	color: var(--primary-fg);
+	background-color: var(--primary-bg);
+	transition:
+		background-color 0.5s ease-in-out,
+		color 0.5s ease-in-out;
 }

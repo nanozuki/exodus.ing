@@ -11,11 +11,13 @@
       perSystem = { config, self', inputs', pkgs, system, ... }: {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            eslint_d
             nodePackages.nodejs
             pnpm
             svelte-language-server
           ];
+          shellHook = ''
+            export ESLINT_USE_FLAT_CONFIG="true"
+          '';
         };
       };
     };
