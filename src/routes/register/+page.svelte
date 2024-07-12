@@ -4,7 +4,7 @@
 
 	let passwordType = $state<'password' | 'text'>('password');
 	let username = $state('');
-	let email = $state('');
+	let name = $state('');
 	let password = $state('');
 	let inviteCode = $state('');
 	let errorMsg = $state<string | undefined>(undefined);
@@ -19,17 +19,17 @@
 </svelte:head>
 
 <form method="POST" use:enhance>
-	<label for="username">用户名</label>
+	<label for="username">账户名</label>
 	<input name="username" type="text" bind:value={username} required />
-	<label for="email">邮箱地址</label>
-	<input name="email" type="text" bind:value={email} required />
+	<label for="name">名称</label>
+	<input name="name" type="text" bind:value={name} required />
 	<label for="password">密码</label>
 	<input name="password" type={passwordType} bind:value={password} required />
 	<ToggleEye init={false} {onchange} />
 	<label for="inviteCode">邀请码</label>
 	<input name="inviteCode" type="text" bind:value={inviteCode} required />
 	<small class:error={errorMsg}>
-		{errorMsg || '用户名至少三位，可包含小写字母、数字、“-”和“_”，且以小写字母开头'}
+		{errorMsg || '帐户名至少三位，可包含小写字母、数字、“-”和“_”，且以小写字母开头。'}
 	</small>
 	<div class="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
 	<button id="register" class="positive" type="submit">Register</button>

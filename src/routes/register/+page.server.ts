@@ -1,3 +1,21 @@
+import { placeholder } from 'drizzle-orm';
+import type { Actions } from './$types';
+
+type RegisterForm =
+	| { username: string; password: string; name: string; inviteCode: string }
+	| {
+			username?: string;
+			name?: string;
+			inviteCode?: string;
+			errors: { username?: string; password?: string; name?: string; inviteCode?: string };
+	  };
+
+export const actions = {
+	default: async ({ request, platform }) => {
+		platform?.env.EXODUSING_DB;
+	},
+} satisfies Actions;
+
 /*
 import { getService } from '$lib/server';
 import { fail, redirect } from '@sveltejs/kit';
