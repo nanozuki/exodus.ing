@@ -10,7 +10,7 @@
 	--secondary-fg: #797593;
 	--teritary-fg: #9893a5;
 
-	--boder-color: #cecacd;
+	--border-color: #cecacd;
 	--sel-color: #dfdad9;
 	--hint-color: #f4ede8;
 
@@ -61,6 +61,7 @@ html {
 	line-height: 1.5;
 }
 
+/* headers, paragraphs, and texts */
 h1,
 h2,
 h3,
@@ -118,4 +119,36 @@ h6,
 p {
 	margin-top: 0;
 	margin-bottom: 0;
+}
+
+/* forms and buttons */
+input {
+	border: 1px solid var(--border-color);
+	line-height: 1.5;
+	/* y-padding = (hight(2rem) - line-height(1.5rem)) / 2 - border(2px) */
+	padding: calc(0.25rem - 1px) 0.5rem;
+}
+input:focus-visible {
+	border: 1px solid var(--blue);
+	outline: none;
+}
+
+button {
+	display: block;
+	line-height: 1.5;
+	border: 1px solid var(--border-color);
+	/* y-padding = (hight(2rem) - line-height(1.5rem)) / 2 - border(2px) */
+	padding: calc(0.25rem - 1px) calc(1rem - 1px);
+	background-color: var(--secondary-bg);
+	color: var(--secondary-fg);
+}
+
+button.positive {
+	background-color: var(--green);
+	color: var(--primary-bg);
+}
+
+button.negative {
+	background-color: var(--red);
+	color: var(--primary-bg);
 }
