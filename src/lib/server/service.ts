@@ -1,28 +1,52 @@
-import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
 import * as schema from '../schema';
+import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
+import { Lucia } from 'lucia';
+import { dev } from '$app/environment';
+import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
+import { GitHub } from 'arctic';
+import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
 
+// Service is a facade for all backend services
 export class Service {
 	db: DrizzleD1Database<typeof schema>;
+	authAdapter: DrizzleSQLiteAdapter;
+	lucia: Lucia;
+	github: GitHub;
 
 	constructor(platform: App.Platform) {
-		this.db = drizzle(platform.env.EXODUSING_DB, { schema });
+		this.db = drizzle(platform.env.EXODUSING_DB, { schema, logger: true });
+		this.authAdapter = new DrizzleSQLiteAdapter(this.db, schema.session, schema.user);
+		this.lucia = new Lucia(this.authAdapter, {
+			sessionCookie: {
+				attributes: {
+					secure: !dev, // whether to use HTTPS
+				},
+			},
+			getUserAttributes: (attributes) => {
+				return {
+					githubId: attributes.github_id,
+					username: attributes.username,
+				};
+			},
+		});
+		this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET);
 	}
+}
 
-	async createUser(username: string, password: string, name: string, inviteCode: string) {
-		const ic = await this.db.query.inviteCode.findFirst({
-			with: { code: inviteCode },
-		});
-		const now = new Date();
-		if (!ic || ic.validFrom.getTime() > now.getTime() || ic.validTo.getTime() < now.getTime()) {
-			throw new Error('Invalid invite code');
-		}
-		await this.db.insert(schema.user).values({
-			id: new Uint8Array(16) as Buffer,
-			username,
-			passwordHash: password,
-			name,
-			createdAt: now,
-			updatedAt: now,
-		});
+declare module 'lucia' {
+	interface Register {
+		Lucia: LuciaUser;
+		DatabaseUserAttributes: DatabaseUserAttributes;
 	}
+}
+
+interface LuciaUser {
+	id: string;
+	username: string;
+	githubId: number;
+}
+
+interface DatabaseUserAttributes {
+	github_id: number;
+	username: string;
 }

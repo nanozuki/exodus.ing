@@ -4,16 +4,17 @@ declare global {
 	namespace App {
 		// interface Error {}
 		// interface Locals {}
+		interface Locals {
+			service: import('$lib/server/service').Service;
+			user: import('lucia').User | null;
+			session: import('lucia').Session | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		interface Platform {
 			env: {
 				EXODUSING_DB: D1Database;
 			};
-			context: {
-				waitUntil(promise: Promise<unknown>): void;
-			};
-			caches: CacheStorage & { default: Cache };
 		}
 	}
 }

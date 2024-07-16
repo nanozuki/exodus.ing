@@ -1,12 +1,19 @@
-import { sqliteTable, blob, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('user', {
-	id: blob('id', { mode: 'buffer' }).primaryKey(), // UUIDv7
+	id: text('id').notNull().primaryKey(),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 	username: text('username').notNull().unique(),
-	passwordHash: text('password_hash').notNull(),
-	name: text('name').notNull(),
+	githubId: integer('github_id').unique(),
+});
+
+export const session = sqliteTable('session', {
+	id: text('id').notNull().primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id),
+	expiresAt: integer('expires_at').notNull(),
 });
 
 export const inviteCode = sqliteTable('invite_code', {
@@ -21,10 +28,10 @@ export type ArticleContentType = 'markdown' | 'html';
 export const article = sqliteTable(
 	'article',
 	{
-		id: blob('id', { mode: 'buffer' }).primaryKey(), // UUIDv7
+		id: text('id').primaryKey(),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 		updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
-		userId: blob('user_id').references(() => user.id),
+		userId: text('user_id').references(() => user.id),
 		title: text('title').notNull(),
 		content: text('content').notNull(),
 		contentType: text('content_type').$type<ArticleContentType>().notNull(),

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import './styles.css';
 
-	const { children } = $props();
+	const { children, data } = $props();
 </script>
 
 <!-- web fonts -->
@@ -15,6 +15,9 @@
 </svelte:head>
 
 <div>
+	{#if data.user}
+		<p>Logged in as {data.user.username}</p>
+	{/if}
 	{@render children()}
 </div>
 
