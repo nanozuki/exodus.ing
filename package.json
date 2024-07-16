@@ -47,5 +47,6 @@
 		"arctic": "^1.9.2",
 		"drizzle-orm": "^0.31.4",
 		"modern-normalize": "^2.0.0"
-	}
+	},
+	"packageManager": "^pnpm@9.4.0"
 }
