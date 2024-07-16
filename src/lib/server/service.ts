@@ -32,21 +32,3 @@ export class Service {
 		this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET);
 	}
 }
-
-declare module 'lucia' {
-	interface Register {
-		Lucia: LuciaUser;
-		DatabaseUserAttributes: DatabaseUserAttributes;
-	}
-}
-
-interface LuciaUser {
-	id: string;
-	username: string;
-	githubId: number;
-}
-
-interface DatabaseUserAttributes {
-	github_id: number;
-	username: string;
-}
