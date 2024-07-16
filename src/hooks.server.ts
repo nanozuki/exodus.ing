@@ -1,12 +1,17 @@
-import { Service } from '$lib/server/service';
 import type { Handle } from '@sveltejs/kit';
-import { getPlatformProxy } from 'wrangler';
+import { Service } from '$lib/server/service';
+import { dev } from '$app/environment';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	let service: Service;
 	if (!event.platform) {
-		const platform: unknown = await getPlatformProxy();
-		service = new Service(platform as App.Platform);
+		if (dev) {
+			const { getPlatformProxy } = await import('wrangler');
+			const platform: unknown = await getPlatformProxy();
+			service = new Service(platform as App.Platform);
+		} else {
+			throw new Error('Platform not found');
+		}
 	} else {
 		service = new Service(event.platform);
 	}
