@@ -1,65 +1,39 @@
-// import { OAuth2RequestError } from 'arctic';
-import { generateIdFromEntropySize } from 'lucia';
-
-import type { RequestEvent } from '@sveltejs/kit';
-import * as schema from '$lib/schema';
-import { eq } from 'drizzle-orm';
+import { InvalidInviteCode, InviteCodeMissed, OAuthValidationError } from '$lib/errors';
+import {
+	generateSessionCookie,
+	parseStateCookie,
+	validateGitHubCode,
+	validateInviteCode,
+} from '$lib/server/auth';
+import { createUserByGitHub, getUserByGitHubId } from '$lib/server/user';
+import { error, type RequestEvent } from '@sveltejs/kit';
 
 export async function GET(event: RequestEvent): Promise<Response> {
-	const service = event.locals.service;
 	const code = event.url.searchParams.get('code');
 	const state = event.url.searchParams.get('state');
-	const storedState = event.cookies.get('github_oauth_state') ?? null;
-
-	if (!code || !state || !storedState || state !== storedState) {
-		return new Response(null, {
-			status: 400,
-		});
+	const storedState = parseStateCookie(event.cookies.get('github_oauth_state'));
+	if (!code || !state || !storedState || state !== storedState.state) {
+		error(400, OAuthValidationError('check callback state'));
 	}
 
-	// try {
-	const tokens = await service.github.validateAuthorizationCode(code);
-	const githubUserResponse = await fetch('https://api.github.com/user', {
-		headers: {
-			Authorization: `Bearer ${tokens.accessToken}`,
-		},
-	});
-	const githubUser: GitHubUser = await githubUserResponse.json();
-
-	// Replace this with your own DB client.
-	// const existingUser = await service.db.query.user.findFirst({
-	// 	with: { githubId: githubUser.id },
-	// });
-	const users =
-		(await service.db.select().from(schema.user).where(eq(schema.user.githubId, githubUser.id))) ||
-		[];
-	const existingUser = users[0];
+	const gitHubUser = await validateGitHubCode(event.locals, code);
+	const existingUser = await getUserByGitHubId(event.locals, gitHubUser.id);
 
 	if (existingUser) {
-		const session = await service.lucia.createSession(existingUser.id, {});
-		const sessionCookie = service.lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes,
-		});
+		const cookie = await generateSessionCookie(event.locals, existingUser.id);
+		event.cookies.set(cookie.name, cookie.value, { ...cookie.attributes });
 	} else {
-		const userId = generateIdFromEntropySize(10); // 16 characters long
-		const now = new Date();
+		if (!storedState.inviteCode) {
+			error(400, InviteCodeMissed());
+		}
+		const valid = await validateInviteCode(event.locals, storedState.inviteCode);
+		if (!valid) {
+			error(400, InvalidInviteCode());
+		}
 
-		await service.db.insert(schema.user).values({
-			id: userId,
-			createdAt: now,
-			updatedAt: now,
-			username: githubUser.login,
-			githubId: githubUser.id,
-		});
-
-		const session = await service.lucia.createSession(userId, {});
-		const sessionCookie = service.lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes,
-		});
+		const user = await createUserByGitHub(event.locals, gitHubUser);
+		const cookie = await generateSessionCookie(event.locals, user.id);
+		event.cookies.set(cookie.name, cookie.value, { ...cookie.attributes });
 	}
 	return new Response(null, {
 		status: 302,
@@ -67,21 +41,4 @@ export async function GET(event: RequestEvent): Promise<Response> {
 			Location: '/',
 		},
 	});
-	// } catch (e) {
-	// 	// the specific error message depends on the provider
-	// 	if (e instanceof OAuth2RequestError) {
-	// 		// invalid code
-	// 		return new Response(null, {
-	// 			status: 400,
-	// 		});
-	// 	}
-	// 	return new Response(null, {
-	// 		status: 500,
-	// 	});
-	// }
-}
-
-interface GitHubUser {
-	id: number;
-	login: string;
 }

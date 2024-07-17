@@ -8,6 +8,8 @@ export const user = sqliteTable('user', {
 	githubId: integer('github_id').unique(),
 });
 
+export type User = typeof user.$inferSelect;
+
 export const session = sqliteTable('session', {
 	id: text('id').notNull().primaryKey(),
 	userId: text('user_id')
