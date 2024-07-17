@@ -86,9 +86,7 @@ export async function validateGitHubCode(locals: App.Locals, code: string): Prom
 				'User-Agent': 'exodus.ing',
 			},
 		});
-		const text = await githubUserResponse.text();
-		console.log('get reponse from github: ', text);
-		return JSON.parse(text);
+		return await githubUserResponse.json();
 	} catch (e) {
 		if (e instanceof OAuth2RequestError) {
 			error(400, OAuthValidationError(e.message));
