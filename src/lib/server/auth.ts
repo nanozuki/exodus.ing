@@ -84,6 +84,8 @@ export async function validateGitHubCode(locals: App.Locals, code: string): Prom
 				Authorization: `Bearer ${tokens.accessToken}`,
 			},
 		});
+		const text = await githubUserResponse.text();
+		console.log('get reponse from github: ', text);
 		return await githubUserResponse.json();
 	} catch (e) {
 		if (e instanceof OAuth2RequestError) {
