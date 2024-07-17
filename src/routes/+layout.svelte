@@ -14,21 +14,47 @@
 	/>
 </svelte:head>
 
-<div>
+<header>
+	<svg
+		fill="currentColor"
+		xmlns="http://www.w3.org/2000/svg"
+		width="32"
+		height="32"
+		viewBox="0 0 24 24"
+		><path
+			d="M3 1H1v18h18V1zm14 2v14H3V3zm4 18H5v2h18V5h-2zM15 5H5v2h10zM5 9h10v2H5zm7 4H5v2h7z"
+		/></svg
+	>
+	<a class="design" href="/"><h1 class="design">EXODUS</h1></a>
+	<div style="flex: 1"></div>
 	{#if data.user}
-		<p>Logged in as {data.user.username}</p>
+		<p class="design">{data.user.username}</p>
+	{:else}
+		<a href="/auth">注册/登陆</a>
 	{/if}
+</header>
+
+<main>
 	{@render children()}
-</div>
+</main>
 
 <style>
-	div {
+	header,
+	main {
 		max-width: 40rem;
 		margin: 0 1.5rem;
 	}
 	@media (min-width: 43rem) {
-		div {
+		header,
+		main {
 			margin: 0 auto;
 		}
+	}
+	header {
+		display: flex;
+		align-items: center;
+		column-gap: 0.5rem;
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
 	}
 </style>
