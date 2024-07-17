@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/icon.svg" type="image/svg+xml" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<style>
+			:root {
+				/* colors */
+				--primary-bg: #faf4ed;
+				--secondary-bg: #fffaf3;
+				--teritary-bg: #f2e9e1;
+
+				--primary-fg: #575279;
+				--secondary-fg: #797593;
+				--teritary-fg: #9893a5;
+
+				--border-color: #cecacd;
+				--sel-color: #dfdad9;
+				--hint-color: #f4ede8;
+
+				--red: #b4637a; /* error, cancel */
+				--green: #286983; /* success, confirm */
+				--yellow: #ea9d34; /* warning */
+				--blue: #56949f; /* info */
+				--magenta: #907aa9; /* hints, special */
+				--cyan: #d7827e; /* modified */
+
+				/* typography */
+				--sans-serif: 'IBM Plex Sans', 'Noto Sans SC', sans-serif;
+				--serif: 'IBM Plex Serif', 'Noto Serif SC', serif;
+				--monospace: 'IBM Plex Mono', 'Noto Mono', monospace;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--primary-bg: #191724;
+					--secondary-bg: #1f1d2e;
+					--teritary-bg: #26233a;
+
+					--primary-fg: #e0def4;
+					--secondary-fg: #908caa;
+					--teritary-fg: #6e6a86;
+
+					--boder-color: #524f67;
+					--sel-color: #403d52;
+					--hint-color: #21202e;
+
+					--red: #eb6f92;
+					--green: #31748f;
+					--yellow: #f6c177;
+					--blue: #9ccfd8;
+					--magenta: #c4a7e7;
+					--cyan: #ebbcba;
+				}
+			}
+
+			html {
+				color: var(--primary-fg);
+				background-color: var(--primary-bg);
+				transition:
+					background-color 0.5s ease-in-out,
+					color 0.5s ease-in-out;
+				font-family: var(--sans-serif);
+				font-size: 1rem; /* 16 */
+				line-height: 1.5;
+			}
+
+			/* headers, paragraphs, and texts */
+			h1,
+			h2,
+			h3,
+			h4,
+			h5 {
+				font-family: var(--serif);
+				font-weight: bold;
+				margin-top: 1.25em;
+				margin-bottom: 1rem;
+			}
+
+			h1 {
+				font-size: 2rem; /* 32px */
+			}
+
+			main {
+				max-width: 40rem;
+				margin: 0 1.5rem;
+			}
+			@media (min-width: 43rem) {
+				main {
+					margin: 0 auto;
+				}
+			}
+		</style>
+		<title>Error: %sveltekit.error.message%</title>
+	</head>
+	<body>
+		<main>
+			<h1>Error: %sveltekit.status%</h1>
+			<p>%sveltekit.error.message%</p>
+		</main>
+	</body>
+</html>
