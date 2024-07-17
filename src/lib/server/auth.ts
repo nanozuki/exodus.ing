@@ -1,10 +1,10 @@
 import * as schema from '$lib/schema';
 import { generateState, OAuth2RequestError } from 'arctic';
 import { eq } from 'drizzle-orm';
-import { type CookieSerializeOptions } from 'cookie';
 import { z } from 'zod';
 import { error } from '@sveltejs/kit';
 import { InternalServerError, OAuthValidationError } from '$lib/errors';
+import { type CookieAttributes } from 'lucia';
 
 export async function validateInviteCode(locals: App.Locals, inviteCode: string): Promise<boolean> {
 	const codes = await locals.db
@@ -28,7 +28,7 @@ type State = z.infer<typeof State>;
 export interface Cookie {
 	name: string;
 	value: string;
-	attributes: CookieSerializeOptions & { path: string };
+	attributes: CookieAttributes & { path: string };
 }
 
 export async function generateStateCookie(
