@@ -29,3 +29,15 @@ export const InternalServerError = (context?: string): App.Error => {
 	console.log(error);
 	return error;
 };
+
+export const Unauthorized = (context?: string): App.Error => {
+	const error = { key: 'UNAUTHORIZED', message: '未登陆', context };
+	console.log(error);
+	return error;
+};
+
+export const ArticleNotFound = (context?: string): App.Error => {
+	const error = { key: 'ARTICLE_NOT_FOUND', message: '文章不存在', context };
+	console.log(error);
+	return error;
+};

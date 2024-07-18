@@ -4,10 +4,8 @@
 	const { data } = $props();
 </script>
 
-<p>
-	Nothing can save you except writing<br />
-	by Charles Bukowski
-</p>
+<h1>{data.user!.username}</h1>
+<a href="/account/new_article"><h4>添加新文章</h4></a>
 
 <h4>文章列表</h4>
 
@@ -23,6 +21,7 @@
 				<i>in</i>
 				{format(article.createdAt, 'yyyy-MM-dd')}
 			</p>
+			<a href="/account/edit/{article.articleId}">编辑</a>
 		</article>
 	{/each}
 </div>
