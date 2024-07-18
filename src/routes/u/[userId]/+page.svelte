@@ -20,7 +20,7 @@
 	{:else}
 		<div class="actions">
 			<button class="positive" onclick={() => (usernameEditing = true)}>修改用户名</button>
-			<a class="button" href="/account/new_article">添加新文章</a>
+			<a class="button" href="/a/new/edit">添加新文章</a>
 		</div>
 	{/if}
 {/if}
@@ -40,7 +40,7 @@
 				{format(article.createdAt, 'yyyy-MM-dd')}
 			</p>
 			{#if data.myself}
-				<a href="/account/edit/{article.articleId}">编辑</a>
+				<a href="/a/{article.articleId}/edit">编辑</a>
 			{/if}
 		</article>
 	{/each}

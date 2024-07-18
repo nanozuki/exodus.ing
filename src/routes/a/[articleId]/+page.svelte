@@ -19,6 +19,12 @@
 	<i>in</i>
 	{format(data.article.createdAt, 'yyyy-MM-dd')}
 </p>
+{#if data.myself}
+	<p>
+		<a href="/a/{data.article.id}/edit">编辑文章</a>
+	</p>
+{/if}
+
 <article>
 	{#if article}
 		{@html article}
