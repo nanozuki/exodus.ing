@@ -31,7 +31,7 @@
 	{#if data.user}
 		<a href="/account">{data.user.username}</a>
 	{:else}
-		<a href="/auth">注册/登陆</a>
+		<a href="/auth">注册/登录</a>
 	{/if}
 </header>
 

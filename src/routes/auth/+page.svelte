@@ -16,7 +16,7 @@
 
 <h2>登录</h2>
 <form id="login" method="POST" action="?/login">
-	<button id="login" class="positive" type="submit">使用 GitHub 登陆</button>
+	<button id="login" class="positive" type="submit">使用 GitHub 登录</button>
 </form>
 
 <style>

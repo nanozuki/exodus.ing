@@ -31,7 +31,7 @@ export const InternalServerError = (context?: string): App.Error => {
 };
 
 export const Unauthorized = (context?: string): App.Error => {
-	const error = { key: 'UNAUTHORIZED', message: '未登陆', context };
+	const error = { key: 'UNAUTHORIZED', message: '未登录', context };
 	console.log(error);
 	return error;
 };
