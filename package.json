@@ -47,6 +47,7 @@
 	"dependencies": {
 		"@lucia-auth/adapter-drizzle": "^1.0.7",
 		"arctic": "^1.9.2",
+		"date-fns": "^3.6.0",
 		"drizzle-orm": "^0.31.4",
 		"modern-normalize": "^2.0.0",
 		"rehype-stringify": "^10.0.0",

@@ -2,10 +2,10 @@
 	import { compile, type File } from '$lib/markdown';
 	import { onMount } from 'svelte';
 
-	const { form } = $props();
+	const { form, data } = $props();
 
 	let mode: 'editor' | 'previewer' = $state('editor');
-	let article: string = $state(form?.content || '');
+	let article: string = $state(form?.content || data.article.content);
 	let compiled: File | undefined = $state(undefined);
 	let title = $derived.by(() => compiled?.data.meta?.title);
 

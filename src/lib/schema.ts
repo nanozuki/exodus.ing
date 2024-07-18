@@ -30,10 +30,12 @@ export type ArticleContentType = 'markdown' | 'html';
 export const article = sqliteTable(
 	'article',
 	{
-		id: text('id').primaryKey(),
+		id: text('id').notNull().primaryKey(),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 		updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
-		userId: text('user_id').references(() => user.id),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id),
 		title: text('title').notNull(),
 		content: text('content').notNull(),
 		contentType: text('content_type').$type<ArticleContentType>().notNull(),
@@ -44,3 +46,5 @@ export const article = sqliteTable(
 		};
 	},
 );
+
+export type Article = typeof article.$inferSelect;
