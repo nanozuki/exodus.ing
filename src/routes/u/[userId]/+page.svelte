@@ -2,7 +2,6 @@
 	import { format } from 'date-fns';
 
 	const { data, form } = $props();
-	console.log('data: ', data);
 	let usernameEditing = $state(false);
 </script>
 

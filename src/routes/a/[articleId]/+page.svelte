@@ -1,17 +1,12 @@
 <script lang="ts">
 	import { format } from 'date-fns';
-	import { compile, type File } from '$lib/markdown';
-	import { onMount } from 'svelte';
-
 	const { data } = $props();
-	let article: File | undefined = $state(undefined);
-
-	onMount(() => {
-		compile(data.article.content).then((result) => {
-			article = result;
-		});
-	});
 </script>
+
+<svelte:head>
+	<title>{data.article.title} - EXODUS</title>
+	<meta name="og:title" content={`${data.article.title} - EXODUS`} />
+</svelte:head>
 
 <p class="design">
 	<i>by</i>
@@ -26,7 +21,5 @@
 {/if}
 
 <article>
-	{#if article}
-		{@html article}
-	{/if}
+	{@html data.file}
 </article>
