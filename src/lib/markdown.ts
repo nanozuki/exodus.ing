@@ -1,6 +1,8 @@
 import rehypeStringify from 'rehype-stringify';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
+import rehypeSanitize from 'rehype-sanitize';
+import rehypeRaw from 'rehype-raw';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
@@ -42,7 +44,9 @@ export const compile = async (article: string): Promise<File> => {
 		.use(remarkFrontmatter)
 		.use(remarkMeta)
 		.use(remarkGfm)
-		.use(remarkRehype)
+		.use(remarkRehype, { allowDangerousHtml: true })
+		.use(rehypeRaw)
+		.use(rehypeSanitize)
 		.use(rehypeStringify)
 		.process(article);
 };
