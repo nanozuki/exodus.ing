@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { format } from 'date-fns';
 
-	const { data } = $props();
+	const { data, form } = $props();
 	console.log('data: ', data);
 	let usernameEditing = $state(false);
 </script>
@@ -9,14 +9,20 @@
 <h1>{data.user!.username}</h1>
 {#if data.myself}
 	{#if usernameEditing}
+		{#if form?.error}
+			<p class="error">{form?.error}</p>
+		{/if}
 		<form method="POST">
-			<input type="text" name="username" required />
-			<button type="submit">提交</button>
+			<input type="text" name="username" value={form?.username} required />
+			<button class="negative" type="button" onclick={() => (usernameEditing = false)}>取消</button>
+			<button class="positive" type="submit">提交</button>
 		</form>
 	{:else}
-		<button class="positive" onclick={() => (usernameEditing = true)}>修改用户名</button>
+		<div class="actions">
+			<button class="positive" onclick={() => (usernameEditing = true)}>修改用户名</button>
+			<a class="button" href="/account/new_article">添加新文章</a>
+		</div>
 	{/if}
-	<a href="/account/new_article"><h4>添加新文章</h4></a>
 {/if}
 
 <h4>文章列表</h4>
@@ -41,6 +47,40 @@
 </div>
 
 <style>
+	form {
+		width: 15rem;
+		display: grid;
+		grid-template:
+			'username username' auto
+			'cancel submit' auto / 1fr 1fr;
+		gap: 1rem;
+	}
+	p.error {
+		color: var(--red);
+	}
+	form input {
+		grid-area: username;
+	}
+	form button.negative {
+		grid-area: cancel;
+	}
+	form button.positive {
+		grid-area: submit;
+	}
+
+	div.actions {
+		display: flex;
+		column-gap: 1rem;
+	}
+	a.button {
+		display: inline-block;
+		line-height: 2rem;
+		padding: 0 1rem;
+		background-color: var(--green);
+		color: var(--primary-bg);
+		text-decoration: none;
+	}
+
 	div.article-list {
 		display: flex;
 		flex-direction: column;

@@ -60,6 +60,6 @@ export const actions = {
 				error: JSON.stringify(e),
 			};
 		}
-		redirect(301, '/account');
+		redirect(301, `/u/${userId}`);
 	},
 } satisfies Actions;
