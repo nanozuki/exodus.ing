@@ -2,10 +2,22 @@
 	import { format } from 'date-fns';
 
 	const { data } = $props();
+	console.log('data: ', data);
+	let usernameEditing = $state(false);
 </script>
 
 <h1>{data.user!.username}</h1>
-<a href="/account/new_article"><h4>添加新文章</h4></a>
+{#if data.myself}
+	{#if usernameEditing}
+		<form method="POST">
+			<input type="text" name="username" required />
+			<button type="submit">提交</button>
+		</form>
+	{:else}
+		<button class="positive" onclick={() => (usernameEditing = true)}>修改用户名</button>
+	{/if}
+	<a href="/account/new_article"><h4>添加新文章</h4></a>
+{/if}
 
 <h4>文章列表</h4>
 
@@ -21,7 +33,9 @@
 				<i>in</i>
 				{format(article.createdAt, 'yyyy-MM-dd')}
 			</p>
-			<a href="/account/edit/{article.articleId}">编辑</a>
+			{#if data.myself}
+				<a href="/account/edit/{article.articleId}">编辑</a>
+			{/if}
 		</article>
 	{/each}
 </div>
