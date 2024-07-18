@@ -5,7 +5,7 @@
 	const { form, data } = $props();
 
 	let mode: 'editor' | 'previewer' = $state('editor');
-	let article: string = $state(form?.content || data.article.content);
+	let article: string = $state(form?.content || data.content);
 	let compiled: File | undefined = $state(undefined);
 	let title = $derived.by(() => compiled?.data.meta?.title);
 
@@ -52,7 +52,7 @@
 		<input type="hidden" name="content" value={article} />
 		<input type="hidden" name="title" value={title} />
 		<small class:error={form?.error}
-			>{title ? '' : form?.error + '。'}
+			>{form?.error ? form?.error + '。' : ''}
 			文章标题来自 frontmatter 里的 “title” 或者第一个一级标题。</small
 		>
 		<button type="submit" class="positive">发布</button>
@@ -61,7 +61,7 @@
 
 <style>
 	div.container {
-		height: calc(100vh - 4rem);
+		height: calc(100svh - 4rem);
 		display: flex;
 		flex-direction: column;
 		row-gap: 1rem;

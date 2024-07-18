@@ -145,15 +145,18 @@ button {
 
 button.positive {
 	background-color: var(--green);
+	border-color: var(--green);
 	color: var(--primary-bg);
 }
 button.negative {
 	background-color: var(--red);
+	border-color: var(--red);
 	color: var(--primary-bg);
 }
 button[disabled] {
-	color: var(--teritary-fg);
 	background-color: var(--hint-color);
+	border-color: var(--hint-color);
+	color: var(--teritary-fg);
 }
 
 a {

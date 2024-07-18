@@ -21,7 +21,7 @@
 			</a>
 			<p class="design">
 				<i>by</i>
-				{article.username}
+				<a class="username" href={`/u/${article.userId}`}>{article.username}</a>
 				<i>in</i>
 				{format(article.createdAt, 'yyyy-MM-dd')}
 			</p>
@@ -37,5 +37,8 @@
 	}
 	article i {
 		color: var(--teritary-fg);
+	}
+	a.username {
+		text-decoration: none;
 	}
 </style>

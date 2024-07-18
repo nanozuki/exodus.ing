@@ -14,6 +14,14 @@ export async function getUserByGitHubId(
 	return users[0];
 }
 
+export async function getUserById(locals: App.Locals, userId: string): Promise<schema.User | null> {
+	const users = await locals.db.select().from(schema.user).where(eq(schema.user.id, userId));
+	if (users.length === 0) {
+		return null;
+	}
+	return users[0];
+}
+
 export async function createUserByGitHub(locals: App.Locals, gu: GitHubUser): Promise<schema.User> {
 	const userId = generateIdFromEntropySize(10); // 16 characters long
 	const now = new Date();
@@ -26,4 +34,12 @@ export async function createUserByGitHub(locals: App.Locals, gu: GitHubUser): Pr
 	};
 	await locals.db.insert(schema.user).values(user);
 	return user;
+}
+
+export async function updateUsername(
+	locals: App.Locals,
+	userId: string,
+	username: string,
+): Promise<void> {
+	await locals.db.update(schema.user).set({ username }).where(eq(schema.user.id, userId));
 }

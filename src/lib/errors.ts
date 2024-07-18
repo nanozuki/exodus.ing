@@ -31,13 +31,25 @@ export const InternalServerError = (context?: string): App.Error => {
 };
 
 export const Unauthorized = (context?: string): App.Error => {
-	const error = { key: 'UNAUTHORIZED', message: '未登陆', context };
+	const error = { key: 'UNAUTHORIZED', message: '未登录', context };
 	console.log(error);
 	return error;
 };
 
 export const ArticleNotFound = (context?: string): App.Error => {
 	const error = { key: 'ARTICLE_NOT_FOUND', message: '文章不存在', context };
+	console.log(error);
+	return error;
+};
+
+export const UserNotFound = (context?: string): App.Error => {
+	const error = { key: 'USER_NOT_FOUND', message: '用户不存在', context };
+	console.log(error);
+	return error;
+};
+
+export const Forbidden = (context?: string): App.Error => {
+	const error = { key: 'FORBIDDEN', message: '没有权限', context };
 	console.log(error);
 	return error;
 };
