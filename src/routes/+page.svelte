@@ -4,10 +4,12 @@
 	const { data } = $props();
 </script>
 
-<p>
-	Nothing can save you except writing<br />
-	by Charles Bukowski
-</p>
+{#if data.articles.length === 0}
+	<p>
+		Nothing can save you except writing<br />
+		by Charles Bukowski
+	</p>
+{/if}
 
 <h4>文章列表</h4>
 
