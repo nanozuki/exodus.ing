@@ -9,5 +9,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		article,
 		myself: locals.user?.id === article.userId,
 		file: file.value,
+		meta: file.data.meta,
 	};
 };

@@ -29,6 +29,9 @@
 {/if}
 
 <article>
+	{#if data.meta?.titleFrom === 'matter'}
+		<h1>{data.meta?.title}</h1>
+	{/if}
 	{@html data.file}
 </article>
 

@@ -13,7 +13,7 @@ import type { VFile } from 'vfile';
 
 interface FileData {
 	matter?: Record<string, unknown>;
-	meta?: { title?: string };
+	meta?: { title?: string; titleFrom?: string };
 }
 
 export type File = VFile & { data: FileData };
@@ -22,7 +22,10 @@ function remarkMeta() {
 	return function (tree: Root, file: File) {
 		matter(file);
 		if (file.data.matter && file.data.matter.title && typeof file.data.matter.title === 'string') {
-			file.data.meta = { title: file.data.matter.title };
+			file.data.meta = {
+				title: file.data.matter.title,
+				titleFrom: 'matter',
+			};
 			return;
 		}
 		for (const node of tree.children) {
@@ -31,7 +34,10 @@ function remarkMeta() {
 					.filter((child) => child.type === 'text')
 					.map((child) => child.value)
 					.join('');
-				file.data.meta = { title: textContent };
+				file.data.meta = {
+					title: textContent,
+					titleFrom: 'heading',
+				};
 				return;
 			}
 		}
