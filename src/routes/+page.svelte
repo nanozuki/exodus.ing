@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>EXODUS</title>
+</svelte:head>
+
 <script lang="ts">
 	import { format } from 'date-fns';
 
