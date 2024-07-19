@@ -7,6 +7,10 @@
 	<title>{data.article.title} - EXODUS</title>
 	<meta property="og:title" content={data.article.title} />
 	<meta property="og:type" content="article" />
+	<meta
+		property="og:description"
+		content={`${data.article.username}, ${format(data.article.updatedAt, 'yyyy-MM-dd')}`}
+	/>
 	<meta property="article:author" content={data.article.username} />
 	<meta property="article:published_time" content={formatISO(data.article.createdAt)} />
 	<meta property="article:modified_time" content={formatISO(data.article.updatedAt)} />
