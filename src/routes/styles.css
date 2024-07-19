@@ -180,3 +180,67 @@ img {
 	display: block;
 	width: 100%;
 }
+
+/* code and quote */
+blockquote {
+	margin: 1rem 0;
+	padding: 1rem;
+	background-color: var(--teritary-bg);
+	border-left: 0.25rem solid var(--cyan);
+}
+blockquote > *:last-child {
+	margin-bottom: 0;
+}
+blockquote blockquote {
+	background-color: var(--secondary-bg);
+}
+blockquote blockquote blockquote {
+	background-color: var(--teritary-bg);
+}
+blockquote blockquote blockquote blockquote {
+	background-color: var(--secondary-bg);
+}
+pre {
+	background-color: var(--sel-color);
+	padding: 1rem;
+}
+code {
+	font-family: var(--monospace);
+	line-height: 1.5;
+	background-color: var(--sel-color);
+	padding: 0 0.125rem;
+	border-radius: 0.125rem;
+}
+pre code {
+	padding: 0;
+	line-height: 1;
+}
+
+/* table */
+table {
+	border-collapse: collapse;
+	margin-bottom: 1.25rem;
+}
+td,
+th {
+	border: 1px solid var(--border-color);
+	padding: 0.25rem 0.5rem;
+}
+td {
+	font-weight: normal;
+	color: var(--secondary-fg);
+}
+th {
+	font-family: var(--serif);
+	font-weight: bold;
+	background-color: var(--teritary-bg);
+}
+
+/* list */
+ul,
+ol {
+	padding-left: 2em;
+}
+li > p {
+	margin-bottom: 0;
+}
