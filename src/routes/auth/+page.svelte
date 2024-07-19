@@ -1,3 +1,6 @@
+<svelte:head>
+    <title>EXODUS</title>
+</svelte:head>
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	let inviteCode = $state('');
