@@ -5,6 +5,10 @@
 	let usernameEditing = $state(false);
 </script>
 
+<svelte:head>
+	<title>{data.user?.username} - EXODUS</title>
+</svelte:head>
+
 <h1>{data.user!.username}</h1>
 {#if data.myself}
 	{#if usernameEditing}

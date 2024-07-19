@@ -14,7 +14,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	if (article.userId !== locals.user.id) {
 		error(401, Forbidden('article editor'));
 	}
-	return { content: article.content };
+	return {
+		content: article.content,
+		title: article.title,
+	};
 };
 
 interface FormData {

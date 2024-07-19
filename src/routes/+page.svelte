@@ -1,12 +1,12 @@
-<svelte:head>
-	<title>EXODUS</title>
-</svelte:head>
-
 <script lang="ts">
 	import { format } from 'date-fns';
 
 	const { data } = $props();
 </script>
+
+<svelte:head>
+	<title>EXODUS</title>
+</svelte:head>
 
 {#if data.articles.length === 0}
 	<p>

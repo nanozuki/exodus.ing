@@ -7,7 +7,7 @@
 	let mode: 'editor' | 'previewer' = $state('editor');
 	let article: string = $state(form?.content || data.content);
 	let compiled: File | undefined = $state(undefined);
-	let title = $derived.by(() => compiled?.data.meta?.title);
+	let title = $derived.by(() => (compiled ? compiled.data.meta?.title : data.title));
 
 	let articleSnapshot = '';
 	onMount(() => {
@@ -21,6 +21,10 @@
 		}, 1000);
 	});
 </script>
+
+<svelte:head>
+	<title>编辑 {title ? title : '无标题'} - EXODUS</title>
+</svelte:head>
 
 <div class="container">
 	<h1 class="design">{title ? title : '无标题'}</h1>

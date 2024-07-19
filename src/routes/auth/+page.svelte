@@ -1,11 +1,12 @@
-<svelte:head>
-    <title>EXODUS</title>
-</svelte:head>
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	let inviteCode = $state('');
 	let { form } = $props();
 </script>
+
+<svelte:head>
+	<title>EXODUS</title>
+</svelte:head>
 
 <h2>注册</h2>
 <p class:error={form?.error.inviteCode}>{form?.error.inviteCode || '获得邀请方可注册。'}</p>
