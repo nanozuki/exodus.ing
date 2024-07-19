@@ -31,3 +31,9 @@
 <article>
 	{@html data.file}
 </article>
+
+<style>
+	article {
+		padding-bottom: 2rem;
+	}
+</style>
