@@ -1,11 +1,15 @@
 <script lang="ts">
-	import { format } from 'date-fns';
+	import { format, formatISO } from 'date-fns';
 	const { data } = $props();
 </script>
 
 <svelte:head>
 	<title>{data.article.title} - EXODUS</title>
-	<meta name="og:title" content={`${data.article.title} - EXODUS`} />
+	<meta property="og:title" content={data.article.title} />
+	<meta property="og:type" content="article" />
+	<meta property="article:author" content={data.article.username} />
+	<meta property="article:published_time" content={formatISO(data.article.createdAt)} />
+	<meta property="article:modified_time" content={formatISO(data.article.updatedAt)} />
 </svelte:head>
 
 <p class="design">
