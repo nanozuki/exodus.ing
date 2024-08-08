@@ -1,7 +1,11 @@
 {
 	"name": "exodus.ing",
 	"version": "0.0.1",
-	"private": true,
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nanozuki/exodus.ing.git"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
