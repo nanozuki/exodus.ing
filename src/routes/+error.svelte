@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+  import { page } from '$app/stores';
 </script>
 
 <h1>Error: {$page.status}</h1>
@@ -8,7 +8,7 @@
 <small>{$page.error?.context}</small>
 
 <style>
-	small {
-		font-family: var(--monospace);
-	}
+  small {
+    font-family: var(--monospace);
+  }
 </style>

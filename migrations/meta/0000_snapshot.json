@@ -60,10 +60,7 @@
       "indexes": {
         "article_title_idx": {
           "name": "article_title_idx",
-          "columns": [
-            "title",
-            "user_id"
-          ],
+          "columns": ["title", "user_id"],
           "isUnique": true
         }
       },
@@ -72,12 +69,8 @@
           "name": "article_user_id_user_id_fk",
           "tableFrom": "article",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -120,9 +113,7 @@
       "indexes": {
         "invite_code_code_unique": {
           "name": "invite_code_code_unique",
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "isUnique": true
         }
       },
@@ -161,12 +152,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -216,16 +203,12 @@
       "indexes": {
         "user_username_unique": {
           "name": "user_username_unique",
-          "columns": [
-            "username"
-          ],
+          "columns": ["username"],
           "isUnique": true
         },
         "user_github_id_unique": {
           "name": "user_github_id_unique",
-          "columns": [
-            "github_id"
-          ],
+          "columns": ["github_id"],
           "isUnique": true
         }
       },

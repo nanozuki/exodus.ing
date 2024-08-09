@@ -12,47 +12,47 @@ import type { Root } from 'mdast';
 import type { VFile } from 'vfile';
 
 interface FileData {
-	matter?: Record<string, unknown>;
-	meta?: { title?: string; titleFrom?: string };
+  matter?: Record<string, unknown>;
+  meta?: { title?: string; titleFrom?: string };
 }
 
 export type File = VFile & { data: FileData };
 
 function remarkMeta() {
-	return function (tree: Root, file: File) {
-		matter(file);
-		if (file.data.matter && file.data.matter.title && typeof file.data.matter.title === 'string') {
-			file.data.meta = {
-				title: file.data.matter.title,
-				titleFrom: 'matter',
-			};
-			return;
-		}
-		for (const node of tree.children) {
-			if (node.type === 'heading' && node.depth === 1) {
-				const textContent = node.children
-					.filter((child) => child.type === 'text')
-					.map((child) => child.value)
-					.join('');
-				file.data.meta = {
-					title: textContent,
-					titleFrom: 'heading',
-				};
-				return;
-			}
-		}
-	};
+  return function (tree: Root, file: File) {
+    matter(file);
+    if (file.data.matter && file.data.matter.title && typeof file.data.matter.title === 'string') {
+      file.data.meta = {
+        title: file.data.matter.title,
+        titleFrom: 'matter',
+      };
+      return;
+    }
+    for (const node of tree.children) {
+      if (node.type === 'heading' && node.depth === 1) {
+        const textContent = node.children
+          .filter((child) => child.type === 'text')
+          .map((child) => child.value)
+          .join('');
+        file.data.meta = {
+          title: textContent,
+          titleFrom: 'heading',
+        };
+        return;
+      }
+    }
+  };
 }
 
 export const compile = async (article: string): Promise<File> => {
-	return await unified()
-		.use(remarkParse)
-		.use(remarkFrontmatter)
-		.use(remarkMeta)
-		.use(remarkGfm)
-		.use(remarkRehype, { allowDangerousHtml: true })
-		.use(rehypeRaw)
-		.use(rehypeSanitize)
-		.use(rehypeStringify)
-		.process(article);
+  return await unified()
+    .use(remarkParse)
+    .use(remarkFrontmatter)
+    .use(remarkMeta)
+    .use(remarkGfm)
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeRaw)
+    .use(rehypeSanitize)
+    .use(rehypeStringify)
+    .process(article);
 };
