@@ -10,11 +10,12 @@
 </svelte:head>
 
 <h1>{data.user!.username}</h1>
-{#if data.myself}
+{#if data.isMyself}
   {#if usernameEditing}
     {#if form?.error}
       <p class="error">{form?.error}</p>
     {/if}
+    <p>修改用户名，个人主页地址也变更，请谨慎修改。</p>
     <form method="POST">
       <input type="text" name="username" value={form?.username} required />
       <button class="negative" type="button" onclick={() => (usernameEditing = false)}>取消</button>
@@ -42,7 +43,7 @@
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
       </p>
-      {#if data.myself}
+      {#if data.isMyself}
         <a href="/a/{article.articleId}/edit">编辑</a>
       {/if}
     </article>

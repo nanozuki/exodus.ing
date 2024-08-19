@@ -28,7 +28,7 @@
   <a class="design" href="/"><h1 class="design">EXODUS</h1></a>
   <div style="flex: 1"></div>
   {#if data.user}
-    <a href={`/u/${data.user.id}`}>{data.user.username}</a>
+    <a href={`/u/${data.user.username}`}>{data.user.username}</a>
   {:else}
     <a href="/auth">注册/登录</a>
   {/if}

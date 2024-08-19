@@ -8,10 +8,7 @@ export async function getUserByGitHubId(
   id: number,
 ): Promise<schema.User | null> {
   const users = await locals.db.select().from(schema.user).where(eq(schema.user.githubId, id));
-  if (users.length === 0) {
-    return null;
-  }
-  return users[0];
+  return users.length !== 0 ? users[0] : null;
 }
 
 export async function getUserById(locals: App.Locals, userId: string): Promise<schema.User | null> {
@@ -20,10 +17,18 @@ export async function getUserById(locals: App.Locals, userId: string): Promise<s
     userId = userId.slice(0, 6);
   }
   const users = await locals.db.select().from(schema.user).where(eq(schema.user.id, userId));
-  if (users.length === 0) {
-    return null;
-  }
-  return users[0];
+  return users.length !== 0 ? users[0] : null;
+}
+
+export async function getUserByUsername(
+  locals: App.Locals,
+  username: string,
+): Promise<schema.User | null> {
+  const users = await locals.db
+    .select()
+    .from(schema.user)
+    .where(eq(schema.user.username, username));
+  return users.length !== 0 ? users[0] : null;
 }
 
 export async function createUserByGitHub(locals: App.Locals, gu: GitHubUser): Promise<schema.User> {

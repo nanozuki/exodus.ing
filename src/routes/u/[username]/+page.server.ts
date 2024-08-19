@@ -1,23 +1,23 @@
 import { listArticlesByUserId } from '$lib/server/article';
 import { error, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { Unauthorized } from '$lib/errors';
-import { getUserById, updateUsername } from '$lib/server/user';
+import { Unauthorized, UserNotFound } from '$lib/errors';
+import { getUserById, getUserByUsername, updateUsername } from '$lib/server/user';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  const articles = await listArticlesByUserId(locals, params.userId, 10, 0);
-  if (params.userId === locals.user?.id) {
-    return {
-      articles: articles,
-      myself: true,
-      user: locals.user,
-    };
+  let user = await getUserByUsername(locals, params.username);
+  if (!user) {
+    user = await getUserById(locals, params.username);
   }
-  const user = await getUserById(locals, params.userId);
+  if (!user) {
+    return error(404, UserNotFound(params.username));
+  }
+  const articles = await listArticlesByUserId(locals, user.id, 10, 0);
+  const isMyself = user.id === locals.user?.id;
   return {
-    articles: articles,
-    myself: params.userId === locals.user?.id,
-    user: user,
+    articles,
+    isMyself,
+    user,
   };
 };
 
@@ -60,6 +60,6 @@ export const actions = {
         error: JSON.stringify(e),
       };
     }
-    redirect(301, `/u/${userId}`);
+    redirect(301, `/u/${username}`);
   },
 } satisfies Actions;
