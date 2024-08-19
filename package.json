@@ -18,8 +18,9 @@
     "test:integration": "playwright test",
     "test:unit": "vitest",
     "migration:generate": "drizzle-kit generate",
-    "migration:local": "pnpx wrangler d1 migrations apply exodus-ing --local",
-    "migration:prod": "pnpx wrangler d1 migrations apply exodus-ing --remote"
+    "migration:custom": "drizzle-kit generate --custom",
+    "migration:local": "wrangler d1 migrations apply exodus-ing --local",
+    "migration:prod": "wrangler d1 migrations apply exodus-ing --remote"
   },
   "devDependencies": {
     "@playwright/test": "^1.28.1",
