@@ -1,9 +1,9 @@
 import { ArticleNotFound, Unauthorized } from '$lib/errors';
 import * as schema from '$lib/schema';
 import { error } from '@sveltejs/kit';
-import { generateIdFromEntropySize } from 'lucia';
 import { desc, eq } from 'drizzle-orm';
 import type { Article } from '$lib/schema';
+import { generateArticleId } from './id';
 
 export async function createMarkdownArticle(
   locals: App.Locals,
@@ -14,7 +14,7 @@ export async function createMarkdownArticle(
   if (!userId) {
     error(401, Unauthorized('create article'));
   }
-  const articleId = generateIdFromEntropySize(10);
+  const articleId = await generateArticleId(locals);
   const now = new Date();
   await locals.db.insert(schema.article).values({
     id: articleId,

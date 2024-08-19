@@ -1,7 +1,7 @@
 import * as schema from '$lib/schema';
 import { eq } from 'drizzle-orm';
 import type { GitHubUser } from './auth';
-import { generateIdFromEntropySize } from 'lucia';
+import { generateUserId } from './id';
 
 export async function getUserByGitHubId(
   locals: App.Locals,
@@ -23,7 +23,7 @@ export async function getUserById(locals: App.Locals, userId: string): Promise<s
 }
 
 export async function createUserByGitHub(locals: App.Locals, gu: GitHubUser): Promise<schema.User> {
-  const userId = generateIdFromEntropySize(10); // 16 characters long
+  const userId = await generateUserId(locals);
   const now = new Date();
   const user = {
     id: userId,

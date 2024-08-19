@@ -11,9 +11,10 @@
       perSystem = { config, self', inputs', pkgs, system, ... }: {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
+            litecli
             nodePackages.nodejs
-            pnpm
-            svelte-language-server
+            nodePackages.pnpm
+            nodePackages.svelte-language-server
           ];
           shellHook = ''
             export ESLINT_USE_FLAT_CONFIG="true"
