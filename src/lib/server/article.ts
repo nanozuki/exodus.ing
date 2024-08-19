@@ -102,6 +102,10 @@ export async function listArticlesByUserId(
 type ArticleContent = Article & { userId: string; username: string };
 
 export async function getArticle(locals: App.Locals, articleId: string): Promise<ArticleContent> {
+  // if articleId's length is 16, it's legacy articleId, shorten it by first 6 characters
+  if (articleId.length === 16) {
+    articleId = articleId.slice(0, 6);
+  }
   const articles = await locals.db
     .select({
       id: schema.article.id,

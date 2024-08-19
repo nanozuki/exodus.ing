@@ -15,6 +15,10 @@ export async function getUserByGitHubId(
 }
 
 export async function getUserById(locals: App.Locals, userId: string): Promise<schema.User | null> {
+  // if userId's length is 16, it's legacy userId, shorten it by first 6 characters
+  if (userId.length === 16) {
+    userId = userId.slice(0, 6);
+  }
   const users = await locals.db.select().from(schema.user).where(eq(schema.user.id, userId));
   if (users.length === 0) {
     return null;
