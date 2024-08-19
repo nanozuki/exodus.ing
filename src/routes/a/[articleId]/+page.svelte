@@ -18,15 +18,13 @@
 
 <p class="design">
   <i>by</i>
-  {data.article.username}
+  <a class="username" href={`/u/${data.article.username}`}>{data.article.username}</a>
   <i>in</i>
   {format(data.article.createdAt, 'yyyy-MM-dd')}
+  {#if data.myself}
+    [<a href="/a/{data.article.id}/edit">编辑文章</a>]
+  {/if}
 </p>
-{#if data.myself}
-  <p>
-    <a href="/a/{data.article.id}/edit">编辑文章</a>
-  </p>
-{/if}
 
 <article>
   {#if data.meta?.titleFrom === 'matter'}

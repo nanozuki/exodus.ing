@@ -25,7 +25,7 @@
       </a>
       <p class="design">
         <i>by</i>
-        <a class="username" href={`/u/${article.userId}`}>{article.username}</a>
+        <a class="username" href={`/u/${article.username}`}>{article.username}</a>
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
       </p>
