@@ -47,6 +47,18 @@ function getGitHubProvider() {
   return github;
 }
 
+let expireDate: string | null = null;
+
+// expireSession every day (per instance)
+async function expireSession(lucia: ReturnType<typeof getLucia>) {
+  const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  if (expireDate === now) {
+    return;
+  }
+  expireDate = now;
+  await lucia.deleteExpiredSessions();
+}
+
 async function parseSession(
   event: RequestEvent,
   lucia: ReturnType<typeof getLucia>,
@@ -60,6 +72,7 @@ async function parseSession(
     return { user: null, session: null, cookie: null };
   }
 
+  await expireSession(lucia);
   const { session, user } = await lucia.validateSession(sessionId);
   if (session && session.fresh) {
     const sessionCookie = lucia.createSessionCookie(session.id);
