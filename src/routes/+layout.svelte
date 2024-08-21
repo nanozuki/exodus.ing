@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { navigating } from '$app/stores';
+  import Logo from '$lib/comps/Logo.svelte';
+  import Loading from '$lib/comps/Loading.svelte';
   import './styles.css';
 
   const { children, data } = $props();
@@ -15,16 +18,7 @@
 </svelte:head>
 
 <header>
-  <svg
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-    width="32"
-    height="32"
-    viewBox="0 0 24 24"
-    ><path
-      d="M3 1H1v18h18V1zm14 2v14H3V3zm4 18H5v2h18V5h-2zM15 5H5v2h10zM5 9h10v2H5zm7 4H5v2h7z"
-    /></svg
-  >
+  {#if $navigating}<Loading />{:else}<Logo />{/if}
   <a class="design" href="/"><h1 class="design">EXODUS</h1></a>
   <div style="flex: 1"></div>
   {#if data.user}
