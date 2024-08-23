@@ -14,7 +14,9 @@ export async function createMarkdownArticle(
   if (!userId) {
     error(401, Unauthorized('create article'));
   }
+  console.log('userId', userId);
   const articleId = await generateArticleId(locals);
+  console.log('articleId', articleId);
   const now = new Date();
   await locals.db.insert(schema.article).values({
     id: articleId,
