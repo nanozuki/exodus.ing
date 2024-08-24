@@ -209,6 +209,7 @@ blockquote blockquote blockquote blockquote {
 pre {
   background-color: var(--sel-color);
   padding: 1rem;
+  overflow-x: auto;
 }
 code {
   font-family: var(--monospace);
