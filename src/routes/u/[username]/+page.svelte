@@ -7,6 +7,7 @@
 
 <svelte:head>
   <title>{data.user?.username} - EXODUS</title>
+  <meta property="og:title" content={data.user?.username} />
 </svelte:head>
 
 <h1>{data.user!.username}</h1>

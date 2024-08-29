@@ -6,6 +6,8 @@
 
 <svelte:head>
   <title>EXODUS</title>
+  <meta property="og:title" content="EXODUS" />
+  <meta property="og:description" content="A blog platform for friends." />
 </svelte:head>
 
 {#if data.articles.length === 0}

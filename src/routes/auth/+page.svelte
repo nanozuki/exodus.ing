@@ -6,6 +6,7 @@
 
 <svelte:head>
   <title>EXODUS</title>
+  <meta property="og:title" content="EXODUS" />
 </svelte:head>
 
 <h2>注册</h2>
