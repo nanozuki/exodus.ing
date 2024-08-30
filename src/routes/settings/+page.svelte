@@ -28,13 +28,11 @@
 </form>
 
 <h4>账户</h4>
-<form action="?account/username" method="post">
-  <label for="username">用户名</label>
-  <input type="text" name="username" bind:value={username} />
-  {#if user.username !== username}
-    <button type="submit">更新</button>
-  {/if}
-</form>
+<div>
+  <p>用户名</p>
+  <p>{username}</p>
+  <button type="submit">更新</button>
+</div>
 <div>
   <p>GitHub ID</p>
   <p>github.com/</p>
