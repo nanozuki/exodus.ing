@@ -32,10 +32,12 @@ function getLucia(db: DrizzleD1Database<typeof schema>) {
         secure: !dev, // whether to use HTTPS
       },
     },
+    // convert user attributes to session attributes, finally stored in locals.
     getUserAttributes: (attributes) => {
       return {
-        githubId: attributes.github_id,
+        githubId: attributes.githubId,
         username: attributes.username,
+        name: attributes.name || attributes.username,
       };
     },
   });
@@ -105,8 +107,9 @@ declare module 'lucia' {
 }
 
 interface DatabaseUserAttributes {
-  github_id: number;
+  githubId: number;
   username: string;
+  name: string;
 }
 
 export type Database = DrizzleD1Database<typeof schema>;

@@ -24,7 +24,7 @@
     </form>
   {:else}
     <div class="actions">
-      <button class="positive" onclick={() => (usernameEditing = true)}>修改用户名</button>
+      <a class="button" href="/settings">设置</a>
       <a class="button" href="/a/new/edit">添加新文章</a>
     </div>
   {/if}
@@ -40,13 +40,13 @@
       </a>
       <p class="design">
         <i>by</i>
-        {article.username}
+        {article.name}
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
+        {#if data.isMyself}
+          <a href="/a/{article.articleId}/edit">[编辑]</a>
+        {/if}
       </p>
-      {#if data.isMyself}
-        <a href="/a/{article.articleId}/edit">编辑</a>
-      {/if}
     </article>
   {/each}
 </div>

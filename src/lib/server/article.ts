@@ -14,9 +14,7 @@ export async function createMarkdownArticle(
   if (!userId) {
     error(401, Unauthorized('create article'));
   }
-  console.log('userId', userId);
   const articleId = await generateArticleId(locals);
-  console.log('articleId', articleId);
   const now = new Date();
   await locals.db.insert(schema.article).values({
     id: articleId,
@@ -55,6 +53,7 @@ interface ArticleListItem {
   articleId: string;
   userId: string;
   username: string;
+  name: string;
   title: string;
   createdAt: Date;
 }
@@ -64,11 +63,12 @@ export async function listArticles(
   limit: number,
   offset: number,
 ): Promise<ArticleListItem[]> {
-  return await locals.db
+  const articles = await locals.db
     .select({
       articleId: schema.article.id,
       userId: schema.user.id,
       username: schema.user.username,
+      name: schema.user.name,
       title: schema.article.title,
       createdAt: schema.article.createdAt,
     })
@@ -77,6 +77,10 @@ export async function listArticles(
     .orderBy(desc(schema.article.createdAt))
     .limit(limit)
     .offset(offset);
+  return articles.map((article) => ({
+    ...article,
+    name: article.name || article.username,
+  }));
 }
 
 export async function listArticlesByUserId(
@@ -85,11 +89,12 @@ export async function listArticlesByUserId(
   limit: number,
   offset: number,
 ): Promise<ArticleListItem[]> {
-  return await locals.db
+  const articles = await locals.db
     .select({
       articleId: schema.article.id,
       userId: schema.user.id,
       username: schema.user.username,
+      name: schema.user.name,
       title: schema.article.title,
       createdAt: schema.article.createdAt,
     })
@@ -99,9 +104,13 @@ export async function listArticlesByUserId(
     .orderBy(desc(schema.article.createdAt))
     .limit(limit)
     .offset(offset);
+  return articles.map((article) => ({
+    ...article,
+    name: article.name || article.username,
+  }));
 }
 
-type ArticleContent = Article & { userId: string; username: string };
+type ArticleContent = Article & { userId: string; username: string; name: string };
 
 export async function getArticle(locals: App.Locals, articleId: string): Promise<ArticleContent> {
   // if articleId's length is 16, it's legacy articleId, shorten it by first 6 characters
@@ -118,6 +127,7 @@ export async function getArticle(locals: App.Locals, articleId: string): Promise
       content: schema.article.content,
       contentType: schema.article.contentType,
       username: schema.user.username,
+      name: schema.user.name,
     })
     .from(schema.article)
     .where(eq(schema.article.id, articleId))
@@ -125,5 +135,8 @@ export async function getArticle(locals: App.Locals, articleId: string): Promise
   if (articles.length === 0) {
     error(404, ArticleNotFound(`articleId=${articleId}`));
   }
-  return articles[0];
+  return {
+    ...articles[0],
+    name: articles[0].name || articles[0].username,
+  };
 }

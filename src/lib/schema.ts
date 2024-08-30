@@ -6,6 +6,8 @@ export const user = sqliteTable('user', {
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
   username: text('username').notNull().unique(),
   githubId: integer('github_id').unique(),
+  name: text('name'),
+  aboutMe: text('about_me'),
 });
 
 export type User = typeof user.$inferSelect;
