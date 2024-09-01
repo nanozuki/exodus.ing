@@ -16,7 +16,9 @@
       <a class="button" href="/settings">设置</a>
     {/if}
   </h1>
-  {@html data.aboutMe}
+  {#if data.aboutMe}
+    {@html data.aboutMe}
+  {/if}
 </article>
 
 <h4>
