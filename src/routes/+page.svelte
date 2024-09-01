@@ -6,6 +6,8 @@
 
 <svelte:head>
   <title>EXODUS</title>
+  <meta property="og:title" content="EXODUS" />
+  <meta property="og:description" content="A blog platform for friends." />
 </svelte:head>
 
 {#if data.articles.length === 0}
@@ -25,7 +27,7 @@
       </a>
       <p class="design">
         <i>by</i>
-        <a class="username" href={`/u/${article.username}`}>{article.username}</a>
+        <a class="username" href={`/u/${article.username}`}>{article.name}</a>
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
       </p>

@@ -3,8 +3,8 @@ import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/privat
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { RequestEvent } from '@sveltejs/kit';
 import { GitHub } from 'arctic';
-import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
-import { Cookie, Lucia } from 'lucia';
+import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
+import { type Cookie, Lucia } from 'lucia';
 import * as schema from '../schema';
 
 async function getPlatform(event: RequestEvent): Promise<App.Platform> {
@@ -32,10 +32,12 @@ function getLucia(db: DrizzleD1Database<typeof schema>) {
         secure: !dev, // whether to use HTTPS
       },
     },
+    // convert user attributes to session attributes, finally stored in locals.
     getUserAttributes: (attributes) => {
       return {
-        githubId: attributes.github_id,
+        githubId: attributes.githubId,
         username: attributes.username,
+        name: attributes.name || attributes.username,
       };
     },
   });
@@ -105,8 +107,9 @@ declare module 'lucia' {
 }
 
 interface DatabaseUserAttributes {
-  github_id: number;
+  githubId: number;
   username: string;
+  name: string;
 }
 
 export type Database = DrizzleD1Database<typeof schema>;

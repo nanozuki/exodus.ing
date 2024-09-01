@@ -18,7 +18,7 @@
 
 <p class="design">
   <i>by</i>
-  <a class="username" href={`/u/${data.article.username}`}>{data.article.username}</a>
+  <a class="username" href={`/u/${data.article.username}`}>{data.article.name}</a>
   <i>in</i>
   {format(data.article.createdAt, 'yyyy-MM-dd')}
   {#if data.myself}
