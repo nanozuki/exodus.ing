@@ -11,7 +11,7 @@
 <h4>个人资料</h4>
 <form id="profile" action="?/profile" method="post">
   <div>
-    <label for="name">姓名</label>
+    <label for="name">名称</label>
     <input type="text" name="name" value={user.name} required />
   </div>
   <div>
