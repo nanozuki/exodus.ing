@@ -3,8 +3,8 @@ import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/privat
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { RequestEvent } from '@sveltejs/kit';
 import { GitHub } from 'arctic';
-import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
-import { Cookie, Lucia } from 'lucia';
+import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
+import { type Cookie, Lucia } from 'lucia';
 import * as schema from '../schema';
 
 async function getPlatform(event: RequestEvent): Promise<App.Platform> {
