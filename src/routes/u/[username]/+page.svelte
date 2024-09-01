@@ -1,8 +1,7 @@
 <script lang="ts">
   import { format } from 'date-fns';
 
-  const { data, form } = $props();
-  let usernameEditing = $state(false);
+  const { data } = $props();
 </script>
 
 <svelte:head>
@@ -10,27 +9,22 @@
   <meta property="og:title" content={data.user?.username} />
 </svelte:head>
 
-<h1>{data.user!.username}</h1>
-{#if data.isMyself}
-  {#if usernameEditing}
-    {#if form?.error}
-      <p class="error">{form?.error}</p>
-    {/if}
-    <p>修改用户名，个人主页地址也变更，请谨慎修改。</p>
-    <form method="POST">
-      <input type="text" name="username" value={form?.username} required />
-      <button class="negative" type="button" onclick={() => (usernameEditing = false)}>取消</button>
-      <button class="positive" type="submit">提交</button>
-    </form>
-  {:else}
-    <div class="actions">
+<article>
+  <h1>
+    {data.user!.username}
+    {#if data.isMyself}
       <a class="button" href="/settings">设置</a>
-      <a class="button" href="/a/new/edit">添加新文章</a>
-    </div>
-  {/if}
-{/if}
+    {/if}
+  </h1>
+  {@html data.aboutMe}
+</article>
 
-<h4>文章列表</h4>
+<h4>
+  文章列表
+  {#if data.isMyself}
+    <a class="button" href="/a/new/edit">+ 新文章</a>
+  {/if}
+</h4>
 
 <div class="article-list">
   {#each data.articles as article}
@@ -52,38 +46,14 @@
 </div>
 
 <style>
-  form {
-    width: 15rem;
-    display: grid;
-    grid-template:
-      'username username' auto
-      'cancel submit' auto / 1fr 1fr;
-    gap: 1rem;
-  }
-  p.error {
-    color: var(--red);
-  }
-  form input {
-    grid-area: username;
-  }
-  form button.negative {
-    grid-area: cancel;
-  }
-  form button.positive {
-    grid-area: submit;
-  }
-
-  div.actions {
-    display: flex;
-    column-gap: 1rem;
-  }
   a.button {
-    display: inline-block;
-    line-height: 2rem;
+    display: inline;
+    font-size: 1rem;
     padding: 0 1rem;
     background-color: var(--green);
     color: var(--primary-bg);
     text-decoration: none;
+    margin-left: 0.5rem;
   }
 
   div.article-list {
