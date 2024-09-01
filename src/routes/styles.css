@@ -127,10 +127,15 @@ input {
   line-height: 1.5;
   /* y-padding = (hight(2rem) - line-height(1.5rem)) / 2 - border(2px) */
   padding: calc(0.25rem - 1px) 0.5rem;
+  color: var(--primary-fg);
 }
 input:focus-visible {
   border: 1px solid var(--blue);
   outline: none;
+}
+textarea {
+  color: var(--primary-fg);
+  resize: vertical;
 }
 
 button {

@@ -30,6 +30,8 @@
   }
   label {
     display: block;
+    font-family: var(--serif);
+    font-weight: bold;
   }
   input,
   textarea {
@@ -37,7 +39,6 @@
     width: 100%;
   }
   textarea {
-    resize: vertical;
-    height: 3rem;
+    height: 4rem;
   }
 </style>
