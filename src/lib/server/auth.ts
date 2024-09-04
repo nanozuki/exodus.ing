@@ -1,16 +1,13 @@
-import * as schema from '$lib/schema';
 import { generateState, OAuth2RequestError } from 'arctic';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { error } from '@sveltejs/kit';
 import { InternalServerError, OAuthValidationError } from '$lib/errors';
 import { type CookieAttributes } from 'lucia';
+import { tInviteCode } from '$lib/schema';
 
 export async function validateInviteCode(locals: App.Locals, inviteCode: string): Promise<boolean> {
-  const codes = await locals.db
-    .select()
-    .from(schema.inviteCode)
-    .where(eq(schema.inviteCode.code, inviteCode));
+  const codes = await locals.db.select().from(tInviteCode).where(eq(tInviteCode.code, inviteCode));
   if (codes.length === 0) {
     return false;
   }

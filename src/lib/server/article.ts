@@ -1,9 +1,9 @@
 import { ArticleNotFound, Unauthorized } from '$lib/errors';
-import * as schema from '$lib/schema';
 import { error } from '@sveltejs/kit';
 import { desc, eq } from 'drizzle-orm';
-import type { Article } from '$lib/schema';
+import type { Article } from '$lib/entities';
 import { generateArticleId } from './id';
+import { tArticle, tUser } from '$lib/schema';
 
 export async function createMarkdownArticle(
   locals: App.Locals,
@@ -16,7 +16,7 @@ export async function createMarkdownArticle(
   }
   const articleId = await generateArticleId(locals);
   const now = new Date();
-  await locals.db.insert(schema.article).values({
+  await locals.db.insert(tArticle).values({
     id: articleId,
     createdAt: now,
     updatedAt: now,
@@ -40,13 +40,13 @@ export async function updateMarkdownArticle(
   }
   const now = new Date();
   await locals.db
-    .update(schema.article)
+    .update(tArticle)
     .set({
       title,
       content,
       updatedAt: now,
     })
-    .where(eq(schema.article.id, articleId));
+    .where(eq(tArticle.id, articleId));
 }
 
 interface ArticleListItem {
@@ -65,16 +65,16 @@ export async function listArticles(
 ): Promise<ArticleListItem[]> {
   const articles = await locals.db
     .select({
-      articleId: schema.article.id,
-      userId: schema.user.id,
-      username: schema.user.username,
-      name: schema.user.name,
-      title: schema.article.title,
-      createdAt: schema.article.createdAt,
+      articleId: tArticle.id,
+      userId: tUser.id,
+      username: tUser.username,
+      name: tUser.name,
+      title: tArticle.title,
+      createdAt: tArticle.createdAt,
     })
-    .from(schema.article)
-    .innerJoin(schema.user, eq(schema.article.userId, schema.user.id))
-    .orderBy(desc(schema.article.createdAt))
+    .from(tArticle)
+    .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+    .orderBy(desc(tArticle.createdAt))
     .limit(limit)
     .offset(offset);
   return articles.map((article) => ({
@@ -91,17 +91,17 @@ export async function listArticlesByUserId(
 ): Promise<ArticleListItem[]> {
   const articles = await locals.db
     .select({
-      articleId: schema.article.id,
-      userId: schema.user.id,
-      username: schema.user.username,
-      name: schema.user.name,
-      title: schema.article.title,
-      createdAt: schema.article.createdAt,
+      articleId: tArticle.id,
+      userId: tUser.id,
+      username: tUser.username,
+      name: tUser.name,
+      title: tArticle.title,
+      createdAt: tArticle.createdAt,
     })
-    .from(schema.article)
-    .innerJoin(schema.user, eq(schema.article.userId, schema.user.id))
-    .where(eq(schema.article.userId, userId))
-    .orderBy(desc(schema.article.createdAt))
+    .from(tArticle)
+    .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+    .where(eq(tArticle.userId, userId))
+    .orderBy(desc(tArticle.createdAt))
     .limit(limit)
     .offset(offset);
   return articles.map((article) => ({
@@ -119,19 +119,19 @@ export async function getArticle(locals: App.Locals, articleId: string): Promise
   }
   const articles = await locals.db
     .select({
-      id: schema.article.id,
-      createdAt: schema.article.createdAt,
-      updatedAt: schema.article.updatedAt,
-      userId: schema.article.userId,
-      title: schema.article.title,
-      content: schema.article.content,
-      contentType: schema.article.contentType,
-      username: schema.user.username,
-      name: schema.user.name,
+      id: tArticle.id,
+      createdAt: tArticle.createdAt,
+      updatedAt: tArticle.updatedAt,
+      userId: tArticle.userId,
+      title: tArticle.title,
+      content: tArticle.content,
+      contentType: tArticle.contentType,
+      username: tUser.username,
+      name: tUser.name,
     })
-    .from(schema.article)
-    .where(eq(schema.article.id, articleId))
-    .innerJoin(schema.user, eq(schema.article.userId, schema.user.id));
+    .from(tArticle)
+    .where(eq(tArticle.id, articleId))
+    .innerJoin(tUser, eq(tArticle.userId, tUser.id));
   if (articles.length === 0) {
     error(404, ArticleNotFound(`articleId=${articleId}`));
   }

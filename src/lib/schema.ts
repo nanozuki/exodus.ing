@@ -1,26 +1,24 @@
 import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-export const user = sqliteTable('user', {
+export const tUser = sqliteTable('user', {
   id: text('id').notNull().primaryKey(),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
   username: text('username').notNull().unique(),
   githubId: integer('github_id').unique(),
-  name: text('name'),
-  aboutMe: text('about_me'),
+  name: text('name').notNull(),
+  aboutMe: text('about_me').notNull(),
 });
 
-export type User = typeof user.$inferSelect;
-
-export const session = sqliteTable('session', {
+export const tSession = sqliteTable('session', {
   id: text('id').notNull().primaryKey(),
   userId: text('user_id')
     .notNull()
-    .references(() => user.id),
+    .references(() => tUser.id, { onUpdate: 'cascade' }),
   expiresAt: integer('expires_at').notNull(),
 });
 
-export const inviteCode = sqliteTable('invite_code', {
+export const tInviteCode = sqliteTable('invite_code', {
   id: integer('id').primaryKey(),
   code: text('code').notNull().unique(),
   validFrom: integer('valid_from', { mode: 'timestamp_ms' }).notNull(),
@@ -29,7 +27,7 @@ export const inviteCode = sqliteTable('invite_code', {
 
 export type ArticleContentType = 'markdown' | 'html';
 
-export const article = sqliteTable(
+export const tArticle = sqliteTable(
   'article',
   {
     id: text('id').notNull().primaryKey(),
@@ -37,7 +35,7 @@ export const article = sqliteTable(
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
     userId: text('user_id')
       .notNull()
-      .references(() => user.id),
+      .references(() => tUser.id, { onUpdate: 'cascade' }),
     title: text('title').notNull(),
     content: text('content').notNull(),
     contentType: text('content_type').$type<ArticleContentType>().notNull(),
@@ -48,5 +46,3 @@ export const article = sqliteTable(
     };
   },
 );
-
-export type Article = typeof article.$inferSelect;

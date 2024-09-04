@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   }
   const articles = await listArticlesByUserId(locals, user.id, 10, 0);
   let aboutMe: Value | null = null;
-  if (typeof user.aboutMe === 'string' && user.aboutMe.length > 0) {
+  if (user.aboutMe.length > 0) {
     const compiled = await compile(user.aboutMe);
     aboutMe = compiled.value;
   }

@@ -1,7 +1,4 @@
-export interface User {
-  id: string;
-  githubId: number | null;
-  username: string;
-  name: string;
-  aboutMe: string | null;
-}
+import type { tArticle, tUser } from './schema';
+
+export type User = typeof tUser.$inferSelect;
+export type Article = typeof tArticle.$inferSelect;

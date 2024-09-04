@@ -5,7 +5,8 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { GitHub } from 'arctic';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { type Cookie, Lucia } from 'lucia';
-import * as schema from '../schema';
+import * as schema from '$lib/schema';
+import { tSession, tUser } from '$lib/schema';
 
 async function getPlatform(event: RequestEvent): Promise<App.Platform> {
   if (dev) {
@@ -25,7 +26,7 @@ function getDatabase(platform: App.Platform): DrizzleD1Database<typeof schema> {
 }
 
 function getLucia(db: DrizzleD1Database<typeof schema>) {
-  const authAdapter = new DrizzleSQLiteAdapter(db, schema.session, schema.user);
+  const authAdapter = new DrizzleSQLiteAdapter(db, tSession, tUser);
   const lucia = new Lucia(authAdapter, {
     sessionCookie: {
       attributes: {
