@@ -17,6 +17,7 @@
     {/if}
   </h1>
   {#if data.aboutMe}
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html data.aboutMe}
   {/if}
 </article>
