@@ -1,9 +1,10 @@
 <script lang="ts">
   import Account from './Account.svelte';
+  import Domains from './Domains.svelte';
   import Profile from './Profile.svelte';
 
   const { data } = $props();
-  const { user } = data;
+  const { user, domains } = data;
 </script>
 
 <svelte:head>
@@ -14,5 +15,7 @@
 <h3>设置</h3>
 
 <Profile {user} />
+
+<Domains {domains} />
 
 <Account {user} />
