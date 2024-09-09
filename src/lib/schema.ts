@@ -46,3 +46,13 @@ export const tArticle = sqliteTable(
     };
   },
 );
+
+export const tUserDomain = sqliteTable('user_domain', {
+  id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => tUser.id, { onUpdate: 'cascade' }),
+  domain: text('domain').notNull().unique(),
+  verifyTxtRecord: text('verify_txt_record').notNull(),
+  verifiedAt: integer('verified_at', { mode: 'timestamp_ms' }),
+});
