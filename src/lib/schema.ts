@@ -25,7 +25,7 @@ export const tInviteCode = sqliteTable('invite_code', {
   validTo: integer('valid_to', { mode: 'timestamp_ms' }).notNull(),
 });
 
-export type ArticleContentType = 'markdown' | 'html';
+export type ArticleContentType = 'markdown' | 'external_link';
 
 export const tArticle = sqliteTable(
   'article',

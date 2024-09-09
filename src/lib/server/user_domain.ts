@@ -1,7 +1,7 @@
 import { getTxtRecords } from '$lib/dns';
 import type { UserDomain } from '$lib/entities';
 import { tUserDomain } from '$lib/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNotNull } from 'drizzle-orm';
 import { generateIdFromEntropySize } from 'lucia';
 
 export async function createUserDomain(
@@ -50,6 +50,16 @@ export async function verifyUserDomain(
 
 export async function getUserDomains(locals: App.Locals, userId: string): Promise<UserDomain[]> {
   return locals.db.select().from(tUserDomain).where(eq(tUserDomain.userId, userId));
+}
+
+export async function getUserVerifiedDomains(
+  locals: App.Locals,
+  userId: string,
+): Promise<UserDomain[]> {
+  return locals.db
+    .select()
+    .from(tUserDomain)
+    .where(and(eq(tUserDomain.userId, userId), isNotNull(tUserDomain.verifiedAt)));
 }
 
 export async function deleteUserDomain(

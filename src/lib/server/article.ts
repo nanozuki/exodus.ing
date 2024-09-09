@@ -4,6 +4,7 @@ import { desc, eq } from 'drizzle-orm';
 import type { Article } from '$lib/entities';
 import { generateArticleId } from './id';
 import { tArticle, tUser } from '$lib/schema';
+import { getUserVerifiedDomains } from './user_domain';
 
 export async function createMarkdownArticle(
   locals: App.Locals,
@@ -24,6 +25,35 @@ export async function createMarkdownArticle(
     title,
     content,
     contentType: 'markdown',
+  });
+  return articleId;
+}
+
+export async function createExternalLinkArticle(
+  locals: App.Locals,
+  title: string,
+  url: string,
+  publishedAt: Date,
+  lastEditedAt: Date,
+): Promise<string> {
+  const userId = locals.user?.id;
+  if (!userId) {
+    error(401, Unauthorized('create article'));
+  }
+  const domain = new URL(url).hostname;
+  const verifiedDomains = await getUserVerifiedDomains(locals, userId);
+  if (!verifiedDomains.some((d) => d.domain === domain)) {
+    error(403, Unauthorized('create article'));
+  }
+  const articleId = await generateArticleId(locals);
+  await locals.db.insert(tArticle).values({
+    id: articleId,
+    createdAt: publishedAt,
+    updatedAt: lastEditedAt,
+    userId,
+    title,
+    contentType: 'external_link',
+    content: url,
   });
   return articleId;
 }
