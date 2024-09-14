@@ -30,6 +30,9 @@
 </section>
 
 <style>
+  section {
+    max-width: 20rem;
+  }
   form {
     display: grid;
     grid-template-columns: 1fr max-content;

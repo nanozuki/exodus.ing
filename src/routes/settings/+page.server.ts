@@ -4,15 +4,6 @@ import { getUserById, updateProfile, updateUsername } from '$lib/server/user';
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-// const mockDomains = (userId: string): UserDomain[] => [
-//   {
-//     id: 1,
-//     userId,
-//     domain: 'example.com',
-//     verifyTxtRecord: 'exodus-site-verification=1234567890',
-//     verifiedAt: new Date(),
-//   },
-// ];
 const mockDomains: Map<string, UserDomain[]> = new Map();
 
 const getDomains = (userId: string): UserDomain[] => {
@@ -30,8 +21,11 @@ const getDomains = (userId: string): UserDomain[] => {
   return mockDomains.get(userId)!;
 };
 
-const addDomain = (userId: string, domain: string): UserDomain => {
+const addDomain = (userId: string, domain: string) => {
   const domains = mockDomains.get(userId) || [];
+  if (domains.find((d) => d.domain === domain)) {
+    return;
+  }
   const id = domains.length + 1;
   const verifyTxtRecord = `exodus-site-verification=${id}`;
   const userDomain = {
@@ -44,7 +38,20 @@ const addDomain = (userId: string, domain: string): UserDomain => {
   domains.push(userDomain);
 };
 
-export const load: PageServerLoad = async ({ locals }) => {
+const verifyDomain = (userId: string, domain: string, txtRecord: string) => {
+  const domains = mockDomains.get(userId) || [];
+  const domainObj = domains.find((d) => d.domain === domain);
+  if (!domainObj) {
+    return false;
+  }
+  if (domainObj.verifyTxtRecord === txtRecord) {
+    domainObj.verifiedAt = new Date();
+    return true;
+  }
+  return false;
+};
+
+export const load: PageServerLoad = async ({ locals, url }) => {
   if (!locals.user) {
     return error(401, Unauthorized('User settings'));
   }
@@ -57,6 +64,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   return {
     user,
     domains,
+    verifying: url.searchParams.get('verifing'),
   };
 };
 
@@ -116,5 +124,30 @@ export const actions = {
       return { error: '域名不能为空' };
     }
     addDomain(locals.user!.id, domain);
+    redirect(302, `?verifing=${domain}`);
+  },
+  verify_domain: async ({ locals, request }) => {
+    const data = await request.formData();
+    const domain = data.get('domain');
+    const txtRecord = data.get('txtRecord');
+    if (typeof domain !== 'string' || typeof txtRecord !== 'string') {
+      return { error: '域名或 TXT 记录不能为空' };
+    }
+    const result = verifyDomain(locals.user!.id, domain, txtRecord);
+    if (!result) {
+      return { error: '验证失败' };
+    }
+  },
+  delete_domain: async ({ locals, request }) => {
+    const data = await request.formData();
+    const domain = data.get('domain');
+    if (typeof domain !== 'string') {
+      return { error: '域名不能为空' };
+    }
+    const domains = getDomains(locals.user!.id);
+    const index = domains.findIndex((d) => d.domain === domain);
+    if (index >= 0) {
+      domains.splice(index, 1);
+    }
   },
 } satisfies Actions;
