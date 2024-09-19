@@ -52,6 +52,25 @@ export async function getUserDomains(locals: App.Locals, userId: string): Promis
   return locals.db.select().from(tUserDomain).where(eq(tUserDomain.userId, userId));
 }
 
+export async function getUserDomain(
+  locals: App.Locals,
+  userId: string,
+  domain: string,
+): Promise<UserDomain | null> {
+  const userDomains = await locals.db
+    .select()
+    .from(tUserDomain)
+    .where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain)));
+  const userDomain = userDomains.length === 0 ? null : userDomains[0];
+  if (userDomain && !userDomain.verifiedAt) {
+    const verified = await verifyUserDomain(locals, userId, domain);
+    if (verified) {
+      userDomain.verifiedAt = new Date();
+    }
+  }
+  return userDomain;
+}
+
 export async function getUserVerifiedDomains(
   locals: App.Locals,
   userId: string,

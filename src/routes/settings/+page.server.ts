@@ -51,7 +51,7 @@ const verifyDomain = (userId: string, domain: string, txtRecord: string) => {
   return false;
 };
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user) {
     return error(401, Unauthorized('User settings'));
   }
@@ -61,15 +61,17 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
   // const domains = await getUserDomains(locals, user.id);
   const domains = getDomains(user.id);
+  const verifiedDomains = domains.filter((d) => d.verifiedAt);
+  const unverifiedDomains = domains.filter((d) => !d.verifiedAt);
   return {
     user,
-    domains,
-    verifying: url.searchParams.get('verifing'),
+    verifiedDomains,
+    unverifiedDomains,
   };
 };
 
 export const actions = {
-  profile: async ({ url, locals, request }) => {
+  profile: async ({ locals, request }) => {
     const data = await request.formData();
     const name = data.get('name');
     if (typeof name !== 'string' || name.length === 0) {
@@ -80,7 +82,6 @@ export const actions = {
       return fail(400, { error: { aboutMe: '介绍必须是字符串' } });
     }
     await updateProfile(locals, locals.user!.id, name, aboutMe);
-    redirect(302, url.toString());
   },
   username: async ({ locals, request }) => {
     const userId = locals.user?.id;
@@ -124,7 +125,6 @@ export const actions = {
       return { error: '域名不能为空' };
     }
     addDomain(locals.user!.id, domain);
-    redirect(302, `?verifing=${domain}`);
   },
   verify_domain: async ({ locals, request }) => {
     const data = await request.formData();

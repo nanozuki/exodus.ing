@@ -4,8 +4,8 @@ import Logo from './Logo.svelte';
 
 import { createDialog } from '@melt-ui/svelte';
 
-export function newDialog() {
-  const dialogProps = createDialog({ role: 'alertdialog' });
+export function newDialog({ defaultOpen = false } = {}) {
+  const dialogProps = createDialog({ role: 'alertdialog', defaultOpen });
   return {
     Dialog,
     dialogProps,

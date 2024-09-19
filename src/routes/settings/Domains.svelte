@@ -2,27 +2,37 @@
   import type { UserDomain } from '$lib/entities';
 
   interface DomainsProps {
-    domains: UserDomain[];
+    verifiedDomains: UserDomain[];
+    unverifiedDomains: UserDomain[];
   }
 
-  const { domains }: DomainsProps = $props();
+  const { verifiedDomains, unverifiedDomains }: DomainsProps = $props();
 </script>
 
 <section>
-  <h3>个人网站</h3>
+  <h4>网站</h4>
   <form method="POST" action="?/add_domain">
     <input type="text" name="domain" placeholder="example.com" required />
     <button type="submit">添加</button>
   </form>
+  <h5>已验证</h5>
   <ul>
-    {#each domains as domain}
+    {#each verifiedDomains as domain}
       <li>
         {domain.domain}
-        {#if !domain.verifiedAt}
-          <button>验证</button>
-        {:else}
-          <div></div>
-        {/if}
+        <button>删除</button>
+      </li>
+    {/each}
+  </ul>
+  <h5>未验证</h5>
+  <ul>
+    {#each unverifiedDomains as domain}
+      <li>
+        <div>
+          <p>{domain.domain}</p>
+          <p>DNS Record: {domain.verifyTxtRecord}</p>
+        </div>
+        <button>验证</button>
         <button>删除</button>
       </li>
     {/each}
