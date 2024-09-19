@@ -19,37 +19,23 @@ export async function createUserDomain(
   return userDomain[0];
 }
 
-export async function verifyUserDomain(
-  locals: App.Locals,
-  userId: string,
-  domain: string,
-): Promise<boolean> {
-  const userDomain = await locals.db
-    .select()
-    .from(tUserDomain)
-    .where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain)));
-  if (userDomain.length === 0) {
-    throw new Error('User domain not found'); // TODO: improve error message
-  }
-  const records = await getTxtRecords(domain);
-  let verified = false;
-  for (const record of records) {
-    if (record === userDomain[0].verifyTxtRecord) {
-      verified = true;
-      break;
-    }
-  }
-  if (verified) {
-    await locals.db
-      .update(tUserDomain)
-      .set({ verifiedAt: new Date() })
-      .where(eq(tUserDomain.id, userDomain[0].id));
-  }
-  return verified;
-}
-
 export async function getUserDomains(locals: App.Locals, userId: string): Promise<UserDomain[]> {
   return locals.db.select().from(tUserDomain).where(eq(tUserDomain.userId, userId));
+}
+
+async function verifyDomain(domain: string, txtRecord: string): Promise<boolean> {
+  const records = await getTxtRecords(domain);
+  for (const record of records) {
+    if (record === txtRecord) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// random mock functions
+async function mockVerifyDomain(_domain: string, _record: string): Promise<boolean> {
+  return Math.random() > 0.5;
 }
 
 export async function getUserDomain(
@@ -63,9 +49,13 @@ export async function getUserDomain(
     .where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain)));
   const userDomain = userDomains.length === 0 ? null : userDomains[0];
   if (userDomain && !userDomain.verifiedAt) {
-    const verified = await verifyUserDomain(locals, userId, domain);
+    const verified = await mockVerifyDomain(domain, userDomain.verifyTxtRecord);
     if (verified) {
       userDomain.verifiedAt = new Date();
+      await locals.db
+        .update(tUserDomain)
+        .set({ verifiedAt: new Date() })
+        .where(eq(tUserDomain.id, userDomain.id));
     }
   }
   return userDomain;

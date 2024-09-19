@@ -4,7 +4,7 @@
   import Profile from './Profile.svelte';
 
   const { data } = $props();
-  const { user, verifiedDomains, unverifiedDomains } = data;
+  const { user, domains } = data;
 </script>
 
 <svelte:head>
@@ -18,4 +18,4 @@
 
 <Account {user} />
 
-<Domains {verifiedDomains} {unverifiedDomains} />
+<Domains {domains} />
