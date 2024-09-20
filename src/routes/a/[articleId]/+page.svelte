@@ -30,6 +30,7 @@
   {#if data.meta?.titleFrom === 'matter'}
     <h1>{data.meta?.title}</h1>
   {/if}
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html data.file}
 </article>
 

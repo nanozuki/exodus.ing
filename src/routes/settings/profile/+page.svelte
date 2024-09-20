@@ -1,15 +1,14 @@
 <script lang="ts">
-  import type { User } from '$lib/entities';
-
-  interface ProfileProps {
-    user: User;
-  }
-
-  const { user }: ProfileProps = $props();
+  const { data } = $props();
+  const { user } = data;
 </script>
 
-<h4>个人资料</h4>
-<form id="profile" action="?/profile" method="post">
+<svelte:head>
+  <title>个人资料 - Exodus</title>
+  <meta property="og:title" content="设置：个人资料" />
+</svelte:head>
+
+<form id="profile" method="post">
   <div>
     <label for="name">名称</label>
     <input type="text" name="name" value={user.name} required />
@@ -26,7 +25,6 @@
     display: flex;
     flex-direction: column;
     row-gap: 1rem;
-    max-width: 20rem;
   }
   label {
     display: block;

@@ -53,3 +53,9 @@ export const Forbidden = (context?: string): App.Error => {
   console.log(error);
   return error;
 };
+
+export const UserDomainNotFound = (context?: string): App.Error => {
+  const error = { key: 'USER_DOMAIN_NOT_FOUND', message: '用户域名不存在', context };
+  console.log(error);
+  return error;
+};

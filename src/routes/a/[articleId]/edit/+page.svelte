@@ -48,6 +48,7 @@
     <textarea bind:value={article}></textarea>
   {:else}
     <article>
+      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
       {#if compiled}{@html compiled}{/if}
     </article>
   {/if}
