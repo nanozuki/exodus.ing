@@ -48,7 +48,7 @@
   <meta property="og:title" content="域名设置" />
 </svelte:head>
 
-<p>添加并通过 DNS 验证个人域名后，可以将域名中的文章添加到本站。</p>
+<p>添加个人域名并通过 DNS 验证后，可以将域名中的文章添加到本站。</p>
 
 <form method="POST">
   <h5 class="design">添加个人域名</h5>
@@ -67,7 +67,7 @@
     </div>
     {#if !domain.verifiedAt}
       <div class="hint">
-        <small>请添加以下 TXT 记录到 DNS 以验证域名：</small>
+        <small>请添加以下 TXT DNS 记录以验证域名：</small>
         <small class="record">{domain.verifyTxtRecord}</small>
       </div>
     {/if}
@@ -79,7 +79,7 @@
     </div>
   </div>
   <Dialog title={'删除域名'} {dialogProps}>
-    确认删除 {domains[deleteIndex!].domain}？相关文章不会被删除。
+    确认删除 {domains[deleteIndex!].domain} 吗？相关文章不会被删除。
     <div class="dialog-actions">
       <button class="negative" use:melt={$close}>取消</button>
       <button class="positive" onclick={deleteDomain}>删除</button>
