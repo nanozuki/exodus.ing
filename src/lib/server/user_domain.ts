@@ -26,7 +26,7 @@ export async function getUserDomains(locals: App.Locals, userId: string): Promis
 async function verifyDomain(domain: string, txtRecord: string): Promise<boolean> {
   const records = await getTxtRecords(domain);
   for (const record of records) {
-    if (record === txtRecord) {
+    if (record.includes(txtRecord)) {
       return true;
     }
   }
