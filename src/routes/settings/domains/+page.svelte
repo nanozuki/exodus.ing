@@ -32,45 +32,106 @@
       domains.splice(index, 1);
     }
     processing = false;
+    dialogProps.states.open.set(false);
   };
 </script>
 
-<section>
-  <h4>域名</h4>
-  <form method="POST" action="?/add_domain">
-    <p class="design">添加个人域名</p>
+<p>添加并通过 DNS 验证个人域名后，可以将域名中的文章添加到本站。</p>
+
+<form method="POST">
+  <h5 class="design">添加个人域名</h5>
+  <div class="input">
     <input type="text" name="domain" placeholder="example.com" required />
     <button type="submit">添加</button>
-  </form>
-  {#each domains as domain, index (domain.domain)}
-    <div class="domain">
-      <div class="info">
-        <p>{domain.domain} {domain.verifiedAt ? '已验证' : '未验证'}</p>
-        {#if !domain.verifiedAt}<p>{domain.verifyTxtRecord}</p>{/if}
+  </div>
+</form>
+{#each domains as domain, index (domain.domain)}
+  <div class="domain">
+    <div class="info">
+      <span class:verified={domain.verifiedAt} class:unverified={!domain.verifiedAt}>
+        {domain.verifiedAt ? '已验证' : '未验证'}
+      </span>
+      <span>{domain.domain}</span>
+    </div>
+    {#if !domain.verifiedAt}
+      <div class="hint">
+        <small>请添加以下 TXT 记录到 DNS 以验证域名：</small>
+        <small class="record">{domain.verifyTxtRecord}</small>
       </div>
+    {/if}
+    <div class="actions">
       {#if !domain.verifiedAt}
         <button disabled={processing} onclick={() => verifyDomain(index)}>验证</button>
       {/if}
       <button disabled={processing} use:melt={$open}>删除</button>
     </div>
-    <Dialog title={'删除域名'} {dialogProps}>
-      确认删除域名？相关文章不会被删除。
-      <div class="dialog-actions">
-        <button class="negative" use:melt={$close}>取消</button>
-        <button class="positive" onclick={() => deleteDomain(index)}>删除</button>
-      </div>
-    </Dialog>
-  {/each}
-</section>
+  </div>
+  <Dialog title={'删除域名'} {dialogProps}>
+    确认删除域名？相关文章不会被删除。
+    <div class="dialog-actions">
+      <button class="negative" use:melt={$close}>取消</button>
+      <button class="positive" onclick={() => deleteDomain(index)}>删除</button>
+    </div>
+  </Dialog>
+{/each}
 
 <style>
-  section {
-    max-width: 20rem;
+  form {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.5rem;
+    margin: 1rem 0;
+
+    .input {
+      display: flex;
+      column-gap: 0.5rem;
+    }
+    input {
+      display: block;
+      flex: 4;
+    }
+    button {
+      display: block;
+      flex: 1;
+    }
   }
   .dialog-actions {
     display: flex;
     column-gap: 1rem;
     margin-top: 1rem;
+    button {
+      flex: 1;
+    }
+  }
+  .domain {
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.5rem;
+    padding: 1rem 0;
+  }
+  .domain:last-child {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .record {
+    font-family: var(--monospace);
+    word-break: break-all;
+  }
+  span {
+    padding: 0 0.25rem;
+    word-break: break-all;
+  }
+  span.verified {
+    background-color: var(--green);
+    color: var(--primary-bg);
+  }
+  span.unverified {
+    background-color: var(--red);
+    color: var(--primary-bg);
+  }
+  div.actions {
+    display: flex;
+    column-gap: 1rem;
     button {
       flex: 1;
     }

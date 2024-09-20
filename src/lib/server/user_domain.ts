@@ -33,11 +33,6 @@ async function verifyDomain(domain: string, txtRecord: string): Promise<boolean>
   return false;
 }
 
-// random mock functions
-async function mockVerifyDomain(_domain: string, _record: string): Promise<boolean> {
-  return Math.random() > 0.5;
-}
-
 export async function getUserDomain(
   locals: App.Locals,
   userId: string,
@@ -49,7 +44,7 @@ export async function getUserDomain(
     .where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain)));
   const userDomain = userDomains.length === 0 ? null : userDomains[0];
   if (userDomain && !userDomain.verifiedAt) {
-    const verified = await mockVerifyDomain(domain, userDomain.verifyTxtRecord);
+    const verified = await verifyDomain(domain, userDomain.verifyTxtRecord);
     if (verified) {
       userDomain.verifiedAt = new Date();
       await locals.db

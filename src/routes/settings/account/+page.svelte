@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createDialog, melt } from '@melt-ui/svelte';
+  import { enhance } from '$app/forms';
 
   const { data } = $props();
   const { user } = data;
@@ -24,7 +25,7 @@
     <div class="dialog" use:melt={$content}>
       <h2 class="design" use:melt={$title}>修改用户名</h2>
       <p class="warn" use:melt={$description}>用户名更改后，个人主页地址也变更，请谨慎修改。</p>
-      <form method="POST" action="?/username">
+      <form method="POST" use:enhance>
         <input type="text" name="username" value={user.username} required />
         <div class="actions">
           <button class="negative" type="button" use:melt={$close}>取消</button>
