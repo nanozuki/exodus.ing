@@ -1,12 +1,8 @@
 <script lang="ts">
-  import type { User } from '$lib/entities';
   import { createDialog, melt } from '@melt-ui/svelte';
 
-  interface AccountProps {
-    user: User;
-  }
-
-  const { user }: AccountProps = $props();
+  const { data } = $props();
+  const { user } = data;
   const {
     elements: { trigger, portalled, overlay, content, title, description, close },
     states: { open },

@@ -3,12 +3,9 @@
   import { newDialog } from '$lib/comps';
   import { melt } from '@melt-ui/svelte';
 
-  interface DomainsProps {
-    domains: UserDomain[];
-  }
+  const { data } = $props();
 
-  const props: DomainsProps = $props();
-  const domains = $state(props.domains);
+  const domains = $state(data.domains);
   let processing = $state(false);
   const { Dialog, dialogProps, open, close } = newDialog();
 
