@@ -4,8 +4,8 @@
 </script>
 
 <svelte:head>
-  <title>个人资料 - Exodus</title>
-  <meta property="og:title" content="设置：个人资料" />
+  <title>个人资料设置 - Exodus</title>
+  <meta property="og:title" content="个人资料设置" />
 </svelte:head>
 
 <form id="profile" method="post">

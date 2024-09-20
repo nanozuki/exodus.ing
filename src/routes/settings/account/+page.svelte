@@ -10,7 +10,11 @@
   } = createDialog({ role: 'alertdialog' });
 </script>
 
-<h4>账户</h4>
+<svelte:head>
+  <title>账户设置 - Exodus</title>
+  <meta property="og:title" content="账户设置" />
+</svelte:head>
+
 <div id="account-setting">
   <p class="label">用户名:</p>
   <p class="value">{user.username}</p>

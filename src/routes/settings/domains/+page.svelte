@@ -7,7 +7,8 @@
 
   const domains = $state(data.domains);
   let processing = $state(false);
-  const { Dialog, dialogProps, open, close } = newDialog();
+  let deleteIndex: number | null = $state(null);
+  const { Dialog, dialogProps, close } = newDialog();
 
   const verifyDomain = async (index: number) => {
     processing = true;
@@ -23,18 +24,29 @@
     processing = false;
   };
 
-  const deleteDomain = async (index: number) => {
+  const openDeleteDialog = (index: number) => {
+    deleteIndex = index;
+    dialogProps.states.open.set(true);
+  };
+
+  const deleteDomain = async () => {
+    if (deleteIndex === null) return;
     processing = true;
-    const domain = domains[index];
+    const domain = domains[deleteIndex];
     // DELETE /api/domains/:domain will delete a domain
     const response = await fetch(`/api/domains/${domain.domain}`, { method: 'DELETE' });
     if (response.ok) {
-      domains.splice(index, 1);
+      domains.splice(deleteIndex, 1);
     }
     processing = false;
     dialogProps.states.open.set(false);
   };
 </script>
+
+<svelte:head>
+  <title>域名设置 - Exodus</title>
+  <meta property="og:title" content="域名设置" />
+</svelte:head>
 
 <p>添加并通过 DNS 验证个人域名后，可以将域名中的文章添加到本站。</p>
 
@@ -63,14 +75,14 @@
       {#if !domain.verifiedAt}
         <button disabled={processing} onclick={() => verifyDomain(index)}>验证</button>
       {/if}
-      <button disabled={processing} use:melt={$open}>删除</button>
+      <button disabled={processing} onclick={() => openDeleteDialog(index)}>删除</button>
     </div>
   </div>
   <Dialog title={'删除域名'} {dialogProps}>
-    确认删除域名？相关文章不会被删除。
+    确认删除 {domains[deleteIndex!].domain}？相关文章不会被删除。
     <div class="dialog-actions">
       <button class="negative" use:melt={$close}>取消</button>
-      <button class="positive" onclick={() => deleteDomain(index)}>删除</button>
+      <button class="positive" onclick={deleteDomain}>删除</button>
     </div>
   </Dialog>
 {/each}
