@@ -1,18 +1,18 @@
-import { Forbidden, Unauthorized } from '$lib/errors';
+import { AppError } from '$lib/errors';
 import { createMarkdownArticle, getArticle, updateMarkdownArticle } from '$lib/server/article';
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   if (!locals.user) {
-    error(403, Unauthorized('article editor'));
+    return AppError.Unauthorized('article editor').throw();
   }
   if (params.articleId === 'new') {
     return { content: '' };
   }
   const article = await getArticle(locals, params.articleId);
   if (article.userId !== locals.user.id) {
-    error(401, Forbidden('article editor'));
+    return AppError.Forbidden('article editor').throw();
   }
   return {
     content: article.content,
@@ -45,7 +45,7 @@ export const actions = {
 
     // New Article
     if (!locals.user) {
-      error(403, Unauthorized('edit article'));
+      return AppError.Unauthorized('edit article').throw();
     }
     if (params.articleId === 'new') {
       const articleId = await createMarkdownArticle(locals, title, content);
@@ -55,7 +55,7 @@ export const actions = {
     // Update Article
     const article = await getArticle(locals, params.articleId);
     if (article.userId !== locals.user.id) {
-      error(401, Forbidden('edit article'));
+      return AppError.Forbidden('edit article').throw();
     }
     await updateMarkdownArticle(locals, params.articleId, title, content);
     redirect(301, `/a/${params.articleId}`);

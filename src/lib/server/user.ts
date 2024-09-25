@@ -1,8 +1,8 @@
+import type { User } from '$lib/entities';
+import { tUser } from '$lib/schema';
 import { eq } from 'drizzle-orm';
 import type { GitHubUser } from './auth';
 import { generateUserId } from './id';
-import type { User } from '$lib/entities';
-import { tUser } from '$lib/schema';
 
 export async function getUserByGitHubId(locals: App.Locals, id: number): Promise<User | null> {
   const users = await locals.db.select().from(tUser).where(eq(tUser.githubId, id));

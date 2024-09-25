@@ -1,9 +1,8 @@
-import { ArticleNotFound, Unauthorized } from '$lib/errors';
-import { error } from '@sveltejs/kit';
-import { desc, eq } from 'drizzle-orm';
 import type { Article } from '$lib/entities';
-import { generateArticleId } from './id';
+import { AppError } from '$lib/errors';
 import { tArticle, tUser } from '$lib/schema';
+import { desc, eq } from 'drizzle-orm';
+import { generateArticleId } from './id';
 import { getUserVerifiedDomains } from './user_domain';
 
 export async function createMarkdownArticle(
@@ -13,7 +12,7 @@ export async function createMarkdownArticle(
 ): Promise<string> {
   const userId = locals.user?.id;
   if (!userId) {
-    error(401, Unauthorized('create article'));
+    return AppError.Unauthorized('create article').throw();
   }
   const articleId = await generateArticleId(locals);
   const now = new Date();
@@ -38,12 +37,12 @@ export async function createExternalLinkArticle(
 ): Promise<string> {
   const userId = locals.user?.id;
   if (!userId) {
-    error(401, Unauthorized('create article'));
+    return AppError.Unauthorized('create article').throw();
   }
   const domain = new URL(url).hostname;
   const verifiedDomains = await getUserVerifiedDomains(locals, userId);
   if (!verifiedDomains.some((d) => d.domain === domain)) {
-    error(403, Unauthorized('create article'));
+    return AppError.Unauthorized('create article').throw();
   }
   const articleId = await generateArticleId(locals);
   await locals.db.insert(tArticle).values({
@@ -66,7 +65,7 @@ export async function updateMarkdownArticle(
 ): Promise<void> {
   const userId = locals.user?.id;
   if (!userId) {
-    error(401, Unauthorized('update article'));
+    return AppError.Unauthorized('update article').throw();
   }
   const now = new Date();
   await locals.db
@@ -163,7 +162,7 @@ export async function getArticle(locals: App.Locals, articleId: string): Promise
     .where(eq(tArticle.id, articleId))
     .innerJoin(tUser, eq(tArticle.userId, tUser.id));
   if (articles.length === 0) {
-    error(404, ArticleNotFound(`articleId=${articleId}`));
+    return AppError.ArticleNotFound(`articleId=${articleId}`).throw();
   }
   return {
     ...articles[0],

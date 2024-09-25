@@ -1,12 +1,12 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
+import * as schema from '$lib/schema';
+import { tSession, tUser } from '$lib/schema';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { RequestEvent } from '@sveltejs/kit';
 import { GitHub } from 'arctic';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { type Cookie, Lucia } from 'lucia';
-import * as schema from '$lib/schema';
-import { tSession, tUser } from '$lib/schema';
 
 async function getPlatform(event: RequestEvent): Promise<App.Platform> {
   if (dev) {

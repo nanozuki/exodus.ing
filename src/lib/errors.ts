@@ -1,61 +1,53 @@
-export const InvalidInviteCode = (context?: string): App.Error => {
-  const error = { key: 'INVALID_INVITE_CODE', message: '邀请码无效', context };
-  console.log(error);
-  return error;
-};
+import { error } from '@sveltejs/kit';
 
-export const InviteCodeMissed = (context?: string): App.Error => {
-  const error = { key: 'INVITE_CODE_MISSED', message: '邀请码不能为空', context };
-  console.log(error);
-  return error;
-};
+export class AppError implements App.Error {
+  private constructor(
+    public code: number,
+    public key: string,
+    public message: string,
+    public context?: string,
+  ) {
+    console.log('Error:', { code, key, message, context });
+  }
 
-export const OAuthValidationError = (context?: string): App.Error => {
-  const error = {
-    key: 'OAUTH_VALIDATION_ERROR',
-    message: 'OAuth 验证错误',
-    context,
-  };
-  console.log(error);
-  return error;
-};
+  throw(): never {
+    const { code, key, message, context } = this;
+    error(code, { key, message, context });
+  }
 
-export const InternalServerError = (context?: string): App.Error => {
-  const error = {
-    key: 'INTERNAL_SERVER_ERROR',
-    message: '服务器内部错误',
-    context,
-  };
-  console.log(error);
-  return error;
-};
+  static InvalidInviteCode(context?: string): AppError {
+    return new AppError(400, 'INVALID_INVITE_CODE', '邀请码无效', context);
+  }
 
-export const Unauthorized = (context?: string): App.Error => {
-  const error = { key: 'UNAUTHORIZED', message: '未登录', context };
-  console.log(error);
-  return error;
-};
+  static InviteCodeMissed(context?: string): AppError {
+    return new AppError(400, 'INVITE_CODE_MISSED', '邀请码不能为空', context);
+  }
 
-export const ArticleNotFound = (context?: string): App.Error => {
-  const error = { key: 'ARTICLE_NOT_FOUND', message: '文章不存在', context };
-  console.log(error);
-  return error;
-};
+  static OAuthValidationError(context?: string): AppError {
+    return new AppError(400, 'OAUTH_VALIDATION_ERROR', 'OAuth 验证错误', context);
+  }
 
-export const UserNotFound = (context?: string): App.Error => {
-  const error = { key: 'USER_NOT_FOUND', message: '用户不存在', context };
-  console.log(error);
-  return error;
-};
+  static InternalServerError(context?: string): AppError {
+    return new AppError(500, 'INTERNAL_SERVER_ERROR', '服务器内部错误', context);
+  }
 
-export const Forbidden = (context?: string): App.Error => {
-  const error = { key: 'FORBIDDEN', message: '没有权限', context };
-  console.log(error);
-  return error;
-};
+  static Unauthorized(context?: string): AppError {
+    return new AppError(401, 'UNAUTHORIZED', '未登录', context);
+  }
 
-export const UserDomainNotFound = (context?: string): App.Error => {
-  const error = { key: 'USER_DOMAIN_NOT_FOUND', message: '用户域名不存在', context };
-  console.log(error);
-  return error;
-};
+  static ArticleNotFound(context?: string): AppError {
+    return new AppError(404, 'ARTICLE_NOT_FOUND', '文章不存在', context);
+  }
+
+  static UserNotFound(context?: string): AppError {
+    return new AppError(404, 'USER_NOT_FOUND', '用户不存在', context);
+  }
+
+  static Forbidden(context?: string): AppError {
+    return new AppError(403, 'FORBIDDEN', '没有权限', context);
+  }
+
+  static UserDomainNotFound(context?: string): AppError {
+    return new AppError(404, 'USER_DOMAIN_NOT_FOUND', '用户域名不存在', context);
+  }
+}

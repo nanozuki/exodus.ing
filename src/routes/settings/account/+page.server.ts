@@ -1,13 +1,13 @@
-import { Unauthorized } from '$lib/errors';
+import { AppError } from '$lib/errors';
 import { updateUsername } from '$lib/server/user';
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const actions = {
   default: async ({ locals, request }) => {
     const userId = locals.user?.id;
     if (!userId) {
-      return error(401, Unauthorized('update username'));
+      return AppError.Unauthorized('update username').throw();
     }
     const data = await request.formData();
     const username = data.get('username');

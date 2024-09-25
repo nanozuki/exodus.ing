@@ -1,6 +1,6 @@
 import { type Database } from '$lib/server/locals';
-import { type Lucia, User, Session } from 'lucia';
 import { type GitHub } from 'arctic';
+import { type Lucia, Session, User } from 'lucia';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces

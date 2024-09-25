@@ -1,6 +1,6 @@
 import { generateStateCookie, validateInviteCode } from '$lib/server/auth';
-import type { Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
+import type { Actions } from './$types';
 
 export const actions = {
   register: async ({ cookies, locals, request }) => {

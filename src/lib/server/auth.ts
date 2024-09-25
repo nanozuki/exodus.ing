@@ -1,10 +1,9 @@
+import { AppError } from '$lib/errors';
+import { tInviteCode } from '$lib/schema';
 import { generateState, OAuth2RequestError } from 'arctic';
 import { eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { error } from '@sveltejs/kit';
-import { InternalServerError, OAuthValidationError } from '$lib/errors';
 import { type CookieAttributes } from 'lucia';
-import { tInviteCode } from '$lib/schema';
+import { z } from 'zod';
 
 export async function validateInviteCode(locals: App.Locals, inviteCode: string): Promise<boolean> {
   const codes = await locals.db.select().from(tInviteCode).where(eq(tInviteCode.code, inviteCode));
@@ -86,12 +85,12 @@ export async function validateGitHubCode(locals: App.Locals, code: string): Prom
     return await githubUserResponse.json();
   } catch (e) {
     if (e instanceof OAuth2RequestError) {
-      error(400, OAuthValidationError(e.message));
+      return AppError.OAuthValidationError(e.message).throw();
     }
     if (e instanceof Error) {
-      error(500, InternalServerError(e.message));
+      return AppError.InternalServerError(e.message).throw();
     }
-    error(500, InternalServerError());
+    return AppError.InternalServerError().throw();
   }
 }
 
