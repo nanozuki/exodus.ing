@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b3eba0f3-8334-41a5-8bb0-27de85c64e49",
+  "id": "6e773ef9-e00a-4eb4-bdc6-b7bc5d379c37",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "article": {
@@ -32,7 +32,7 @@
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "title": {
@@ -60,21 +60,21 @@
       "indexes": {
         "article_title_idx": {
           "name": "article_title_idx",
-          "columns": ["title", "user_id"],
+          "columns": [
+            "title",
+            "user_id"
+          ],
           "isUnique": true
+        },
+        "article_user_id_idx": {
+          "name": "article_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
         }
       },
-      "foreignKeys": {
-        "article_user_id_user_id_fk": {
-          "name": "article_user_id_user_id_fk",
-          "tableFrom": "article",
-          "tableTo": "user",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -113,7 +113,9 @@
       "indexes": {
         "invite_code_code_unique": {
           "name": "invite_code_code_unique",
-          "columns": ["code"],
+          "columns": [
+            "code"
+          ],
           "isUnique": true
         }
       },
@@ -146,18 +148,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
-      "foreignKeys": {
-        "session_user_id_user_id_fk": {
-          "name": "session_user_id_user_id_fk",
-          "tableFrom": "session",
-          "tableTo": "user",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+      "indexes": {
+        "session_user_id_idx": {
+          "name": "session_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
         }
       },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -198,18 +198,95 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "about_me": {
+          "name": "about_me",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
         "user_username_unique": {
           "name": "user_username_unique",
-          "columns": ["username"],
+          "columns": [
+            "username"
+          ],
           "isUnique": true
         },
         "user_github_id_unique": {
           "name": "user_github_id_unique",
-          "columns": ["github_id"],
+          "columns": [
+            "github_id"
+          ],
           "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "user_domain": {
+      "name": "user_domain",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "domain": {
+          "name": "domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "verify_txt_record": {
+          "name": "verify_txt_record",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "user_domain_domain_unique": {
+          "name": "user_domain_domain_unique",
+          "columns": [
+            "domain"
+          ],
+          "isUnique": true
+        },
+        "user_domain_user_id_idx": {
+          "name": "user_domain_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {},
