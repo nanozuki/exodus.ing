@@ -1,4 +1,5 @@
 import { integer, sqliteTable, text, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { type DrizzleD1Database } from 'drizzle-orm/d1';
 
 export const tUser = sqliteTable('user', {
   id: text('id').notNull().primaryKey(),
@@ -61,3 +62,17 @@ export const tUserDomain = sqliteTable(
     userDomainUserIdIdx: index('user_domain_user_id_idx').on(table.userId),
   }),
 );
+
+export const schema = {
+  tUser,
+  tSession,
+  tInviteCode,
+  tArticle,
+  tUserDomain,
+};
+
+export type UserModel = typeof tUser.$inferSelect;
+export type ArticleModel = typeof tArticle.$inferSelect;
+export type UserDomainModel = typeof tUserDomain.$inferSelect;
+export type InviteCodeModel = typeof tInviteCode.$inferSelect;
+export type AppD1Database = DrizzleD1Database<typeof schema>;

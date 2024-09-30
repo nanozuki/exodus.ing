@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   return {
     articles,
     user,
-    isMyself: user.id === locals.user?.id,
+    isMyself: user.id === locals.loggedInUser?.id,
     aboutMe,
   };
 };

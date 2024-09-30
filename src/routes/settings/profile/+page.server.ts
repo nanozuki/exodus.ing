@@ -13,7 +13,7 @@ export const actions = {
     if (typeof aboutMe !== 'string') {
       return fail(400, { error: { aboutMe: '介绍必须是字符串' } });
     }
-    await updateProfile(locals, locals.user!.id, name, aboutMe);
+    await updateProfile(locals, locals.loggedInUser!.id, name, aboutMe);
     redirect(303, '/settings/profile');
   },
 } satisfies Actions;

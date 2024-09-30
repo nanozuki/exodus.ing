@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   const file = await compile(article.content);
   return {
     article,
-    myself: locals.user?.id === article.userId,
+    myself: locals.loggedInUser?.id === article.userId,
     file: file.value,
     meta: file.data.meta,
   };

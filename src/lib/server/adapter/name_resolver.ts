@@ -1,3 +1,5 @@
+import type { NameResolver } from '$lib/domain/adapters';
+
 // getTxtRecords by cloudflare DoH Dns API, like these curl command:
 // curl --http2 --header "accept: application/dns-json" "https://1.1.1.1/dns-query?name=<domain>&type=TXT"
 // the response is a json object, like this:
@@ -15,20 +17,25 @@
 // 		"data":"\"google-site-verification=<STRING>\""
 // 	}]
 // }
-export async function getTxtRecords(domain: string): Promise<string[]> {
+
+interface Response {
+  Status: number;
+  Question: { name: string; type: number }[];
+  Answer: { name: string; type: number; TTL: number; data: string }[];
+}
+
+async function resolveTxt(domain: string): Promise<string[]> {
   const url = `https://1.1.1.1/dns-query?name=${domain}&type=TXT`;
   const response = await fetch(url, {
     headers: { accept: 'application/dns-json' },
   });
-  const json = (await response.json()) as DnsJsonResponse;
+  const json = (await response.json()) as Response;
   if (json.Status !== 0) {
     throw new Error(`Dns query failed: ${json.Status}`);
   }
   return json.Answer.map((record) => record.data);
 }
 
-interface DnsJsonResponse {
-  Status: number;
-  Question: { name: string; type: number }[];
-  Answer: { name: string; type: number; TTL: number; data: string }[];
-}
+export const nameResolver: NameResolver = {
+  resolveTxt,
+};

@@ -5,7 +5,7 @@ import type { Actions } from './$types';
 
 export const actions = {
   default: async ({ locals, request }) => {
-    const userId = locals.user?.id;
+    const userId = locals.loggedInUser?.id;
     if (!userId) {
       return AppError.Unauthorized('update username').throw();
     }
@@ -19,7 +19,7 @@ export const actions = {
         username: typeof username === 'string' ? username : undefined,
         error: '用户名不能为空',
       };
-    } else if (username === locals.user!.username) {
+    } else if (username === locals.loggedInUser!.username) {
       return { username };
     }
 

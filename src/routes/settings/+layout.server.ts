@@ -3,12 +3,12 @@ import { getUserById } from '$lib/server/user';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
-  if (!locals.user) {
+  if (!locals.loggedInUser) {
     return AppError.Unauthorized('User settings').throw();
   }
-  const user = await getUserById(locals, locals.user?.id);
+  const user = await getUserById(locals, locals.loggedInUser?.id);
   if (!user) {
-    return AppError.UserNotFound(locals.user?.id).throw();
+    return AppError.UserNotFound(locals.loggedInUser?.id).throw();
   }
   return { user };
 };

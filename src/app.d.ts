@@ -1,6 +1,7 @@
-import { type Database } from '$lib/server/locals';
-import { type GitHub } from 'arctic';
-import { type Lucia, Session, User } from 'lucia';
+import type { ArticleUseCase } from '$lib/server/use_case/article';
+import type { AuthUseCase } from '$lib/server/use_case/auth';
+import type { UserUseCase } from '$lib/server/use_case/user';
+import type { UserDomainUseCase } from '$lib/server/use_case/user_domain';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -12,11 +13,10 @@ declare global {
       context?: string;
     }
     interface Locals {
-      db: Database;
-      lucia: Lucia;
-      github: GitHub;
-      user: User | null;
-      session: Session | null;
+      article: ArticleUseCase;
+      user: UserUseCase;
+      userDomain: UserDomainUseCase;
+      auth: AuthUseCase;
     }
     // interface PageData {}
     // interface PageState {}

@@ -4,14 +4,14 @@ import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  if (!locals.user) {
+  if (!locals.loggedInUser) {
     return AppError.Unauthorized('article editor').throw();
   }
   if (params.articleId === 'new') {
     return { content: '' };
   }
   const article = await getArticle(locals, params.articleId);
-  if (article.userId !== locals.user.id) {
+  if (article.userId !== locals.loggedInUser.id) {
     return AppError.Forbidden('article editor').throw();
   }
   return {
@@ -44,7 +44,7 @@ export const actions = {
     }
 
     // New Article
-    if (!locals.user) {
+    if (!locals.loggedInUser) {
       return AppError.Unauthorized('edit article').throw();
     }
     if (params.articleId === 'new') {
@@ -54,7 +54,7 @@ export const actions = {
 
     // Update Article
     const article = await getArticle(locals, params.articleId);
-    if (article.userId !== locals.user.id) {
+    if (article.userId !== locals.loggedInUser.id) {
       return AppError.Forbidden('edit article').throw();
     }
     await updateMarkdownArticle(locals, params.articleId, title, content);

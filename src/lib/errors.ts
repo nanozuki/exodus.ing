@@ -15,6 +15,10 @@ export class AppError implements App.Error {
     error(code, { key, message, context });
   }
 
+  is(other: unknown): boolean {
+    return other instanceof AppError && this.key === other.key;
+  }
+
   static InvalidInviteCode(context?: string): AppError {
     return new AppError(400, 'INVALID_INVITE_CODE', '邀请码无效', context);
   }
@@ -49,5 +53,9 @@ export class AppError implements App.Error {
 
   static UserDomainNotFound(context?: string): AppError {
     return new AppError(404, 'USER_DOMAIN_NOT_FOUND', '用户域名不存在', context);
+  }
+
+  static DatabaseError(context?: string): AppError {
+    return new AppError(500, 'DATABASE_ERROR', '数据库错误', context);
   }
 }
