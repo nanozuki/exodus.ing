@@ -12,7 +12,7 @@
   let articleSnapshot = '';
   onMount(() => {
     setInterval(() => {
-      if (!$state.is(article, articleSnapshot)) {
+      if (article !== articleSnapshot) {
         articleSnapshot = article;
         compile(article).then((result) => {
           compiled = result;
