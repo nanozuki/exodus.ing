@@ -8,7 +8,7 @@ export class AuthUseCase {
   constructor(private ctx: Context) {}
 
   requireLoggedInUser(context?: string): User {
-    const user = this.ctx.auth._loggedInUser;
+    const user = this.ctx.auth.loggedInUser;
     if (!user) {
       return AppError.Unauthorized(context).throw();
     }
@@ -16,7 +16,7 @@ export class AuthUseCase {
   }
 
   get loggedInUser(): User | null {
-    return this.ctx.auth._loggedInUser;
+    return this.ctx.auth.loggedInUser;
   }
 
   async validateInviteCode(inviteCode: string): Promise<boolean> {
