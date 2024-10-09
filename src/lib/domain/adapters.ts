@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { User } from '$lib/domain/user';
 
 export interface Cookie {
   name: string;
@@ -19,8 +20,6 @@ export interface GitHubUser {
   login: string;
 }
 
-export type SessionUser = import('lucia').User;
-
 export const State = z.object({
   state: z.string(),
   inviteCode: z.string().optional(),
@@ -28,8 +27,7 @@ export const State = z.object({
 export type State = z.infer<typeof State>;
 
 export interface AuthService {
-  requireLoggedInUser(): SessionUser;
-  loggedInUser: SessionUser | null;
+  get loggedInUser(): User | null;
 
   loadSession(): Promise<void>;
   setSession(userId: string): Promise<void>;

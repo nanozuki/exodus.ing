@@ -5,8 +5,7 @@ import type { Context } from '$lib/server/context';
 export class ArticleUseCase {
   constructor(private ctx: Context) {}
 
-  async createMarkdownArticle(title: string, content: string): Promise<string> {
-    const { id: userId } = this.ctx.auth.requireLoggedInUser();
+  async createMarkdownArticle(userId: string, title: string, content: string): Promise<string> {
     const id = await this.ctx.article.generateId();
     const now = this.ctx.clock.now();
     await this.ctx.article.create({
@@ -22,14 +21,14 @@ export class ArticleUseCase {
   }
 
   async createExternalLinkArticle(
+    userId: string,
     title: string,
     url: string,
     publishedAt: Date,
     editedAt: Date,
   ): Promise<string> {
-    const { id: userId } = this.ctx.auth.requireLoggedInUser();
     const domain = new URL(url).hostname;
-    const userDomain = await this.ctx.userDomain.findUserDomain(userId, domain);
+    const userDomain = await this.ctx.userDomain.getUserDomain(userId, domain);
     if (!userDomain || !userDomain.verifiedAt) {
       return AppError.Forbidden('create article').throw();
     }
@@ -46,10 +45,14 @@ export class ArticleUseCase {
     return id;
   }
 
-  async updateMarkdownArticle(articleId: string, title: string, content: string): Promise<void> {
-    const { id: authorId } = this.ctx.auth.requireLoggedInUser();
+  async updateMarkdownArticle(
+    userId: string,
+    articleId: string,
+    title: string,
+    content: string,
+  ): Promise<void> {
     const article = await this.ctx.article.getById(articleId);
-    if (article.author.userId !== authorId) {
+    if (article.author.userId !== userId) {
       return AppError.Forbidden('update article').throw();
     }
     await this.ctx.article.update(articleId, {

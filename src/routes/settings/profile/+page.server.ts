@@ -1,4 +1,3 @@
-import { updateProfile } from '$lib/server/user';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
@@ -13,7 +12,8 @@ export const actions = {
     if (typeof aboutMe !== 'string') {
       return fail(400, { error: { aboutMe: '介绍必须是字符串' } });
     }
-    await updateProfile(locals, locals.loggedInUser!.id, name, aboutMe);
+    const user = locals.auth.requireLoggedInUser('update profile');
+    await locals.user.updateProfile(user.id, name, aboutMe);
     redirect(303, '/settings/profile');
   },
 } satisfies Actions;

@@ -24,7 +24,7 @@ export class D1UserDomainRepository implements UserDomainRepository {
     return userDomains;
   }
 
-  async findUserDomain(userId: string, domain: string): Promise<UserDomain | null> {
+  async getUserDomain(userId: string, domain: string): Promise<UserDomain> {
     const userDomains = await wrap(
       async () =>
         await this.db
@@ -32,7 +32,10 @@ export class D1UserDomainRepository implements UserDomainRepository {
           .from(tUserDomain)
           .where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain))),
     );
-    return userDomains.length === 0 ? null : userDomains[0];
+    if (userDomains.length === 0) {
+      return AppError.UserDomainNotFound(domain).throw();
+    }
+    return userDomains[0];
   }
 
   async create(input: UserDomainInput): Promise<UserDomain> {
@@ -57,7 +60,7 @@ export class D1UserDomainRepository implements UserDomainRepository {
           .set(patch)
           .where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain))),
     );
-    const ud = await this.findUserDomain(userId, domain);
+    const ud = await this.getUserDomain(userId, domain);
     if (!ud) {
       return AppError.UserDomainNotFound(domain).throw();
     }

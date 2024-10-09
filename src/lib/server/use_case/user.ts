@@ -12,11 +12,11 @@ export class UserUseCase {
     return await this.ctx.user.getById(userId);
   }
 
-  async getUserByGitHubId(id: number): Promise<User | null> {
+  async findUserByGitHubId(id: number): Promise<User | null> {
     return await this.ctx.user.findByGitHubId(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | null> {
+  async findUserByUsername(username: string): Promise<User | null> {
     return await this.ctx.user.findByUsername(username);
   }
 

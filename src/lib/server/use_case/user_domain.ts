@@ -27,9 +27,9 @@ export class UserDomainUseCase {
     return false;
   }
 
-  async getUserDomain(userId: string, domain: string): Promise<UserDomain | null> {
-    const userDomain = await this.ctx.userDomain.findUserDomain(userId, domain);
-    if (userDomain && !userDomain.verifiedAt) {
+  async getUserDomain(userId: string, domain: string): Promise<UserDomain> {
+    const userDomain = await this.ctx.userDomain.getUserDomain(userId, domain);
+    if (!userDomain.verifiedAt) {
       const verified = await this.verifyDomain(domain, userDomain.verifyTxtRecord);
       if (verified) {
         userDomain.verifiedAt = this.ctx.clock.now();

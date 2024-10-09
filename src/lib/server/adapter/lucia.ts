@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
-import { State, type AuthService, type GitHubUser, type SessionUser } from '$lib/domain/adapters';
+import { State, type AuthService, type GitHubUser } from '$lib/domain/adapters';
 import { AppError } from '$lib/errors';
 import { tSession, tUser } from '$lib/server/repository/schema';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
@@ -25,8 +25,8 @@ function getLucia(db: AppD1Database) {
       },
     },
     // convert user attributes to session attributes, finally stored in locals.
-    getUserAttributes: ({ githubId, username, name }) => {
-      return { githubId, username, name };
+    getUserAttributes: (user) => {
+      return user;
     },
   });
   return lucia;
@@ -36,7 +36,7 @@ export class LuciaAuthService implements AuthService {
   private lucia: ReturnType<typeof getLucia>;
   private github: GitHub;
   private cookies: Cookies;
-  public loggedInUser: SessionUser | null = null;
+  private _loggedInUser: User | null = null;
 
   private constructor(event: RequestEvent, db: AppD1Database) {
     this.lucia = getLucia(db);
@@ -51,10 +51,14 @@ export class LuciaAuthService implements AuthService {
   }
 
   requireLoggedInUser(): User {
-    if (!this.loggedInUser) {
+    if (!this._loggedInUser) {
       return AppError.Unauthorized().throw();
     }
-    return this.loggedInUser;
+    return this._loggedInUser;
+  }
+
+  get loggedInUser(): User | null {
+    return this._loggedInUser;
   }
 
   async loadSession(): Promise<void> {
@@ -64,7 +68,7 @@ export class LuciaAuthService implements AuthService {
     }
     await this.lucia.deleteExpiredSessions();
     const { session, user } = await this.lucia.validateSession(sessionId);
-    this.loggedInUser = user;
+    this._loggedInUser = user;
     if (session && session.fresh) {
       const { name, value, attributes } = this.lucia.createSessionCookie(session.id);
       this.cookies.set(name, value, { ...attributes, path: '/' });

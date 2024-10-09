@@ -18,7 +18,7 @@ export interface UserDomainPatch {
 
 export interface UserDomainRepository {
   listByUserId(userId: string): Promise<UserDomain[]>;
-  findUserDomain(userId: string, domain: string): Promise<UserDomain | null>;
+  getUserDomain(userId: string, domain: string): Promise<UserDomain>;
   create(userDomain: UserDomainInput): Promise<UserDomain>;
   update(userId: string, domain: string, patch: Partial<UserDomainPatch>): Promise<UserDomain>;
   delete(userId: string, domain: string): Promise<void>;

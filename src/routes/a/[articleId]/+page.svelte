@@ -9,16 +9,16 @@
   <meta property="og:type" content="article" />
   <meta
     property="og:description"
-    content={`${data.article.username}, ${format(data.article.updatedAt, 'yyyy-MM-dd')}`}
+    content={`${data.article.author.username}, ${format(data.article.updatedAt, 'yyyy-MM-dd')}`}
   />
-  <meta property="article:author" content={data.article.username} />
+  <meta property="article:author" content={data.article.author.username} />
   <meta property="article:published_time" content={formatISO(data.article.createdAt)} />
   <meta property="article:modified_time" content={formatISO(data.article.updatedAt)} />
 </svelte:head>
 
 <p class="design">
   <i>by</i>
-  <a class="username" href={`/u/${data.article.username}`}>{data.article.name}</a>
+  <a class="username" href={`/u/${data.article.author.username}`}>{data.article.author.name}</a>
   <i>in</i>
   {format(data.article.createdAt, 'yyyy-MM-dd')}
   {#if data.myself}

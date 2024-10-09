@@ -22,12 +22,12 @@
 <div class="article-list">
   {#each data.articles as article}
     <article>
-      <a href="/a/{article.articleId}">
+      <a href="/a/{article.id}">
         <h2 class="design">{article.title}</h2>
       </a>
       <p class="design">
         <i>by</i>
-        <a class="username" href={`/u/${article.username}`}>{article.name}</a>
+        <a class="username" href={`/u/${article.author.username}`}>{article.author.name}</a>
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
       </p>

@@ -7,6 +7,18 @@ import type { Context } from '$lib/server/context';
 export class AuthUseCase {
   constructor(private ctx: Context) {}
 
+  requireLoggedInUser(context?: string): User {
+    const user = this.ctx.auth._loggedInUser;
+    if (!user) {
+      return AppError.Unauthorized(context).throw();
+    }
+    return user;
+  }
+
+  get loggedInUser(): User | null {
+    return this.ctx.auth._loggedInUser;
+  }
+
   async validateInviteCode(inviteCode: string): Promise<boolean> {
     const code = await this.ctx.inviteCode.findByCode(inviteCode);
     return code ? isInviteCodeValid(code, this.ctx.clock.now()) : false;

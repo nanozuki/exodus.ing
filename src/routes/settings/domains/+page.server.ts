@@ -1,8 +1,8 @@
-import { createUserDomain, getUserDomains } from '$lib/server/user_domain';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const domains = await getUserDomains(locals, locals.loggedInUser!.id);
+  const user = locals.auth.requireLoggedInUser('domain settings');
+  const domains = await locals.userDomain.getUserDomains(user.id);
   return {
     domains,
   };
@@ -15,6 +15,7 @@ export const actions = {
     if (typeof domain !== 'string') {
       return { error: '域名不能为空' };
     }
-    await createUserDomain(locals, locals.loggedInUser!.id, domain);
+    const user = locals.auth.requireLoggedInUser('domain settings');
+    await locals.userDomain.createUserDomain(user.id, domain);
   },
 } satisfies Actions;

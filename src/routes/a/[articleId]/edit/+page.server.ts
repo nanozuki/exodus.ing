@@ -1,17 +1,14 @@
 import { AppError } from '$lib/errors';
-import { createMarkdownArticle, getArticle, updateMarkdownArticle } from '$lib/server/article';
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  if (!locals.loggedInUser) {
-    return AppError.Unauthorized('article editor').throw();
-  }
+  const user = locals.auth.requireLoggedInUser('load article editor');
   if (params.articleId === 'new') {
     return { content: '' };
   }
-  const article = await getArticle(locals, params.articleId);
-  if (article.userId !== locals.loggedInUser.id) {
+  const article = await locals.article.getArticle(params.articleId);
+  if (article.author.userId !== user.id) {
     return AppError.Forbidden('article editor').throw();
   }
   return {
@@ -43,21 +40,15 @@ export const actions = {
       };
     }
 
+    const user = locals.auth.requireLoggedInUser('edit article');
     // New Article
-    if (!locals.loggedInUser) {
-      return AppError.Unauthorized('edit article').throw();
-    }
     if (params.articleId === 'new') {
-      const articleId = await createMarkdownArticle(locals, title, content);
+      const articleId = await locals.article.createMarkdownArticle(user.id, title, content);
       redirect(301, `/a/${articleId}`);
     }
 
     // Update Article
-    const article = await getArticle(locals, params.articleId);
-    if (article.userId !== locals.loggedInUser.id) {
-      return AppError.Forbidden('edit article').throw();
-    }
-    await updateMarkdownArticle(locals, params.articleId, title, content);
+    await locals.article.updateMarkdownArticle(user.id, params.articleId, title, content);
     redirect(301, `/a/${params.articleId}`);
   },
 } satisfies Actions;
