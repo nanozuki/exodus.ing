@@ -20,6 +20,7 @@ export const tSession = sqliteTable(
   },
   (table) => ({
     sessionUserIdIdx: index('session_user_id_idx').on(table.userId),
+    sessionExpiresAtIdx: index('expires_at_idx').on(table.expiresAt),
   }),
 );
 
@@ -42,10 +43,12 @@ export const tArticle = sqliteTable(
     title: text('title').notNull(),
     content: text('content').notNull(),
     contentType: text('content_type').$type<ArticleContentType>().notNull(),
+    path: text('path').notNull(),
   },
   (table) => ({
     articleTitleIdx: uniqueIndex('article_title_idx').on(table.title, table.userId),
     articleUserIdIdx: index('article_user_id_idx').on(table.userId),
+    articlePathIdx: index('article_path_idx').on(table.path),
   }),
 );
 
@@ -60,6 +63,36 @@ export const tUserDomain = sqliteTable(
   },
   (table) => ({
     userDomainUserIdIdx: index('user_domain_user_id_idx').on(table.userId),
+  }),
+);
+
+export const tComment = sqliteTable(
+  'comment',
+  {
+    id: text('id').notNull().primaryKey(),
+    path: text('path').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+    userId: text('user_id').notNull(),
+    articleId: text('article_id').notNull(),
+    content: text('content').notNull(),
+  },
+  (table) => ({
+    commentArticleIdIdx: index('comment_article_id_idx').on(table.articleId),
+    commentUserIdIdx: index('comment_user_id_idx').on(table.userId),
+    commentPathIdx: index('comment_path_idx').on(table.path),
+  }),
+);
+
+export const tBookmark = sqliteTable(
+  'bookmark',
+  {
+    userId: text('user_id').notNull(),
+    articleId: text('article_id').notNull(),
+  },
+  (table) => ({
+    bookmarkUserIdIdx: index('bookmark_user_id_idx').on(table.userId),
+    bookmarkArticleIdIdx: index('bookmark_article_id_idx').on(table.articleId),
   }),
 );
 
