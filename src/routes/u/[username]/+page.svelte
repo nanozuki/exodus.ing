@@ -1,5 +1,7 @@
 <script lang="ts">
   import { format } from 'date-fns';
+  import SettingIcon from '~icons/mdi/settings-outline';
+  import AddIcon from '~icons/mdi/add';
 
   const { data } = $props();
 </script>
@@ -13,7 +15,7 @@
   <h1>
     {data.user!.username}
     {#if data.isMyself}
-      <a class="button" href="/settings">设置</a>
+      <a class="button" href="/settings"><SettingIcon />设置</a>
     {/if}
   </h1>
   {#if data.aboutMe}
@@ -25,23 +27,23 @@
 <h4>
   文章列表
   {#if data.isMyself}
-    <a class="button" href="/a/new/edit">+ 新文章</a>
+    <a class="button" href="/a/new/edit"><AddIcon />新文章</a>
   {/if}
 </h4>
 
 <div class="article-list">
   {#each data.articles as article}
     <article>
-      <a href="/a/{article.articleId}">
+      <a href="/a/{article.id}">
         <h2 class="design">{article.title}</h2>
       </a>
       <p class="design">
         <i>by</i>
-        {article.name}
+        {article.author.name}
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
         {#if data.isMyself}
-          <a href="/a/{article.articleId}/edit">[编辑]</a>
+          <a href="/a/{article.id}/edit">[编辑]</a>
         {/if}
       </p>
     </article>
@@ -50,13 +52,16 @@
 
 <style>
   a.button {
-    display: inline;
+    display: inline-flex;
     font-size: 1rem;
-    padding: 0 1rem;
-    background-color: var(--green);
-    color: var(--primary-bg);
+    padding: 0.125rem 0.5rem;
     text-decoration: none;
     margin-left: 0.5rem;
+    align-items: center;
+    color: var(--secondary-fg);
+    border: 0.125rem solid var(--secondary-fg);
+    border-radius: 0.5rem;
+    gap: 0.125rem;
   }
 
   div.article-list {
