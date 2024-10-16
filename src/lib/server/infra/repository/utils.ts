@@ -1,16 +1,16 @@
 import { AppError } from '$lib/errors';
 import { customAlphabet } from 'nanoid';
 
-export async function wrap<T>(fn: () => Promise<T>): Promise<T> {
+export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
     } else if (error instanceof Error) {
-      return AppError.DatabaseError(error.message).throw();
+      return AppError.DatabaseError(`${method} failed: ${error.message}`).throw();
     } else {
-      return AppError.DatabaseError(JSON.stringify(error)).throw();
+      return AppError.DatabaseError(`${method} failed: ${JSON.stringify(error)}`).throw();
     }
   }
 }

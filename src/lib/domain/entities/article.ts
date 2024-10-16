@@ -1,4 +1,5 @@
-import type { IdPath } from './values';
+import type { IdPath } from '$lib/domain/values/id_path';
+import type { Paginated, Pagination } from '$lib/domain/values/page';
 
 export interface Article {
   id: string;
@@ -20,27 +21,25 @@ export interface ArticleAuthor {
 }
 
 export interface ArticleInput {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
   title: string;
   userId: string;
   contentType: ArticleContentType;
   content: string;
+  replyTo?: string;
 }
 
 export interface ArticlePatch {
-  updatedAt: Date;
   title: string;
   content: string;
 }
 
 export interface ArticleRepository {
   getById(articleId: string): Promise<Article>;
-  list(limit: number, offset: number): Promise<Article[]>;
-  listByUserId(userId: string, limit: number, offset: number): Promise<Article[]>;
+  list(page: Pagination): Promise<Paginated<Article>>;
+  listByUserId(userId: string, page: Pagination): Promise<Paginated<Article>>;
+  getByPath(path: IdPath): Promise<Article | null>;
+  listByPathPrefix(prefix: IdPath): Promise<Article[]>;
 
-  generateId(): Promise<string>;
-  create(article: ArticleInput): Promise<void>;
+  create(input: ArticleInput): Promise<string>;
   update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
 }

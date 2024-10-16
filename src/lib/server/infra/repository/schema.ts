@@ -89,6 +89,7 @@ export const tBookmark = sqliteTable(
   {
     userId: text('user_id').notNull(),
     articleId: text('article_id').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   },
   (table) => ({
     bookmarkUserIdIdx: index('bookmark_user_id_idx').on(table.userId),
@@ -97,15 +98,21 @@ export const tBookmark = sqliteTable(
 );
 
 export const schema = {
-  tUser,
-  tSession,
-  tInviteCode,
   tArticle,
+  tBookmark,
+  tComment,
+  tInviteCode,
+  tSession,
+  tUser,
   tUserDomain,
 };
 
-export type UserModel = typeof tUser.$inferSelect;
 export type ArticleModel = typeof tArticle.$inferSelect;
-export type UserDomainModel = typeof tUserDomain.$inferSelect;
+export type BookmarkModel = typeof tBookmark.$inferSelect;
+export type CommentModel = typeof tComment.$inferSelect;
 export type InviteCodeModel = typeof tInviteCode.$inferSelect;
+export type SessionModel = typeof tSession.$inferSelect;
+export type UserDomainModel = typeof tUserDomain.$inferSelect;
+export type UserModel = typeof tUser.$inferSelect;
+
 export type AppD1Database = DrizzleD1Database<typeof schema>;

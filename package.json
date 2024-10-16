@@ -57,7 +57,7 @@
     "@lucia-auth/adapter-drizzle": "^1.1.0",
     "arctic": "^1.9.2",
     "date-fns": "^3.6.0",
-    "drizzle-orm": "^0.33.0",
+    "drizzle-orm": "^0.34.0",
     "modern-normalize": "^2.0.0",
     "nanoid": "^5.0.7",
     "rehype-raw": "^7.0.0",

@@ -114,12 +114,12 @@ The backend structure should be like this:
 ```plaintext
 - src/lib
   - domain/
-    - entity/
+    - entities/
       - Article.ts
-    - value/
+    - values/
       - ArticleListItem.ts
-  - services/
-    - ArticleListService.ts
+    - services/
+      - ArticleListService.ts
   - server/
     - interfaces/
       - HomePage.ts

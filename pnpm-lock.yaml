@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@lucia-auth/adapter-drizzle':
         specifier: ^1.1.0
-        version: 1.1.0(drizzle-orm@0.33.0(@cloudflare/workers-types@4.20240925.0))(lucia@3.2.0)
+        version: 1.1.0(drizzle-orm@0.34.1(@cloudflare/workers-types@4.20240925.0))(lucia@3.2.0)
       arctic:
         specifier: ^1.9.2
         version: 1.9.2
@@ -18,8 +18,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       drizzle-orm:
-        specifier: ^0.33.0
-        version: 0.33.0(@cloudflare/workers-types@4.20240925.0)
+        specifier: ^0.34.0
+        version: 0.34.1(@cloudflare/workers-types@4.20240925.0)
       modern-normalize:
         specifier: ^2.0.0
         version: 2.0.0
@@ -1517,13 +1517,13 @@ packages:
     resolution: {integrity: sha512-nXOaTSFiuIaTMhS8WJC2d4EBeIcN9OSt2A2cyFbQYBAZbi7lRsVGJNqDpEwPqYfJz38yxbY/UtbvBBahBfnExQ==}
     hasBin: true
 
-  drizzle-orm@0.33.0:
-    resolution: {integrity: sha512-SHy72R2Rdkz0LEq0PSG/IdvnT3nGiWuRk+2tXZQ90GVq/XQhpCzu/EFT3V2rox+w8MlkBQxifF8pCStNYnERfA==}
+  drizzle-orm@0.34.1:
+    resolution: {integrity: sha512-t+zCwyWWt8xTqtYV4doE/xYmT7hpv1L8pQ66zddEz+3VWyedBBtctjMAp22mAJPfyWurRQXUJ1nrTtqLq+DqNA==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=3'
       '@electric-sql/pglite': '>=0.1.1'
-      '@libsql/client': '*'
+      '@libsql/client': '>=0.10.0'
       '@neondatabase/serverless': '>=0.1'
       '@op-engineering/op-sqlite': '>=2'
       '@opentelemetry/api': ^1.4.1
@@ -3382,9 +3382,9 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@lucia-auth/adapter-drizzle@1.1.0(drizzle-orm@0.33.0(@cloudflare/workers-types@4.20240925.0))(lucia@3.2.0)':
+  '@lucia-auth/adapter-drizzle@1.1.0(drizzle-orm@0.34.1(@cloudflare/workers-types@4.20240925.0))(lucia@3.2.0)':
     dependencies:
-      drizzle-orm: 0.33.0(@cloudflare/workers-types@4.20240925.0)
+      drizzle-orm: 0.34.1(@cloudflare/workers-types@4.20240925.0)
       lucia: 3.2.0
 
   '@melt-ui/pp@0.3.2(@melt-ui/svelte@0.83.0(svelte@5.0.0-next.262))(svelte@5.0.0-next.262)':
@@ -4003,7 +4003,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.33.0(@cloudflare/workers-types@4.20240925.0):
+  drizzle-orm@0.34.1(@cloudflare/workers-types@4.20240925.0):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20240925.0
 
