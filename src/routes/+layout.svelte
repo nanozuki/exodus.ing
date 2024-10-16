@@ -1,7 +1,7 @@
 <script lang="ts">
   import { navigating } from '$app/stores';
-  import Logo from '$lib/comps/Logo.svelte';
-  import Loading from '$lib/comps/Loading.svelte';
+  import Logo from '$lib/component/Logo.svelte';
+  import Loading from '$lib/component/Loading.svelte';
   import './styles.css';
 
   const { children, data } = $props();

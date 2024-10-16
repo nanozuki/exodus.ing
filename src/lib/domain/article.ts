@@ -1,5 +1,8 @@
+import type { IdPath } from './values';
+
 export interface Article {
   id: string;
+  path: IdPath;
   createdAt: Date;
   updatedAt: Date;
   title: string;

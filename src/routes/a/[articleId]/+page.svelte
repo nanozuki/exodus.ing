@@ -1,6 +1,8 @@
 <script lang="ts">
+  import Action from '$lib/component/Action.svelte';
   import { format, formatISO } from 'date-fns';
   const { data } = $props();
+  const { comments, repliesCount, bookmarksCount } = data.interactions;
 </script>
 
 <svelte:head>
@@ -26,6 +28,12 @@
   {/if}
 </p>
 
+<div class="interactives">
+  <Action href="#comments">评论{comments.length > 0 ? ` ${comments.length}` : ''}</Action>
+  {#if repliesCount > 0}<Action href="#replies">回复 {repliesCount}</Action>{/if}
+  {#if bookmarksCount > 0}<Action href="#bookmarks">收藏 {bookmarksCount}</Action>{/if}
+</div>
+
 <article>
   {#if data.meta?.titleFrom === 'matter'}
     <h1>{data.meta?.title}</h1>
@@ -34,8 +42,21 @@
   {@html data.file}
 </article>
 
+<div id="comments">
+  <h2>评论</h2>
+  <form>
+    <textarea name="comment" placeholder="评论" required></textarea>
+    <button type="submit">评论</button>
+  </form>
+</div>
+
 <style>
   article {
     padding-bottom: 2rem;
+  }
+  div.interactives {
+    display: flex;
+    column-gap: 1rem;
+    margin: 1rem 0;
   }
 </style>

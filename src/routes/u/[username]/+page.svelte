@@ -2,6 +2,7 @@
   import { format } from 'date-fns';
   import SettingIcon from '~icons/mdi/settings-outline';
   import AddIcon from '~icons/mdi/add';
+  import Action from '$lib/component/Action.svelte';
 
   const { data } = $props();
 </script>
@@ -15,7 +16,7 @@
   <h1>
     {data.user!.username}
     {#if data.isMyself}
-      <a class="button" href="/settings"><SettingIcon />设置</a>
+      <Action href="/settings"><SettingIcon />设置</Action>
     {/if}
   </h1>
   {#if data.aboutMe}
@@ -27,7 +28,7 @@
 <h4>
   文章列表
   {#if data.isMyself}
-    <a class="button" href="/a/new/edit"><AddIcon />新文章</a>
+    <Action href="/a/new/edit"><AddIcon />新文章</Action>
   {/if}
 </h4>
 
@@ -51,19 +52,6 @@
 </div>
 
 <style>
-  a.button {
-    display: inline-flex;
-    font-size: 1rem;
-    padding: 0.125rem 0.5rem;
-    text-decoration: none;
-    margin-left: 0.5rem;
-    align-items: center;
-    color: var(--secondary-fg);
-    border: 0.125rem solid var(--secondary-fg);
-    border-radius: 0.5rem;
-    gap: 0.125rem;
-  }
-
   div.article-list {
     display: flex;
     flex-direction: column;

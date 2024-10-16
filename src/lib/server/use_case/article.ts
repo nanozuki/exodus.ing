@@ -1,4 +1,5 @@
 import type { Article } from '$lib/domain/article';
+import type { ArticleInteractions } from '$lib/domain/comment';
 import { AppError } from '$lib/errors';
 import type { Context } from '$lib/server/context';
 
@@ -20,30 +21,30 @@ export class ArticleUseCase {
     return id;
   }
 
-  async createExternalLinkArticle(
-    userId: string,
-    title: string,
-    url: string,
-    publishedAt: Date,
-    editedAt: Date,
-  ): Promise<string> {
-    const domain = new URL(url).hostname;
-    const userDomain = await this.ctx.userDomain.getUserDomain(userId, domain);
-    if (!userDomain || !userDomain.verifiedAt) {
-      return AppError.Forbidden('create article').throw();
-    }
-    const id = await this.ctx.article.generateId();
-    await this.ctx.article.create({
-      id: id,
-      createdAt: publishedAt,
-      updatedAt: editedAt,
-      userId,
-      title,
-      contentType: 'external_link',
-      content: url,
-    });
-    return id;
-  }
+  // async createExternalLinkArticle(
+  //   userId: string,
+  //   title: string,
+  //   url: string,
+  //   publishedAt: Date,
+  //   editedAt: Date,
+  // ): Promise<string> {
+  //   const domain = new URL(url).hostname;
+  //   const userDomain = await this.ctx.userDomain.getUserDomain(userId, domain);
+  //   if (!userDomain || !userDomain.verifiedAt) {
+  //     return AppError.Forbidden('create article').throw();
+  //   }
+  //   const id = await this.ctx.article.generateId();
+  //   await this.ctx.article.create({
+  //     id: id,
+  //     createdAt: publishedAt,
+  //     updatedAt: editedAt,
+  //     userId,
+  //     title,
+  //     contentType: 'external_link',
+  //     content: url,
+  //   });
+  //   return id;
+  // }
 
   async updateMarkdownArticle(
     userId: string,
@@ -76,5 +77,15 @@ export class ArticleUseCase {
       articleId = articleId.slice(0, 6);
     }
     return await this.ctx.article.getById(articleId);
+  }
+
+  async getInteractions(articleId: string): Promise<ArticleInteractions> {
+    // TODO: implemented me
+    return {
+      comments: [],
+      bookmarksCount: 3,
+      repliesCount: 10,
+      replyTo: undefined,
+    };
   }
 }
