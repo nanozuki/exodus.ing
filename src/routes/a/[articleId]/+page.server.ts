@@ -2,7 +2,7 @@ import { compile } from '$lib/markdown';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  const article = await locals.article.getArticle(params.articleId);
+  const article = await locals.articlePage.getById(params.articleId);
   const interactions = await locals.article.getInteractions(article.id);
   const file = await compile(article.content);
   return {

@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { compile, type File } from '$lib/markdown';
+  import { compileMarkdown, type MarkdownCompileResult } from '$lib/markdown';
   import { onMount } from 'svelte';
 
   const { form, data } = $props();
 
   let mode: 'editor' | 'previewer' = $state('editor');
   let article: string = $state(form?.content || data.content);
-  let compiled: File | undefined = $state(undefined);
-  let title = $derived.by(() => (compiled ? compiled.data.meta?.title : data.title));
+  let compiled: MarkdownCompileResult | undefined = $state(undefined);
+  let title = $derived.by(() => (compiled ? compiled.meta?.title : data.title));
 
   let articleSnapshot = '';
   onMount(() => {
     setInterval(() => {
       if (article !== articleSnapshot) {
         articleSnapshot = article;
-        compile(article).then((result) => {
+        compileMarkdown(article).then((result) => {
           compiled = result;
         });
       }

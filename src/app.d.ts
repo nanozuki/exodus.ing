@@ -1,7 +1,4 @@
-import type { ArticleUseCase } from '$lib/server/use_case/article';
-import type { AuthUseCase } from '$lib/server/use_case/auth';
-import type { UserUseCase } from '$lib/server/use_case/user';
-import type { UserDomainUseCase } from '$lib/server/use_case/user_domain';
+import type { buildPages } from '$lib/server/interfaces/pages';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -12,12 +9,8 @@ declare global {
       message: string;
       context?: string;
     }
-    interface Locals {
-      article: ArticleUseCase;
-      user: UserUseCase;
-      userDomain: UserDomainUseCase;
-      auth: AuthUseCase;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface Locals extends ReturnType<typeof buildPages> {}
     // interface PageData {}
     // interface PageState {}
     interface Platform {

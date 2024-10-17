@@ -134,23 +134,26 @@ in the client side.
 
 - ArticleListService(ArticleRepository)
 
-  - list({offset, limit})
-  - listByUser({userId, offset, limit})
+  - list()
+  - listByUser()
 
 - ArticleService(ArticleRepository)
 
-  - getById({id})
-  - create({title, content})
-  - update({id, title, content})
-  - repliesCount({articleId})
-  - repliesTree({articleId})
+  - getById()
+  - createByMarkdown()
+  - updateByMarkdown()
+
+- ArticleReplyService(ArticleReplyRepository)
+
+  - getReplyTo()
+  - listReplies()
 
 - AuthService(AuthProvider)
 
   - loggedInUser()
   - requireLoggedInUser()
-  - registerByGithub({inviteCode})
-  - loginByGithub()
+  - authByGithub()
+  - handleGithubCallback()
 
 - CommentService(CommentRepository)
 

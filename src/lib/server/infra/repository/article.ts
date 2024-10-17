@@ -1,40 +1,91 @@
 import type {
   Article,
   ArticleInput,
-  ArticleRepository,
+  ArticleListItem,
   ArticlePatch,
+  ArticleRepository,
 } from '$lib/domain/entities/article';
-import { and, desc, eq, like, ne } from 'drizzle-orm/sql';
-import { tArticle, tUser, type ArticleModel, type AppD1Database, type UserModel } from './schema';
-import { newNanoId, wrap } from './utils';
-import { AppError } from '$lib/errors';
-import { decodeIdPath, encodeIdPath, type IdPath } from '$lib/domain/values/id_path';
+import { decodeIdPath, encodeIdPath } from '$lib/domain/values/id_path';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
+import { AppError } from '$lib/errors';
+import { aliasedTable } from 'drizzle-orm';
+import { and, desc, eq, like, ne, sql } from 'drizzle-orm/sql';
+import { tArticle, tBookmark, tComment, tUser, type AppD1Database } from './schema';
+import { newNanoId, wrap } from './utils';
 
-function convertModelToEntity({
-  article,
-  user,
-}: {
-  article: ArticleModel;
-  user: UserModel;
-}): Article {
+type ArticleResult = Omit<Article, 'path'> & { path: string };
+
+function convertModelToEntity(result: ArticleResult): Article {
   return {
-    ...article,
-    path: decodeIdPath(article.path),
-    author: { userId: user.id, username: user.username, name: user.name },
+    ...result,
+    path: decodeIdPath(result.path),
   };
 }
 
 export class D1ArticleRepository implements ArticleRepository {
   constructor(private db: AppD1Database) {}
 
+  private oneQuery() {
+    const p = aliasedTable(tArticle, 'parent');
+    const pu = aliasedTable(tUser, 'pu');
+    return this.db
+      .select({
+        id: tArticle.id,
+        path: tArticle.path,
+        createdAt: tArticle.createdAt,
+        updatedAt: tArticle.updatedAt,
+        title: tArticle.title,
+        authorUsername: tUser.username,
+        authorName: tUser.name,
+        contentType: tArticle.contentType,
+        content: tArticle.content,
+        replyTo: p.id ?? {
+          id: p.id,
+          title: p.title,
+          authorUsername: pu.username,
+          authorName: pu.name,
+        },
+      })
+      .from(tArticle)
+      .leftJoin(tUser, eq(tArticle.userId, tUser.id))
+      .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
+      .leftJoin(pu, eq(p.userId, pu.id));
+  }
+
+  private listQuery() {
+    const p = aliasedTable(tArticle, 'parent');
+    const pu = aliasedTable(tUser, 'pu');
+    return this.db
+      .select({
+        id: tArticle.id,
+        createdAt: tArticle.createdAt,
+        updatedAt: tArticle.updatedAt,
+        title: tArticle.title,
+        authorUsername: tUser.username,
+        authorName: tUser.name,
+        contentType: tArticle.contentType,
+        replyTo: p.id ?? {
+          id: p.id,
+          title: p.title,
+          authorUsername: pu.username,
+          authorName: pu.name,
+        },
+        replyCount: this.db.$count(
+          tArticle,
+          and(ne(tArticle.id, p.id), like(tArticle.path, sql`${tArticle.path} || '%'`)),
+        ),
+        bookmarkCount: this.db.$count(tBookmark, eq(tBookmark.articleId, tArticle.id)),
+        commentCount: this.db.$count(tComment, eq(tComment.articleId, tArticle.id)),
+      })
+      .from(tArticle)
+      .leftJoin(tUser, eq(tArticle.userId, tUser.id))
+      .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
+      .leftJoin(pu, eq(p.userId, pu.id));
+  }
+
   async getById(articleId: string): Promise<Article> {
     return await wrap('article.getById', async () => {
-      const articles = await this.db
-        .select()
-        .from(tArticle)
-        .innerJoin(tUser, eq(tArticle.userId, tUser.id))
-        .where(eq(tArticle.id, articleId));
+      const articles = await this.oneQuery().where(eq(tArticle.id, articleId));
       if (articles.length === 0) {
         return AppError.ArticleNotFound(articleId).throw();
       }
@@ -42,67 +93,36 @@ export class D1ArticleRepository implements ArticleRepository {
     });
   }
 
-  async list(page: Pagination): Promise<Paginated<Article>> {
+  async list(page: Pagination): Promise<Paginated<ArticleListItem>> {
     return await wrap('article.list', async () => {
-      const articles = await this.db
-        .select()
-        .from(tArticle)
-        .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+      console.log('page', page);
+      const count = await this.db.$count(tArticle);
+      const articles = await this.listQuery()
         .orderBy(desc(tArticle.createdAt))
         .limit(page.size)
         .offset(page.size * (page.number - 1));
-      const totalArticles = await this.db.$count(tArticle);
+      console.log('articles', articles);
       return {
         number: page.number,
-        total: (totalArticles + page.size - 1) / page.size,
-        items: articles.map(convertModelToEntity),
+        total: (count + page.size - 1) / page.size,
+        items: articles as ArticleListItem[],
       };
     });
   }
 
-  async listByUserId(userId: string, page: Pagination): Promise<Paginated<Article>> {
+  async listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>> {
     return await wrap('article.listByUserId', async () => {
-      const articles = await this.db
-        .select()
-        .from(tArticle)
-        .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+      const count = await this.db.$count(tArticle, eq(tArticle.userId, userId));
+      const articles = await this.listQuery()
         .where(eq(tArticle.userId, userId))
         .orderBy(desc(tArticle.createdAt))
         .limit(page.size)
         .offset(page.size * (page.number - 1));
-      const totalArticles = await this.db.$count(tArticle, eq(tArticle.userId, userId));
       return {
         number: page.number,
-        total: (totalArticles + page.size - 1) / page.size,
-        items: articles.map(convertModelToEntity),
+        total: (count + page.size - 1) / page.size,
+        items: articles as ArticleListItem[],
       };
-    });
-  }
-
-  async getByPath(path: IdPath): Promise<Article | null> {
-    return await wrap('article.getByPath', async () => {
-      const articles = await this.db
-        .select()
-        .from(tArticle)
-        .innerJoin(tUser, eq(tArticle.userId, tUser.id))
-        .where(eq(tArticle.path, encodeIdPath(path)));
-      if (articles.length === 0) {
-        return null;
-      }
-      return convertModelToEntity(articles[0]);
-    });
-  }
-
-  async listByPathPrefix(prefix: IdPath): Promise<Article[]> {
-    return await wrap('article.listByPathPrefix', async () => {
-      const pathStr = encodeIdPath(prefix);
-      const articles = await this.db
-        .select()
-        .from(tArticle)
-        .innerJoin(tUser, eq(tArticle.userId, tUser.id))
-        .where(and(ne(tArticle.path, pathStr), like(tArticle.path, pathStr + '%')))
-        .orderBy(desc(tArticle.createdAt));
-      return articles.map(convertModelToEntity);
     });
   }
 

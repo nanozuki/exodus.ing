@@ -7,18 +7,14 @@ export interface Article {
   createdAt: Date;
   updatedAt: Date;
   title: string;
-  author: ArticleAuthor;
+  authorName: string;
+  authorUsername: string;
   contentType: ArticleContentType;
   content: string;
+  replyTo?: ArticleBadge;
 }
 
 export type ArticleContentType = 'markdown' | 'external_link';
-
-export interface ArticleAuthor {
-  userId: string;
-  username: string;
-  name: string;
-}
 
 export interface ArticleInput {
   title: string;
@@ -33,13 +29,31 @@ export interface ArticlePatch {
   content: string;
 }
 
+export interface ArticleBadge {
+  id: string;
+  title: string;
+  authorName: string;
+  authorUsername: string;
+}
+
+export interface ArticleListItem {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  authorName: string;
+  authorUsername: string;
+  contentType: ArticleContentType;
+  replyTo?: ArticleBadge;
+  replyCount: number;
+  bookmarkCount: number;
+  commentCount: number;
+}
+
 export interface ArticleRepository {
   getById(articleId: string): Promise<Article>;
-  list(page: Pagination): Promise<Paginated<Article>>;
-  listByUserId(userId: string, page: Pagination): Promise<Paginated<Article>>;
-  getByPath(path: IdPath): Promise<Article | null>;
-  listByPathPrefix(prefix: IdPath): Promise<Article[]>;
-
+  list(page: Pagination): Promise<Paginated<ArticleListItem>>;
+  listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
   create(input: ArticleInput): Promise<string>;
   update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
 }

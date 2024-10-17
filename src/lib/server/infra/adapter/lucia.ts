@@ -1,8 +1,8 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
-import { State, type AuthService, type GitHubUser } from '$lib/domain/adapters';
+import { State, type AuthPort, type GitHubUser } from '$lib/domain/ports';
 import { AppError } from '$lib/errors';
-import { tSession, tUser } from '$lib/server/repository/schema';
+import { tSession, tUser } from '$lib/server/infra/repository/schema';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
@@ -32,13 +32,13 @@ function getLucia(db: AppD1Database) {
   return lucia;
 }
 
-export class LuciaAuthService implements AuthService {
+export class LuciaAuthService implements AuthPort {
   private lucia: ReturnType<typeof getLucia>;
   private github: GitHub;
   private cookies: Cookies;
   private _loggedInUser: User | null = null;
 
-  private constructor(event: RequestEvent, db: AppD1Database) {
+  constructor(event: RequestEvent, db: AppD1Database) {
     this.lucia = getLucia(db);
     this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET);
     this.cookies = event.cookies;

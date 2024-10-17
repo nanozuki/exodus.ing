@@ -31,6 +31,10 @@ export class AppError implements App.Error {
     return new AppError(400, 'OAUTH_VALIDATION_ERROR', 'OAuth 验证错误', context);
   }
 
+  static InvalidMarkdownError(context?: string): AppError {
+    return new AppError(400, 'INVALID_MARKDOWN_ERROR', 'Markdown 格式错误', context);
+  }
+
   static InternalServerError(context?: string): AppError {
     return new AppError(500, 'INTERNAL_SERVER_ERROR', '服务器内部错误', context);
   }

@@ -10,7 +10,7 @@
   <meta property="og:description" content="A blog platform for friends." />
 </svelte:head>
 
-{#if data.articles.length === 0}
+{#if data.items.length === 0}
   <p>
     Nothing can save you except writing<br />
     by Charles Bukowski
@@ -20,14 +20,14 @@
 <h4>文章列表</h4>
 
 <div class="article-list">
-  {#each data.articles as article}
+  {#each data.items as article}
     <article>
       <a href="/a/{article.id}">
         <h2 class="design">{article.title}</h2>
       </a>
       <p class="design">
         <i>by</i>
-        <a class="username" href={`/u/${article.author.username}`}>{article.author.name}</a>
+        <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
       </p>

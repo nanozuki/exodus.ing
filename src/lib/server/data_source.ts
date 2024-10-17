@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { AppError } from '$lib/errors';
-import { schema, type AppD1Database } from '$lib/server/repository/schema';
+import { schema, type AppD1Database } from '$lib/server/infra/repository/schema';
 import type { RequestEvent } from '@sveltejs/kit';
 import { drizzle } from 'drizzle-orm/d1';
 

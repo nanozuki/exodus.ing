@@ -12,6 +12,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             litecli
+            just
             nodePackages.nodejs
             nodePackages.pnpm
             nodePackages.svelte-language-server

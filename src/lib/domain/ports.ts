@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { User } from '$lib/domain/user';
+import type { User } from '$lib/domain/entities/user';
 
 export interface Cookie {
   name: string;
@@ -26,7 +26,7 @@ export const State = z.object({
 });
 export type State = z.infer<typeof State>;
 
-export interface AuthService {
+export interface AuthPort {
   get loggedInUser(): User | null;
 
   loadSession(): Promise<void>;
@@ -36,10 +36,6 @@ export interface AuthService {
 
   createGithubAuthUrl(state: string): Promise<URL>;
   validateGithubCode(code: string): Promise<GitHubUser>;
-}
-
-export interface Clock {
-  now(): Date;
 }
 
 export interface NameResolver {

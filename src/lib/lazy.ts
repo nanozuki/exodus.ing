@@ -1,8 +1,8 @@
-type Loader<T> = {
+type Loader<T extends object> = {
   [K in keyof T]: () => T[K];
 };
 
-export function createLazyProxy<T>(loader: Loader<T>): T {
+export function createLazyProxy<T extends object>(loader: Loader<T>): T {
   const cache: Partial<T> = {};
   const handler: ProxyHandler<Loader<T>> = {
     get: (target, prop) => {
