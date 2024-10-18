@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   if (!user) {
     return AppError.UserNotFound(params.username).throw();
   }
-  const articles = await listArticlesByUserId(locals, user.id, 10, 0);
+  const articles = await listArticlesByUserId(locals, user.id, 100, 0);
   let aboutMe: Value | null = null;
   if (user.aboutMe.length > 0) {
     const compiled = await compile(user.aboutMe);
