@@ -1,5 +1,6 @@
 import type {
   Article,
+  ArticleCard,
   ArticleInput,
   ArticleListItem,
   ArticlePatch,
@@ -25,7 +26,7 @@ function convertModelToEntity(result: ArticleResult): Article {
 export class D1ArticleRepository implements ArticleRepository {
   constructor(private db: AppD1Database) {}
 
-  private oneQuery() {
+  private modelQuery() {
     const p = aliasedTable(tArticle, 'parent');
     const pu = aliasedTable(tUser, 'pu');
     return this.db
@@ -45,6 +46,7 @@ export class D1ArticleRepository implements ArticleRepository {
           authorUsername: pu.username,
           authorName: pu.name,
         },
+        bookmarkCount: this.db.$count(tBookmark, eq(tBookmark.articleId, tArticle.id)),
       })
       .from(tArticle)
       .leftJoin(tUser, eq(tArticle.userId, tUser.id))
@@ -52,7 +54,7 @@ export class D1ArticleRepository implements ArticleRepository {
       .leftJoin(pu, eq(p.userId, pu.id));
   }
 
-  private listQuery() {
+  private listItemQuery() {
     const p = aliasedTable(tArticle, 'parent');
     const pu = aliasedTable(tUser, 'pu');
     return this.db
@@ -83,9 +85,21 @@ export class D1ArticleRepository implements ArticleRepository {
       .leftJoin(pu, eq(p.userId, pu.id));
   }
 
+  private cardQuery() {
+    return this.db
+      .select({
+        id: tArticle.id,
+        title: tArticle.title,
+        authorUsername: tUser.username,
+        authorName: tUser.name,
+      })
+      .from(tArticle)
+      .leftJoin(tUser, eq(tArticle.userId, tUser.id));
+  }
+
   async getById(articleId: string): Promise<Article> {
     return await wrap('article.getById', async () => {
-      const articles = await this.oneQuery().where(eq(tArticle.id, articleId));
+      const articles = await this.modelQuery().where(eq(tArticle.id, articleId));
       if (articles.length === 0) {
         return AppError.ArticleNotFound(articleId).throw();
       }
@@ -97,7 +111,7 @@ export class D1ArticleRepository implements ArticleRepository {
     return await wrap('article.list', async () => {
       console.log('page', page);
       const count = await this.db.$count(tArticle);
-      const articles = await this.listQuery()
+      const articles = await this.listItemQuery()
         .orderBy(desc(tArticle.createdAt))
         .limit(page.size)
         .offset(page.size * (page.number - 1));
@@ -113,7 +127,7 @@ export class D1ArticleRepository implements ArticleRepository {
   async listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>> {
     return await wrap('article.listByUserId', async () => {
       const count = await this.db.$count(tArticle, eq(tArticle.userId, userId));
-      const articles = await this.listQuery()
+      const articles = await this.listItemQuery()
         .where(eq(tArticle.userId, userId))
         .orderBy(desc(tArticle.createdAt))
         .limit(page.size)
@@ -123,6 +137,15 @@ export class D1ArticleRepository implements ArticleRepository {
         total: (count + page.size - 1) / page.size,
         items: articles as ArticleListItem[],
       };
+    });
+  }
+
+  async listReplies(articleId: string): Promise<ArticleCard[]> {
+    return await wrap('article.listReplies', async () => {
+      const articles = await this.cardQuery().where(
+        and(ne(tArticle.id, articleId), like(tArticle.path, sql`${articleId} || '%'`)),
+      );
+      return articles as ArticleCard[];
     });
   }
 

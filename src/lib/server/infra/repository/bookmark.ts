@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkInput, BookmarkRepository } from '$lib/domain/entities/bookmark';
+import type { Bookmark, BookmarkRepository } from '$lib/domain/entities/bookmark';
 import { and, eq } from 'drizzle-orm/sql';
 import { tBookmark, type AppD1Database } from './schema';
 import { wrap } from './utils';
@@ -16,15 +16,19 @@ export class D1BookmarkRepository implements BookmarkRepository {
     );
   }
 
-  async countByArticleId(articleId: string): Promise<number> {
-    return await wrap('bookmark.countByArticleId', () =>
-      this.db.$count(tBookmark, eq(tBookmark.articleId, articleId)),
-    );
+  async isBookmarked(articleId: string, userId: string): Promise<boolean> {
+    return await wrap('bookmark.isBookmarked', async () => {
+      const count = await this.db.$count(
+        tBookmark,
+        and(eq(tBookmark.articleId, articleId), eq(tBookmark.userId, userId)),
+      );
+      return count > 0;
+    });
   }
 
-  async create(input: BookmarkInput): Promise<void> {
+  async create(userId: string, articleId: string): Promise<void> {
     await wrap('bookmark.create', async () => {
-      const bookmark = { ...input, createdAt: new Date() };
+      const bookmark = { userId, articleId, createdAt: new Date() };
       await this.db.insert(tBookmark).values(bookmark);
     });
   }

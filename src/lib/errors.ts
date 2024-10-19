@@ -43,6 +43,10 @@ export class AppError implements App.Error {
     return new AppError(401, 'UNAUTHORIZED', '未登录', context);
   }
 
+  static Forbidden(context?: string): AppError {
+    return new AppError(403, 'FORBIDDEN', '没有权限', context);
+  }
+
   static ArticleNotFound(context?: string): AppError {
     return new AppError(404, 'ARTICLE_NOT_FOUND', '文章不存在', context);
   }
@@ -51,8 +55,8 @@ export class AppError implements App.Error {
     return new AppError(404, 'USER_NOT_FOUND', '用户不存在', context);
   }
 
-  static Forbidden(context?: string): AppError {
-    return new AppError(403, 'FORBIDDEN', '没有权限', context);
+  static CommentNotFound(context?: string): AppError {
+    return new AppError(404, 'COMMENT_NOT_FOUND', '评论不存在', context);
   }
 
   static UserDomainNotFound(context?: string): AppError {

@@ -4,14 +4,9 @@ export interface Bookmark {
   createdAt: Date;
 }
 
-export interface BookmarkInput {
-  userId: string;
-  articleId: string;
-}
-
 export interface BookmarkRepository {
   listByUserId(userId: string): Promise<Bookmark[]>;
-  countByArticleId(articleId: string): Promise<number>;
-  create(input: BookmarkInput): Promise<void>;
+  isBookmarked(articleId: string, userId: string): Promise<boolean>;
+  create(userId: string, articleId: string): Promise<void>;
   delete(userId: string, articleId: string): Promise<void>;
 }

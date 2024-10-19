@@ -22,7 +22,8 @@ export interface CommentPatch {
 }
 
 export interface CommentRepository {
-  listByArticleId(articleId: string): Promise<Comment[]>;
+  listByArticle(articleId: string): Promise<Comment[]>;
+  getById(commentId: string): Promise<Comment>;
   create(comment: CommentInput): Promise<string>;
   update(commentId: string, patch: Partial<CommentPatch>): Promise<void>;
 }

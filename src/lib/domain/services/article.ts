@@ -1,4 +1,4 @@
-import type { Article, ArticleRepository } from '$lib/domain/entities/article';
+import type { Article, ArticleCard, ArticleRepository } from '$lib/domain/entities/article';
 import { compileMarkdown } from '$lib/markdown';
 
 export class ArticleService {
@@ -32,5 +32,9 @@ export class ArticleService {
       articleId = articleId.slice(0, 6);
     }
     return await this.repository.getById(articleId);
+  }
+
+  async listReplies(articleId: string): Promise<ArticleCard[]> {
+    return await this.repository.listReplies(articleId);
   }
 }

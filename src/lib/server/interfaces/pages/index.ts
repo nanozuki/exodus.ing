@@ -8,6 +8,6 @@ export function buildPages(services: Services) {
   return createLazyProxy({
     rootLayout: () => new RootLayout(services.auth),
     homePage: () => new HomePage(services.articleList),
-    articlePage: () => new ArticlePage(services.article),
+    articlePage: () => new ArticlePage(services.article, services.comment, services.bookmark),
   });
 }

@@ -8,6 +8,7 @@ import { decodeIdPath, encodeIdPath } from '$lib/domain/values/id_path';
 import { eq } from 'drizzle-orm/sql';
 import { tComment, type AppD1Database, type CommentModel } from './schema';
 import { newNanoId, wrap } from './utils';
+import { AppError } from '$lib/errors';
 
 function convertModelToEntity(model: CommentModel): Comment {
   return {
@@ -19,7 +20,7 @@ function convertModelToEntity(model: CommentModel): Comment {
 export class D1CommentRepository implements CommentRepository {
   constructor(private db: AppD1Database) {}
 
-  async listByArticleId(articleId: string): Promise<Comment[]> {
+  async listByArticle(articleId: string): Promise<Comment[]> {
     return await wrap('comment.listByArticleId', async () => {
       const comments = await this.db
         .select()
@@ -27,6 +28,16 @@ export class D1CommentRepository implements CommentRepository {
         .where(eq(tComment.articleId, articleId))
         .orderBy(tComment.createdAt);
       return comments.map(convertModelToEntity);
+    });
+  }
+
+  async getById(commentId: string): Promise<Comment> {
+    return await wrap('comment.getById', async () => {
+      const comment = await this.db.select().from(tComment).where(eq(tComment.id, commentId));
+      if (comment.length === 0) {
+        return AppError.CommentNotFound().throw();
+      }
+      return convertModelToEntity(comment[0]);
     });
   }
 
@@ -48,7 +59,7 @@ export class D1CommentRepository implements CommentRepository {
       if (input.replyTo) {
         const replyTo = await this.db.select().from(tComment).where(eq(tComment.id, input.replyTo));
         if (replyTo.length === 0) {
-          throw new Error('ReplyTo comment not found');
+          return AppError.CommentNotFound('replyTo').throw();
         }
         path = [...replyTo[0].path, id];
       }

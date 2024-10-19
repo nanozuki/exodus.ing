@@ -11,7 +11,8 @@ export interface Article {
   authorUsername: string;
   contentType: ArticleContentType;
   content: string;
-  replyTo?: ArticleBadge;
+  replyTo?: ArticleCard;
+  bookmarkCount: number;
 }
 
 export type ArticleContentType = 'markdown' | 'external_link';
@@ -29,7 +30,7 @@ export interface ArticlePatch {
   content: string;
 }
 
-export interface ArticleBadge {
+export interface ArticleCard {
   id: string;
   title: string;
   authorName: string;
@@ -44,7 +45,7 @@ export interface ArticleListItem {
   authorName: string;
   authorUsername: string;
   contentType: ArticleContentType;
-  replyTo?: ArticleBadge;
+  replyTo?: ArticleCard;
   replyCount: number;
   bookmarkCount: number;
   commentCount: number;
@@ -54,6 +55,7 @@ export interface ArticleRepository {
   getById(articleId: string): Promise<Article>;
   list(page: Pagination): Promise<Paginated<ArticleListItem>>;
   listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
+  listReplies(articleId: string): Promise<ArticleCard[]>;
   create(input: ArticleInput): Promise<string>;
   update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
 }

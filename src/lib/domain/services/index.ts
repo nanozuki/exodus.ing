@@ -11,11 +11,15 @@ import type { InviteCodeRepository } from '$lib/domain/entities/invite_code';
 import type { UserRepository } from '$lib/domain/entities/user';
 import type { UserDomainRepository } from '$lib/domain/entities/user_domain';
 import { createLazyProxy } from '$lib/lazy';
+import { CommentService } from './comment';
+import { BookmarkService } from './bookmark';
 
 export interface Services {
   article: ArticleService;
   articleList: ArticleListService;
   auth: AuthService;
+  bookmark: BookmarkService;
+  comment: CommentService;
   user: UserService;
   userDomain: UserDomainService;
 }
@@ -39,6 +43,8 @@ export function buildServices(repositories: Repositories, adapters: Adapters) {
     article: () => new ArticleService(repositories.article),
     articleList: () => new ArticleListService(repositories.article),
     auth: () => new AuthService(adapters.auth, repositories.inviteCode, repositories.user),
+    bookmark: () => new BookmarkService(repositories.bookmark),
+    comment: () => new CommentService(repositories.comment),
     user: () => new UserService(repositories.user),
     userDomain: () => new UserDomainService(repositories.userDomain, adapters.nameResolver),
   });
