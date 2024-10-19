@@ -7,7 +7,7 @@
   let mode: 'editor' | 'previewer' = $state('editor');
   let article: string = $state(form?.content || data.content);
   let compiled: MarkdownCompileResult | undefined = $state(undefined);
-  let title = $derived.by(() => (compiled ? compiled.meta?.title : data.title));
+  let title = $derived.by(() => (compiled && compiled.ok ? compiled.meta.title : data.title));
 
   let articleSnapshot = '';
   onMount(() => {

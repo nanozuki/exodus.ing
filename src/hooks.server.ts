@@ -12,7 +12,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   const services = buildServices(repositories, adapters);
   const locals = buildPages(services);
 
-  await locals.rootLayout.loadSession();
+  await locals.layouts.loadSession();
 
   event.locals = locals;
   return resolve(event);

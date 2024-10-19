@@ -17,10 +17,9 @@ export interface MarkdownMeta {
   titleSource: 'heading' | 'frontmatter';
 }
 
-export interface MarkdownCompileResult {
-  value: Value;
-  meta: MarkdownMeta;
-}
+export type MarkdownCompileResult =
+  | { ok: true; value: Value; meta: MarkdownMeta }
+  | { ok: false; error: AppError };
 
 interface FileData {
   matter?: Record<string, unknown>;
@@ -67,7 +66,7 @@ export const compileMarkdown = async (article: string): Promise<MarkdownCompileR
     .use(rehypeStringify)
     .process(article);
   if (!file.data.meta) {
-    throw AppError.InvalidMarkdownError('No title found');
+    return { ok: false, error: AppError.InvalidMarkdownError('No title found') };
   }
-  return { value: file.value, meta: file.data.meta };
+  return { ok: true, value: file.value, meta: file.data.meta };
 };

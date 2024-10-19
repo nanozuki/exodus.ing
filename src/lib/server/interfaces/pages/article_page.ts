@@ -29,7 +29,7 @@ export class ArticlePage {
     private readonly bookmark: BookmarkService,
   ) {}
 
-  async getById(articleId: string, loggedUser?: User): Promise<ArticleData> {
+  async getById(articleId: string, loggedUser?: User | null): Promise<ArticleData> {
     const [article, isBookmarked, comments, replies] = await Promise.all([
       this.article.getById(articleId),
       loggedUser ? this.bookmark.isBookmarked(articleId, loggedUser.id) : false,
@@ -37,6 +37,10 @@ export class ArticlePage {
       this.article.listReplies(articleId),
     ]);
     const result = await compileMarkdown(article.content);
+    if (!result.ok) {
+      return result.error.throw();
+    }
+    console.log('loggedUser', loggedUser, article.authorId);
     return {
       article: {
         ...article,
@@ -46,7 +50,7 @@ export class ArticlePage {
       comments,
       replies,
       user: {
-        isAuthor: loggedUser ? article.authorUsername === loggedUser.username : false,
+        isAuthor: loggedUser ? article.authorId === loggedUser.id : false,
         isBookmarked,
       },
     };

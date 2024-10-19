@@ -1,20 +1,12 @@
-import { AppError } from '$lib/errors';
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  const user = locals.auth.requireLoggedInUser('load article editor');
   if (params.articleId === 'new') {
-    return { content: '' };
+    locals.layouts.requireLoggedInUser('load article editor');
+    return { title: '', content: '' };
   }
-  const article = await locals.article.getArticle(params.articleId);
-  if (article.author.userId !== user.id) {
-    return AppError.Forbidden('article editor').throw();
-  }
-  return {
-    content: article.content,
-    title: article.title,
-  };
+  return await locals.articleEditPage.getArticleContent(params.articleId);
 };
 
 interface FormData {
@@ -40,15 +32,14 @@ export const actions = {
       };
     }
 
-    const user = locals.auth.requireLoggedInUser('edit article');
     // New Article
     if (params.articleId === 'new') {
-      const articleId = await locals.article.createMarkdownArticle(user.id, title, content);
+      const articleId = await locals.articleEditPage.createByMarkdown(content);
       redirect(301, `/a/${articleId}`);
     }
 
     // Update Article
-    await locals.article.updateMarkdownArticle(user.id, params.articleId, title, content);
+    await locals.articleEditPage.updateByMarkdown(params.articleId, content);
     redirect(301, `/a/${params.articleId}`);
   },
 } satisfies Actions;

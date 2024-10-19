@@ -7,6 +7,7 @@ export interface Article {
   createdAt: Date;
   updatedAt: Date;
   title: string;
+  authorId: string;
   authorName: string;
   authorUsername: string;
   contentType: ArticleContentType;
@@ -33,6 +34,7 @@ export interface ArticlePatch {
 export interface ArticleCard {
   id: string;
   title: string;
+  authorId: string;
   authorName: string;
   authorUsername: string;
 }
@@ -42,6 +44,7 @@ export interface ArticleListItem {
   createdAt: Date;
   updatedAt: Date;
   title: string;
+  authorId: string;
   authorName: string;
   authorUsername: string;
   contentType: ArticleContentType;

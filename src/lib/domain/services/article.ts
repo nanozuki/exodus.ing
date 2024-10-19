@@ -10,6 +10,9 @@ export class ArticleService {
 
   async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
     const result = await compileMarkdown(content);
+    if (!result.ok) {
+      return result.error.throw();
+    }
     return await this.repository.create({
       userId,
       content,
@@ -21,6 +24,9 @@ export class ArticleService {
 
   async updateByMarkdown(articleId: string, content: string): Promise<void> {
     const result = await compileMarkdown(content);
+    if (!result.ok) {
+      return result.error.throw();
+    }
     return await this.repository.update(articleId, {
       title: result.meta.title,
     });

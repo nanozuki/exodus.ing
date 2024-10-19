@@ -36,6 +36,7 @@ export class D1ArticleRepository implements ArticleRepository {
         createdAt: tArticle.createdAt,
         updatedAt: tArticle.updatedAt,
         title: tArticle.title,
+        authorId: tArticle.userId,
         authorUsername: tUser.username,
         authorName: tUser.name,
         contentType: tArticle.contentType,
@@ -63,6 +64,7 @@ export class D1ArticleRepository implements ArticleRepository {
         createdAt: tArticle.createdAt,
         updatedAt: tArticle.updatedAt,
         title: tArticle.title,
+        authorId: tArticle.userId,
         authorUsername: tUser.username,
         authorName: tUser.name,
         contentType: tArticle.contentType,
@@ -90,6 +92,7 @@ export class D1ArticleRepository implements ArticleRepository {
       .select({
         id: tArticle.id,
         title: tArticle.title,
+        authorId: tArticle.userId,
         authorUsername: tUser.username,
         authorName: tUser.name,
       })
@@ -109,13 +112,11 @@ export class D1ArticleRepository implements ArticleRepository {
 
   async list(page: Pagination): Promise<Paginated<ArticleListItem>> {
     return await wrap('article.list', async () => {
-      console.log('page', page);
       const count = await this.db.$count(tArticle);
       const articles = await this.listItemQuery()
         .orderBy(desc(tArticle.createdAt))
         .limit(page.size)
         .offset(page.size * (page.number - 1));
-      console.log('articles', articles);
       return {
         number: page.number,
         total: (count + page.size - 1) / page.size,
