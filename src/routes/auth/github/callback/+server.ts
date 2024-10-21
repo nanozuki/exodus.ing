@@ -8,7 +8,7 @@ export async function GET({ locals, url }: RequestEvent): Promise<Response> {
     return AppError.OAuthValidationError('code or state is empty').throw();
   }
 
-  await locals.auth.handleGithubCallback(code, state);
+  await locals.authPage.handleGithubCallback(code, state);
 
   return new Response(null, {
     status: 302,

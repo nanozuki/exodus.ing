@@ -1,5 +1,10 @@
 import type { User, UserRepository } from '$lib/domain/entities/user';
 
+export interface GitHubUser {
+  id: number;
+  username: string;
+}
+
 export class UserService {
   constructor(private user: UserRepository) {}
 
@@ -17,6 +22,22 @@ export class UserService {
 
   async findUserByUsername(username: string): Promise<User | null> {
     return await this.user.findByUsername(username);
+  }
+
+  async createUserByGitHub(gitHubUser: GitHubUser): Promise<User> {
+    const userId = await this.user.generateId();
+    const now = new Date();
+    const user = {
+      id: userId,
+      createdAt: now,
+      updatedAt: now,
+      username: gitHubUser.username,
+      githubId: gitHubUser.id,
+      name: gitHubUser.username,
+      aboutMe: '',
+    };
+    await this.user.create(user);
+    return user;
   }
 
   async updateUsername(userId: string, username: string): Promise<void> {

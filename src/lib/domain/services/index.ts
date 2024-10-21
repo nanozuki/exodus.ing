@@ -13,6 +13,7 @@ import type { UserDomainRepository } from '$lib/domain/entities/user_domain';
 import { createLazyProxy } from '$lib/lazy';
 import { CommentService } from './comment';
 import { BookmarkService } from './bookmark';
+import { InviteCodeService } from './invite_code';
 
 export interface Services {
   article: ArticleService;
@@ -20,6 +21,7 @@ export interface Services {
   auth: AuthService;
   bookmark: BookmarkService;
   comment: CommentService;
+  inviteCode: InviteCodeService;
   user: UserService;
   userDomain: UserDomainService;
 }
@@ -42,9 +44,10 @@ export function buildServices(repositories: Repositories, adapters: Adapters) {
   return createLazyProxy<Services>({
     article: () => new ArticleService(repositories.article),
     articleList: () => new ArticleListService(repositories.article),
-    auth: () => new AuthService(adapters.auth, repositories.inviteCode, repositories.user),
+    auth: () => new AuthService(adapters.auth),
     bookmark: () => new BookmarkService(repositories.bookmark),
     comment: () => new CommentService(repositories.comment),
+    inviteCode: () => new InviteCodeService(repositories.inviteCode),
     user: () => new UserService(repositories.user),
     userDomain: () => new UserDomainService(repositories.userDomain, adapters.nameResolver),
   });

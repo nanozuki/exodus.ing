@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { User } from '$lib/domain/entities/user';
+import type { GitHubUser } from './services/user';
 
 export interface Cookie {
   name: string;
@@ -13,11 +14,6 @@ export interface Cookie {
     maxAge?: number;
     expires?: Date;
   };
-}
-
-export interface GitHubUser {
-  id: number;
-  login: string;
 }
 
 export const State = z.object({
