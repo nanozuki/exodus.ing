@@ -1,5 +1,5 @@
 import type { Article, ArticleCard, ArticleRepository } from '$lib/domain/entities/article';
-import { compileMarkdown } from '$lib/markdown';
+import { compileArticle } from '$lib/markdown';
 
 export class ArticleService {
   constructor(private repository: ArticleRepository) {}
@@ -9,7 +9,7 @@ export class ArticleService {
   }
 
   async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
-    const result = await compileMarkdown(content);
+    const result = await compileArticle(content);
     if (!result.ok) {
       return result.error.throw();
     }
@@ -23,7 +23,7 @@ export class ArticleService {
   }
 
   async updateByMarkdown(articleId: string, content: string): Promise<void> {
-    const result = await compileMarkdown(content);
+    const result = await compileArticle(content);
     if (!result.ok) {
       return result.error.throw();
     }

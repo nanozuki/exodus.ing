@@ -5,7 +5,7 @@ import type { ArticleService } from '$lib/domain/services/article';
 import type { Value } from 'vfile';
 import type { BookmarkService } from '$lib/domain/services/bookmark';
 import type { CommentService, CommentUpdateRequest } from '$lib/domain/services/comment';
-import { compileMarkdown, type MarkdownMeta } from '$lib/markdown';
+import { compileArticle, type MarkdownMeta } from '$lib/markdown';
 
 type ArticleView = Omit<Article, 'content'> & {
   content: Value;
@@ -36,7 +36,7 @@ export class ArticlePage {
       this.comment.listByArticle(articleId),
       this.article.listReplies(articleId),
     ]);
-    const result = await compileMarkdown(article.content);
+    const result = await compileArticle(article.content);
     if (!result.ok) {
       return result.error.throw();
     }

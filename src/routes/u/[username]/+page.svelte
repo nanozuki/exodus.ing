@@ -5,45 +5,46 @@
   import Action from '$lib/component/Action.svelte';
 
   const { data } = $props();
+  const { user, articles, isMyself } = data;
 </script>
 
 <svelte:head>
-  <title>{data.user?.username} - EXODUS</title>
-  <meta property="og:title" content={data.user?.username} />
+  <title>{user.username} - EXODUS</title>
+  <meta property="og:title" content={user.username} />
 </svelte:head>
 
 <article>
   <h1>
-    {data.user!.username}
-    {#if data.isMyself}
+    {user.username}
+    {#if isMyself}
       <Action href="/settings"><SettingIcon />设置</Action>
     {/if}
   </h1>
-  {#if data.aboutMe}
+  {#if user.aboutMe}
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-    {@html data.aboutMe}
+    {@html user.aboutMe}
   {/if}
 </article>
 
 <h4>
   文章列表
-  {#if data.isMyself}
+  {#if isMyself}
     <Action href="/a/new/edit"><AddIcon />新文章</Action>
   {/if}
 </h4>
 
 <div class="article-list">
-  {#each data.articles as article}
+  {#each articles.items as article}
     <article>
       <a href="/a/{article.id}">
         <h2 class="design">{article.title}</h2>
       </a>
       <p class="design">
         <i>by</i>
-        {article.author.name}
+        {article.authorName}
         <i>in</i>
         {format(article.createdAt, 'yyyy-MM-dd')}
-        {#if data.isMyself}
+        {#if isMyself}
           <a href="/a/{article.id}/edit">[编辑]</a>
         {/if}
       </p>

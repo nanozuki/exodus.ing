@@ -17,7 +17,7 @@ export interface MarkdownMeta {
   titleSource: 'heading' | 'frontmatter';
 }
 
-export type MarkdownCompileResult =
+export type ArticleCompileResult =
   | { ok: true; value: Value; meta: MarkdownMeta }
   | { ok: false; error: AppError };
 
@@ -54,7 +54,7 @@ function remarkMeta() {
   };
 }
 
-export const compileMarkdown = async (article: string): Promise<MarkdownCompileResult> => {
+export const compileArticle = async (article: string): Promise<ArticleCompileResult> => {
   const file: File = await unified()
     .use(remarkParse)
     .use(remarkFrontmatter)
@@ -69,4 +69,20 @@ export const compileMarkdown = async (article: string): Promise<MarkdownCompileR
     return { ok: false, error: AppError.InvalidMarkdownError('No title found') };
   }
   return { ok: true, value: file.value, meta: file.data.meta };
+};
+
+export const compileMarkdown = async (content: string): Promise<Value> => {
+  if (content.length === 0) {
+    return '';
+  }
+  const file: File = await unified()
+    .use(remarkParse)
+    .use(remarkFrontmatter)
+    .use(remarkGfm)
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeRaw)
+    .use(rehypeSanitize)
+    .use(rehypeStringify)
+    .process(content);
+  return file.value;
 };

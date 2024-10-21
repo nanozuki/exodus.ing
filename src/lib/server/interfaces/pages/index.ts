@@ -6,6 +6,7 @@ import { AuthPage } from './auth_page';
 import { HomePage } from './home_page';
 import { Layouts } from './layouts';
 import { SettingsPage } from './settings_page';
+import { UserPage } from './user_page';
 
 export function buildPages(services: Services) {
   return createLazyProxy({
@@ -15,5 +16,6 @@ export function buildPages(services: Services) {
     homePage: () => new HomePage(services.articleList),
     layouts: () => new Layouts(services.auth),
     settingsPage: () => new SettingsPage(services.user, services.userDomain, services.nameResolver),
+    userPage: () => new UserPage(services.user, services.articleList),
   });
 }
