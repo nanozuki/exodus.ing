@@ -1,5 +1,5 @@
-import { type NameResolver } from '$lib/domain/ports';
 import type { UserDomain } from '$lib/domain/entities/user_domain';
+import { type NameResolver } from '$lib/domain/ports';
 
 export class NameResolverService {
   constructor(private readonly nameResolver: NameResolver) {}

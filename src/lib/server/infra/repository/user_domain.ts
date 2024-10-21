@@ -4,10 +4,10 @@ import type {
   UserDomainPatch,
   UserDomainRepository,
 } from '$lib/domain/entities/user_domain';
+import { AppError } from '$lib/errors';
 import { and, eq } from 'drizzle-orm/sql';
 import { tUserDomain, type AppD1Database } from './schema';
 import { wrap } from './utils';
-import { AppError } from '$lib/errors';
 
 export class D1UserDomainRepository implements UserDomainRepository {
   constructor(private db: AppD1Database) {}

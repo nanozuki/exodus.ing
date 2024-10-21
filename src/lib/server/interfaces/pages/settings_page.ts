@@ -1,7 +1,7 @@
 import type { UserDomain } from '$lib/domain/entities/user_domain';
+import type { NameResolverService } from '$lib/domain/services/name_resolver';
 import type { UserService } from '$lib/domain/services/user';
 import type { UserDomainService } from '$lib/domain/services/user_domain';
-import type { NameResolverService } from '$lib/domain/services/name_resolver';
 
 export class SettingsPage {
   constructor(

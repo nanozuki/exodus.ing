@@ -8,9 +8,9 @@ import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
 import { matter } from 'vfile-matter';
 
+import { AppError } from '$lib/errors';
 import type { Root } from 'mdast';
 import type { VFile, Value } from 'vfile';
-import { AppError } from '$lib/errors';
 
 export interface MarkdownMeta {
   title: string;

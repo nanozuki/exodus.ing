@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import type { User } from '$lib/domain/entities/user';
+import { z } from 'zod';
 import type { GitHubUser } from './services/user';
 
 export interface Cookie {

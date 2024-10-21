@@ -1,5 +1,4 @@
-import type { CommentInput, CommentRepository } from '$lib/domain/entities/comment';
-import type { Comment } from '$lib/domain/entities/comment';
+import type { Comment, CommentInput, CommentRepository } from '$lib/domain/entities/comment';
 import { AppError } from '$lib/errors';
 
 export class CommentService {

@@ -1,5 +1,5 @@
-import { integer, sqliteTable, text, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { type DrizzleD1Database } from 'drizzle-orm/d1';
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const tUser = sqliteTable('user', {
   id: text('id').notNull().primaryKey(),

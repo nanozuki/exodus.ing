@@ -2,10 +2,10 @@ import type { Article, ArticleCard } from '$lib/domain/entities/article';
 import type { Comment, CommentInput } from '$lib/domain/entities/comment';
 import type { User } from '$lib/domain/entities/user';
 import type { ArticleService } from '$lib/domain/services/article';
-import type { Value } from 'vfile';
 import type { BookmarkService } from '$lib/domain/services/bookmark';
 import type { CommentService, CommentUpdateRequest } from '$lib/domain/services/comment';
 import { compileArticle, type MarkdownMeta } from '$lib/markdown';
+import type { Value } from 'vfile';
 
 type ArticleView = Omit<Article, 'content'> & {
   content: Value;

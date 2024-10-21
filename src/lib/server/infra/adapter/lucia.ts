@@ -1,6 +1,7 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
 import { State, type AuthPort } from '$lib/domain/ports';
+import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser } from '$lib/server/infra/repository/schema';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
@@ -8,7 +9,6 @@ import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
 import type { AppD1Database, UserModel } from '../repository/schema';
-import type { GitHubUser } from '$lib/domain/services/user';
 
 declare module 'lucia' {
   interface Register {

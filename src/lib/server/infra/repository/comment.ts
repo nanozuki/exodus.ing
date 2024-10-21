@@ -5,10 +5,10 @@ import type {
   CommentRepository,
 } from '$lib/domain/entities/comment';
 import { decodeIdPath, encodeIdPath } from '$lib/domain/values/id_path';
+import { AppError } from '$lib/errors';
 import { eq } from 'drizzle-orm/sql';
 import { tComment, type AppD1Database, type CommentModel } from './schema';
 import { newNanoId, wrap } from './utils';
-import { AppError } from '$lib/errors';
 
 function convertModelToEntity(model: CommentModel): Comment {
   return {
