@@ -22,7 +22,7 @@ export class UserPage {
     let user = await this.user.findUserByUsername(username);
     user = user ? user : await this.user.getUserById(username);
     const aboutMe = await compileMarkdown(user.aboutMe);
-    const articles = await this.articleList.listArticlesByUserId(user.id, { size: 10, number: 0 });
+    const articles = await this.articleList.listByUserId(user.id, 1);
     return {
       user: {
         ...user,
