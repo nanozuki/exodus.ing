@@ -37,6 +37,7 @@
   main {
     max-width: 40rem;
     margin: 0 1.5rem;
+    padding-bottom: 4rem;
   }
   @media (min-width: 43rem) {
     header,

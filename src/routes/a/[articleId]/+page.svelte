@@ -34,9 +34,3 @@
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html article.content}
 </article>
-
-<style>
-  article {
-    padding-bottom: 2rem;
-  }
-</style>
