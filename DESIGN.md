@@ -22,60 +22,27 @@ Here are Pages and Layouts:
   - User (/u/:username)
 ```
 
-### RootLayout
-
-RootLayout.loggedInUser()
-
-### HomePage
-
-HomePage.getArticleList({offset, limit})
-
-### ArticlePage
-
-ArticlePage.getById(id)
-{ article, author, comments, bookmarkedCount, replyCount, replies, repliees }
-ArticlePage.newComment({reply, content})
-ArticlePage.addBookmark()
-
-### ArticleEditPage
-
-ArticleEditPage.getArticleById(id) { article }
-ArticleEditPage.updateArticle({title, content})
-ArticleEditPage.createArticle({title, content})
-
-### AuthPage
-
-AuthPage.register_by_github({ inviteCode })
-AuthPage.login_by_github()
-
-### SettingsLayout
-
-SettingsLayout.requireLoggedInUser()
-
-### ProfileSettingsPage
-
-ProfileSettingsPage.getProfile()
-ProfileSettingsPage.updateProfile({name,description})
-
-### AccountSettingsPage
-
-AccountSettingsPage.getAccount()
-AccountSettingsPage.updateAccount({username})
-
-### DomainsSettingsPage
-
-DomainsSettingsPage.getDomains()
-DomainsSettingsPage.addDomain({domain})
-DomainsSettingsPage.removeDomain({domain})
-
-### UserPage
-
-UserPage.getByUsername(username) { user, articles}
-UserPage.getArticles(username) { articles }
-UserPage.getComments(username) { comments }
-UserPage.getBookmarks(username) { articles }
-
 ## Backend Design
+
+The backend structure should be like this:
+
+```plaintext
+- src/lib
+  - domain/
+    - entities/
+      - Article.ts
+    - values/
+      - ArticleListItem.ts
+    - services/
+      - ArticleListService.ts
+  - server/
+    - interfaces/
+      - pages/
+        - HomePage.ts
+    - infra/
+      - repositories/
+        - ArticleListRepository.ts
+```
 
 ### Structure
 
@@ -109,75 +76,5 @@ This part contains the entity and value object definition of domain.
 
 ---
 
-The backend structure should be like this:
-
-```plaintext
-- src/lib
-  - domain/
-    - entities/
-      - Article.ts
-    - values/
-      - ArticleListItem.ts
-    - services/
-      - ArticleListService.ts
-  - server/
-    - interfaces/
-      - HomePage.ts
-    - infra/
-      - ArticleListRepository.ts
-```
-
 `server` is a special directory in SvelteKit, the code in `server` can not used
 in the client side.
-
-### Services
-
-- ArticleListService(ArticleRepository)
-
-  - list()
-  - listByUser()
-
-- ArticleService(ArticleRepository)
-
-  - getById()
-  - createByMarkdown()
-  - updateByMarkdown()
-
-- ArticleReplyService(ArticleReplyRepository)
-
-  - getReplyTo()
-  - listReplies()
-
-- AuthService(AuthProvider)
-
-  - loggedInUser()
-  - requireLoggedInUser()
-  - authByGithub()
-  - handleGithubCallback()
-
-- CommentService(CommentRepository)
-
-  - listByArticle({articleId})
-  - countByArticle({articleId})
-  - create({articleId, reply, content})
-  - listByUser({userId})
-
-- BookmarkService(BookmarkRepository)
-
-  - add({articleId})
-  - remove({articleId})
-  - listByUser({userId})
-  - countByArticle({articleId})
-
-- UserService(UserRepository)
-
-  - getByUsername({username})
-  - getByGithubId({githubId})
-  - getById({id})
-  - updateProfile({profile})
-  - updateAccount({account})
-
-- DomainService(DomainRepository)
-  - getByUser({userId})
-  - add({userId, domain})
-  - remove({userId, domain})
