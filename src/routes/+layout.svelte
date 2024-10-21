@@ -33,23 +33,27 @@
 </main>
 
 <style>
-  header,
+  header {
+    max-width: 40rem;
+    display: flex;
+    align-items: center;
+    column-gap: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+  }
   main {
     max-width: 40rem;
     margin: 0 1.5rem;
     padding-bottom: 4rem;
   }
   @media (min-width: 43rem) {
-    header,
+    header {
+      margin: 0 auto;
+    }
     main {
       margin: 0 auto;
     }
-  }
-  header {
-    display: flex;
-    align-items: center;
-    column-gap: 0.5rem;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
   }
 </style>
