@@ -1,6 +1,4 @@
-import { type Database } from '$lib/server/locals';
-import { type GitHub } from 'arctic';
-import { type Lucia, Session, User } from 'lucia';
+import type { buildPages } from '$lib/server/interfaces/pages';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -11,13 +9,8 @@ declare global {
       message: string;
       context?: string;
     }
-    interface Locals {
-      db: Database;
-      lucia: Lucia;
-      github: GitHub;
-      user: User | null;
-      session: Session | null;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface Locals extends ReturnType<typeof buildPages> {}
     // interface PageData {}
     // interface PageState {}
     interface Platform {
@@ -26,6 +19,18 @@ declare global {
       };
     }
   }
+}
+
+declare module 'virtual:icons/*' {
+  import { SvelteComponent } from 'svelte';
+  import type { SvelteHTMLElements } from 'svelte/elements';
+  export default class extends SvelteComponent<SvelteHTMLElements['svg']> {}
+}
+
+declare module '~icons/*' {
+  import { SvelteComponent } from 'svelte';
+  import type { SvelteHTMLElements } from 'svelte/elements';
+  export default class extends SvelteComponent<SvelteHTMLElements['svg']> {}
 }
 
 export {};

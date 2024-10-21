@@ -1,4 +1,5 @@
-import { integer, sqliteTable, text, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { type DrizzleD1Database } from 'drizzle-orm/d1';
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const tUser = sqliteTable('user', {
   id: text('id').notNull().primaryKey(),
@@ -19,6 +20,7 @@ export const tSession = sqliteTable(
   },
   (table) => ({
     sessionUserIdIdx: index('session_user_id_idx').on(table.userId),
+    sessionExpiresAtIdx: index('expires_at_idx').on(table.expiresAt),
   }),
 );
 
@@ -41,10 +43,12 @@ export const tArticle = sqliteTable(
     title: text('title').notNull(),
     content: text('content').notNull(),
     contentType: text('content_type').$type<ArticleContentType>().notNull(),
+    path: text('path').notNull(),
   },
   (table) => ({
     articleTitleIdx: uniqueIndex('article_title_idx').on(table.title, table.userId),
     articleUserIdIdx: index('article_user_id_idx').on(table.userId),
+    articlePathIdx: index('article_path_idx').on(table.path),
   }),
 );
 
@@ -61,3 +65,54 @@ export const tUserDomain = sqliteTable(
     userDomainUserIdIdx: index('user_domain_user_id_idx').on(table.userId),
   }),
 );
+
+export const tComment = sqliteTable(
+  'comment',
+  {
+    id: text('id').notNull().primaryKey(),
+    path: text('path').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+    userId: text('user_id').notNull(),
+    articleId: text('article_id').notNull(),
+    content: text('content').notNull(),
+  },
+  (table) => ({
+    commentArticleIdIdx: index('comment_article_id_idx').on(table.articleId),
+    commentUserIdIdx: index('comment_user_id_idx').on(table.userId),
+    commentPathIdx: index('comment_path_idx').on(table.path),
+  }),
+);
+
+export const tBookmark = sqliteTable(
+  'bookmark',
+  {
+    userId: text('user_id').notNull(),
+    articleId: text('article_id').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (table) => ({
+    bookmarkUserIdIdx: index('bookmark_user_id_idx').on(table.userId),
+    bookmarkArticleIdIdx: index('bookmark_article_id_idx').on(table.articleId),
+  }),
+);
+
+export const schema = {
+  tArticle,
+  tBookmark,
+  tComment,
+  tInviteCode,
+  tSession,
+  tUser,
+  tUserDomain,
+};
+
+export type ArticleModel = typeof tArticle.$inferSelect;
+export type BookmarkModel = typeof tBookmark.$inferSelect;
+export type CommentModel = typeof tComment.$inferSelect;
+export type InviteCodeModel = typeof tInviteCode.$inferSelect;
+export type SessionModel = typeof tSession.$inferSelect;
+export type UserDomainModel = typeof tUserDomain.$inferSelect;
+export type UserModel = typeof tUser.$inferSelect;
+
+export type AppD1Database = DrizzleD1Database<typeof schema>;

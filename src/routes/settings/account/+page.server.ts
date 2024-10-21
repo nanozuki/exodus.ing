@@ -1,14 +1,9 @@
-import { AppError } from '$lib/errors';
-import { updateUsername } from '$lib/server/user';
 import { redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const actions = {
   default: async ({ locals, request }) => {
-    const userId = locals.user?.id;
-    if (!userId) {
-      return AppError.Unauthorized('update username').throw();
-    }
+    const user = locals.layouts.requireLoggedInUser('update username');
     const data = await request.formData();
     const username = data.get('username');
     if (typeof username !== 'string') {
@@ -19,12 +14,12 @@ export const actions = {
         username: typeof username === 'string' ? username : undefined,
         error: '用户名不能为空',
       };
-    } else if (username === locals.user!.username) {
+    } else if (username === user.username) {
       return { username };
     }
 
     try {
-      await updateUsername(locals, userId, username);
+      await locals.settingsPage.updateUsername(user.id, username);
     } catch (e) {
       if (e instanceof Error) {
         return {

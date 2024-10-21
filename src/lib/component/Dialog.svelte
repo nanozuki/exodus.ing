@@ -37,7 +37,6 @@
     height: 100%;
     z-index: 50;
     background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 0.5rem;
   }
   section.dialog {
     background-color: var(--secondary-bg);

@@ -16,7 +16,7 @@ pages_build_output_dir = ".svelte-kit/cloudflare"
 # Note: Use secrets to store sensitive data.
 # - https://developers.cloudflare.com/pages/functions/bindings/#secrets
 [vars]
-NODE_VERSION = "20.14.0"
+NODE_VERSION = "20.17.0"
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#workers-ai
