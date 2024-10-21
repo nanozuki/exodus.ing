@@ -5,13 +5,15 @@ import { ArticlePage } from './article_page';
 import { AuthPage } from './auth_page';
 import { HomePage } from './home_page';
 import { Layouts } from './layouts';
+import { SettingsPage } from './settings_page';
 
 export function buildPages(services: Services) {
   return createLazyProxy({
-    layouts: () => new Layouts(services.auth),
-    homePage: () => new HomePage(services.articleList),
-    articlePage: () => new ArticlePage(services.article, services.comment, services.bookmark),
     articleEditPage: () => new ArticleEditPage(services.article, services.auth),
+    articlePage: () => new ArticlePage(services.article, services.comment, services.bookmark),
     authPage: () => new AuthPage(services.auth, services.user, services.inviteCode),
+    homePage: () => new HomePage(services.articleList),
+    layouts: () => new Layouts(services.auth),
+    settingsPage: () => new SettingsPage(services.user, services.userDomain, services.nameResolver),
   });
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { UserDomain } from '$lib/domain/user_domain';
+  import type { UserDomain } from '$lib/domain/entities/user_domain';
   import { newDialog } from '$lib/component';
   import { melt } from '@melt-ui/svelte';
 

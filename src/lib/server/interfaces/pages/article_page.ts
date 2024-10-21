@@ -40,7 +40,6 @@ export class ArticlePage {
     if (!result.ok) {
       return result.error.throw();
     }
-    console.log('loggedUser', loggedUser, article.authorId);
     return {
       article: {
         ...article,

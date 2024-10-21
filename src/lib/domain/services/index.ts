@@ -14,6 +14,7 @@ import { createLazyProxy } from '$lib/lazy';
 import { CommentService } from './comment';
 import { BookmarkService } from './bookmark';
 import { InviteCodeService } from './invite_code';
+import { NameResolverService } from './name_resolver';
 
 export interface Services {
   article: ArticleService;
@@ -24,6 +25,7 @@ export interface Services {
   inviteCode: InviteCodeService;
   user: UserService;
   userDomain: UserDomainService;
+  nameResolver: NameResolverService;
 }
 
 export interface Adapters {
@@ -49,6 +51,7 @@ export function buildServices(repositories: Repositories, adapters: Adapters) {
     comment: () => new CommentService(repositories.comment),
     inviteCode: () => new InviteCodeService(repositories.inviteCode),
     user: () => new UserService(repositories.user),
-    userDomain: () => new UserDomainService(repositories.userDomain, adapters.nameResolver),
+    userDomain: () => new UserDomainService(repositories.userDomain),
+    nameResolver: () => new NameResolverService(adapters.nameResolver),
   });
 }

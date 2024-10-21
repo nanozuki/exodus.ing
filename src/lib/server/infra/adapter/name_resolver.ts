@@ -21,7 +21,7 @@ import type { NameResolver } from '$lib/domain/ports';
 interface Response {
   Status: number;
   Question: { name: string; type: number }[];
-  Answer: { name: string; type: number; TTL: number; data: string }[];
+  Answer?: { name: string; type: number; TTL: number; data: string }[];
 }
 
 async function resolveTxt(domain: string): Promise<string[]> {
@@ -33,7 +33,7 @@ async function resolveTxt(domain: string): Promise<string[]> {
   if (json.Status !== 0) {
     throw new Error(`Dns query failed: ${json.Status}`);
   }
-  return json.Answer.map((record) => record.data);
+  return json.Answer?.map((record) => record.data) ?? [];
 }
 
 export const nameResolver: NameResolver = {
