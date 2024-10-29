@@ -29,6 +29,7 @@ export class ArticleService {
     }
     return await this.repository.update(articleId, {
       title: result.meta.title,
+      content,
     });
   }
 

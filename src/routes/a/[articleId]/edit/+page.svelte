@@ -10,6 +10,7 @@
   let title = $derived.by(() =>
     compiled ? (compiled.ok ? compiled.meta.title : '无标题') : data.title,
   );
+  let content = $derived.by(() => (compiled ? (compiled.ok ? compiled.value : '') : data.content));
 
   let articleSnapshot = '';
   onMount(() => {
@@ -51,7 +52,7 @@
   {:else}
     <article>
       <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {#if compiled}{@html compiled}{/if}
+      {@html content}
     </article>
   {/if}
 
