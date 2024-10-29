@@ -1,15 +1,15 @@
 <script lang="ts">
   import { compileArticle, type ArticleCompileResult } from '$lib/markdown';
   import { onMount } from 'svelte';
+  import { enhance } from '$app/forms';
 
   const { form, data } = $props();
 
   let mode: 'editor' | 'previewer' = $state('editor');
   let article: string = $state(form?.content || data.content);
   let compiled: ArticleCompileResult | undefined = $state(undefined);
-  let title = $derived.by(() =>
-    compiled ? (compiled.ok ? compiled.meta.title : '无标题') : data.title,
-  );
+  let title = $derived.by(() => (compiled ? (compiled.ok ? compiled.title : '') : data.title));
+  let content = $derived.by(() => (compiled ? compiled.value : data.content));
 
   let articleSnapshot = '';
   onMount(() => {
@@ -29,8 +29,6 @@
 </svelte:head>
 
 <div class="container">
-  <h1 class="design">{title ? title : '无标题'}</h1>
-
   <div class="switch">
     <button
       class:activate={mode === 'editor'}
@@ -47,20 +45,21 @@
   </div>
 
   {#if mode === 'editor'}
+    <h1 class="design">{title ? title : '无标题'}</h1>
     <textarea bind:value={article}></textarea>
   {:else}
     <article>
       <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {#if compiled}{@html compiled}{/if}
+      {@html content}
     </article>
   {/if}
 
-  <form method="POST">
+  <form method="POST" use:enhance>
     <input type="hidden" name="content" value={article} />
     <input type="hidden" name="title" value={title} />
     <small class:error={form?.error}
       >{form?.error ? form?.error + '。' : ''}
-      文章标题来自 frontmatter 里的 “title” 或者第一个一级标题。</small
+      文章标题来自第一个一级标题。</small
     >
     <button type="submit" class="positive">发布</button>
   </form>

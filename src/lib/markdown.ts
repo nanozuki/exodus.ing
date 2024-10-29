@@ -12,18 +12,13 @@ import { AppError } from '$lib/errors';
 import type { Root } from 'mdast';
 import type { VFile, Value } from 'vfile';
 
-export interface MarkdownMeta {
-  title: string;
-  titleSource: 'heading' | 'frontmatter';
-}
-
 export type ArticleCompileResult =
-  | { ok: true; value: Value; meta: MarkdownMeta }
-  | { ok: false; error: AppError };
+  | { ok: true; value: Value; title: string }
+  | { ok: false; value: Value; error: AppError };
 
 interface FileData {
   matter?: Record<string, unknown>;
-  meta?: MarkdownMeta;
+  title?: string;
 }
 
 type File = VFile & { data: FileData };
@@ -31,23 +26,13 @@ type File = VFile & { data: FileData };
 function remarkMeta() {
   return function (tree: Root, file: File) {
     matter(file);
-    if (file.data.matter && file.data.matter.title && typeof file.data.matter.title === 'string') {
-      file.data.meta = {
-        title: file.data.matter.title,
-        titleSource: 'frontmatter',
-      };
-      return;
-    }
     for (const node of tree.children) {
       if (node.type === 'heading' && node.depth === 1) {
         const textContent = node.children
           .filter((child) => child.type === 'text')
           .map((child) => child.value)
           .join('');
-        file.data.meta = {
-          title: textContent,
-          titleSource: 'heading',
-        };
+        file.data.title = textContent;
         return;
       }
     }
@@ -65,10 +50,10 @@ export const compileArticle = async (article: string): Promise<ArticleCompileRes
     .use(rehypeSanitize)
     .use(rehypeStringify)
     .process(article);
-  if (!file.data.meta) {
-    return { ok: false, error: AppError.InvalidMarkdownError('No title found') };
+  if (!file.data.title) {
+    return { ok: false, value: file.value, error: AppError.InvalidMarkdownError('No title found') };
   }
-  return { ok: true, value: file.value, meta: file.data.meta };
+  return { ok: true, value: file.value, title: file.data.title };
 };
 
 export const compileMarkdown = async (content: string): Promise<Value> => {

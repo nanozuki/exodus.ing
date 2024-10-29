@@ -16,7 +16,7 @@ export class ArticleService {
     return await this.repository.create({
       userId,
       content,
-      title: result.meta.title,
+      title: result.title,
       contentType: 'markdown',
       replyTo,
     });
@@ -28,7 +28,8 @@ export class ArticleService {
       return result.error.throw();
     }
     return await this.repository.update(articleId, {
-      title: result.meta.title,
+      title: result.title,
+      content,
     });
   }
 
