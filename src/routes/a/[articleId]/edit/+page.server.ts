@@ -19,7 +19,7 @@ export const actions = {
     const data = await request.formData();
     const title = data.get('title');
     const content = data.get('content');
-    if (typeof title !== 'string' || title.length === 0) {
+    if (typeof title !== 'string' || title.length === 0 || title === '无标题') {
       return {
         content: typeof content === 'string' ? content : undefined,
         error: '标题不能为空',

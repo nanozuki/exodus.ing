@@ -14,7 +14,7 @@ import type { VFile, Value } from 'vfile';
 
 export type ArticleCompileResult =
   | { ok: true; value: Value; title: string }
-  | { ok: false; error: AppError };
+  | { ok: false; value: Value; error: AppError };
 
 interface FileData {
   matter?: Record<string, unknown>;
@@ -51,7 +51,7 @@ export const compileArticle = async (article: string): Promise<ArticleCompileRes
     .use(rehypeStringify)
     .process(article);
   if (!file.data.title) {
-    return { ok: false, error: AppError.InvalidMarkdownError('No title found') };
+    return { ok: false, value: file.value, error: AppError.InvalidMarkdownError('No title found') };
   }
   return { ok: true, value: file.value, title: file.data.title };
 };
