@@ -28,9 +28,6 @@
 </p>
 
 <article>
-  {#if article.meta.titleSource === 'frontmatter'}
-    <h1>{article.title}</h1>
-  {/if}
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html article.content}
 </article>

@@ -8,7 +8,7 @@
   let article: string = $state(form?.content || data.content);
   let compiled: ArticleCompileResult | undefined = $state(undefined);
   let title = $derived.by(() =>
-    compiled ? (compiled.ok ? compiled.meta.title : '无标题') : data.title,
+    compiled ? (compiled.ok ? compiled.title : '无标题') : data.title,
   );
   let content = $derived.by(() => (compiled ? (compiled.ok ? compiled.value : '') : data.content));
 
