@@ -1,12 +1,8 @@
 <script lang="ts">
+  import Markdown from '$lib/component/Markdown.svelte';
   import { format, formatISO } from 'date-fns';
   const { data } = $props();
   const { article, user } = data;
-
-  const contents = article.content
-    .toString()
-    .split(`<h1>${article.title}</h1>`)
-    .map((s) => s.trim());
 </script>
 
 <svelte:head>
@@ -22,31 +18,22 @@
   <meta property="article:modified_time" content={formatISO(article.updatedAt)} />
 </svelte:head>
 
-<article>
-  {#each contents as content, i}
-    {#if i === 0}
-      {#if content}
-        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-        {@html content}
-      {/if}
-      <header>
-        <h1 class="design">{article.title}</h1>
-        <p class="design">
-          <i>by</i>
-          <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
-          <i>in</i>
-          {format(article.createdAt, 'yyyy-MM-dd')}
-          {#if user.isAuthor}
-            [<a href="/a/{article.id}/edit">编辑文章</a>]
-          {/if}
-        </p>
-      </header>
-    {:else}
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html content}
-    {/if}
-  {/each}
-</article>
+<Markdown content={article.content.toString()} title={article.title}>
+  {#snippet header()}
+    <header>
+      <h1 class="design">{article.title}</h1>
+      <p class="design">
+        <i>by</i>
+        <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
+        <i>in</i>
+        {format(article.createdAt, 'yyyy-MM-dd')}
+        {#if user.isAuthor}
+          [<a href="/a/{article.id}/edit">编辑文章</a>]
+        {/if}
+      </p>
+    </header>
+  {/snippet}
+</Markdown>
 
 <style>
   header {

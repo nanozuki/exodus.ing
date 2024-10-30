@@ -2,7 +2,8 @@
   import { navigating } from '$app/stores';
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
-  import './styles.css';
+  import './vars.css';
+  import './global.css';
 
   const { children, data } = $props();
 </script>

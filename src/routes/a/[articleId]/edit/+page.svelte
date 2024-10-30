@@ -2,6 +2,7 @@
   import { compileArticle, type ArticleCompileResult } from '$lib/markdown';
   import { onMount } from 'svelte';
   import { enhance } from '$app/forms';
+  import Markdown from '$lib/component/Markdown.svelte';
 
   const { form, data } = $props();
 
@@ -48,10 +49,9 @@
     <h1 class="design">{title ? title : '无标题'}</h1>
     <textarea bind:value={article}></textarea>
   {:else}
-    <article>
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html content}
-    </article>
+    <div class="previewer">
+      <Markdown content={content.toString()} />
+    </div>
   {/if}
 
   <form method="POST" use:enhance>
@@ -93,9 +93,11 @@
     flex: 1;
     resize: none;
   }
-  article {
+  .previewer {
     flex: 1;
     overflow-y: scroll;
+    border: var(--border-line);
+    padding: var(--space-2xs);
   }
   small.error {
     color: var(--red);

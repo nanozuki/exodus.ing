@@ -3,6 +3,7 @@
   import SettingIcon from '~icons/mdi/settings-outline';
   import AddIcon from '~icons/mdi/add';
   import Action from '$lib/component/Action.svelte';
+  import Markdown from '$lib/component/Markdown.svelte';
 
   const { data } = $props();
   const { user, articles, isMyself } = data;
@@ -21,8 +22,7 @@
     {/if}
   </h1>
   {#if user.aboutMe}
-    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-    {@html user.aboutMe}
+    <Markdown content={user.aboutMe.toString()} />
   {/if}
 </article>
 

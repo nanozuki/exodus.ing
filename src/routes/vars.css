@@ -1,0 +1,115 @@
+@import '../../node_modules/modern-normalize/modern-normalize.css';
+
+/* theme palette */
+
+:root {
+  /* Rosé Pine Dawn, light theme */
+  --palette-base: rgb(250, 244, 237); /* #faf4ed */
+  --palette-surface: rgb(255, 250, 243); /* #fffaf3 */
+  --palette-overlay: rgb(242, 233, 222); /* #f2e9e1 */
+  --palette-muted: rgb(152, 147, 165); /* #9893a5 */
+  --palette-subtle: rgb(121, 117, 147); /* #797593 */
+  --palette-text: rgb(87, 82, 121); /* #575279 */
+  --palette-love: rgb(180, 99, 122); /* #b4637a */
+  --palette-gold: rgb(234, 157, 52); /* #ea9d34 */
+  --palette-rose: rgb(215, 130, 126); /* #d7827e */
+  --palette-pine: rgb(40, 105, 131); /* #286983 */
+  --palette-foam: rgb(86, 148, 159); /* #56949f */
+  --palette-iris: rgb(144, 122, 169); /* #907aa9 */
+  --palette-highlight-low: rgb(244, 237, 232); /* #f4ede8 */
+  --palette-highlight-med: rgb(223, 218, 217); /* #dfdad9 */
+  --palette-highlight-high: rgb(206, 202, 205); /* #cecacd */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Rosé Pine, dark theme */
+    --palette-base: rgb(25, 23, 36); /* #191724 */
+    --palette-surface: rgb(31, 29, 46); /* #1f1d2e */
+    --palette-overlay: rgb(38, 35, 58); /* #26233a */
+    --palette-muted: rgb(110, 106, 134); /* #6e6a86 */
+    --palette-subtle: rgb(144, 140, 170); /* #908caa */
+    --palette-text: rgb(224, 222, 244); /* #e0def4 */
+    --palette-love: rgb(235, 111, 146); /* #eb6f92 */
+    --palette-gold: rgb(246, 193, 119); /* #f6c177 */
+    --palette-rose: rgb(235, 188, 186); /* #ebbcba */
+    --palette-pine: rgb(49, 116, 143); /* #31748f */
+    --palette-foam: rgb(156, 207, 216); /* #9ccfd8 */
+    --palette-iris: rgb(196, 167, 231); /* #c4a7e7 */
+    --palette-highlight-low: rgb(33, 32, 46); /* #21202e */
+    --palette-highlight-med: rgb(64, 61, 82); /* #403d52 */
+    --palette-highlight-high: rgb(82, 79, 103); /* #524f67 */
+  }
+}
+
+/* color tokens */
+
+:root {
+  --color-fg-1st: var(--palette-text);
+  --color-fg-2nd: var(--palette-subtle);
+  --color-fg-3rd: var(--palette-muted);
+  --color-bg-1st: var(--palette-base);
+  --color-bg-2nd: var(--palette-surface);
+  --color-bg-3rd: var(--palette-overlay);
+  --color-bg-highlight: var(--palette-highlight-low);
+  --color-border: var(--palette-highlight-high);
+  --color-quote-odd: var(--color-bg-3rd);
+  --color-quote-even: var(--color-bg-2nd);
+  --color-link: var(--palette-foam);
+  --color-link-visited: var(--palette-pine);
+  --color-accent: var(--palette-love);
+}
+
+/* spaces */
+
+:root {
+  --space-2xs: 0.25rem; /* 4px */
+  --space-xs: 0.5rem; /* 8px */
+  --space-s: 0.75rem; /* 12px */
+  --space-m: 1rem; /* 16px */
+  --space-l: 1.5rem; /* 24px */
+  --space-xl: 2rem; /* 32px */
+  --space-2xl: 3rem; /* 48px */
+  --space-3xl: 4rem; /* 64px */
+  --space-4xl: 6rem; /* 96px */
+  --space-5xl: 8rem; /* 128px */
+
+  --size-border-narrow: 1px;
+  --size-border-slim: 0.25rem;
+}
+
+/* typography */
+
+:root {
+  --font-sans-serif: 'IBM Plex Sans', 'Noto Sans SC', sans-serif;
+  --font-serif: 'IBM Plex Serif', 'Noto Serif SC', serif;
+  --font-monospace: 'IBM Plex Mono', 'Noto Mono', monospace;
+
+  --font-size-4xl: 2rem; /* 32px */
+  --font-size-3xl: 1.75rem; /* 28px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-l: 1.125rem; /* 18px */
+  --font-size-m: 1rem; /* 16px */
+  --font-size-s: 0.875rem; /* 14px */
+
+  --leading-4xl: 2.375rem; /* 38px */
+  --leading-3xl: 2.125rem; /* 34px */
+  --leading-2xl: 1.875rem; /* 30px */
+  --leading-xl: 1.5; /* 24px */
+  --leading-l: 1.375rem; /* 22px */
+  --leading-m: 1rem; /* 16px */
+  --leading-s: 0.875rem; /* 14px */
+
+  --linehight-normal: 1.5;
+  --linehight-narrow: 1;
+}
+
+/* lines and blocks */
+
+:root {
+  --border-line: 1px solid var(--color-border);
+  --border-accent: 0.25rem solid var(--color-accent);
+  --border-radius-s: 0.25rem;
+  --visible-focus-line: 1px dotted var(--color-link);
+}
