@@ -15,7 +15,7 @@
 
 <article>
   <h1>
-    {user.username}
+    {user.name}
     {#if isMyself}
       <Action href="/settings"><SettingIcon />设置</Action>
     {/if}
