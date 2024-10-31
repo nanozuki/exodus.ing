@@ -46,7 +46,7 @@
   </div>
 
   {#if mode === 'editor'}
-    <h1 class="design">{title ? title : '无标题'}</h1>
+    <h1>{title ? title : '无标题'}</h1>
     <textarea bind:value={article}></textarea>
   {:else}
     <div class="previewer">

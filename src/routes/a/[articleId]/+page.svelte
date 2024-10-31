@@ -21,8 +21,8 @@
 <Markdown content={article.content.toString()} title={article.title}>
   {#snippet header()}
     <header>
-      <h1 class="design">{article.title}</h1>
-      <p class="design">
+      <h1>{article.title}</h1>
+      <p>
         <i>by</i>
         <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
         <i>in</i>

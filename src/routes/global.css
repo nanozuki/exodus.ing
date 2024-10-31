@@ -11,14 +11,30 @@ html {
   scrollbar-color: var(--color-border) var(--color-bg-2nd);
 }
 
-/* reset */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p {
-  margin: 0;
-  padding: 0;
+.text-4xl {
+  font-size: var(--font-size-4xl);
+}
+
+.text-3xl {
+  font-size: var(--font-size-3xl);
+}
+
+.text-2xl {
+  font-size: var(--font-size-2xl);
+}
+
+.text-xl {
+  font-size: var(--font-size-xl);
+}
+
+.text-l {
+  font-size: var(--font-size-l);
+}
+
+.text-m {
+  font-size: var(--font-size-m);
+}
+
+.text-s {
+  font-size: var(--font-size-s);
 }

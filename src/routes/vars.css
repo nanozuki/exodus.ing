@@ -74,6 +74,10 @@
   --space-4xl: 6rem; /* 96px */
   --space-5xl: 8rem; /* 128px */
 
+  --max-width-article: 40rem; /* 640px, max width for article */
+  --space-page-vertical: 1rem;
+  --space-page-horizontal: 1.5rem;
+
   --size-border-narrow: 1px;
   --size-border-slim: 0.25rem;
 }
@@ -93,6 +97,9 @@
   --font-size-m: 1rem; /* 16px */
   --font-size-s: 0.875rem; /* 14px */
 
+  --font-weight-normal: normal;
+  --font-weight-bold: bold;
+
   --leading-4xl: 2.375rem; /* 38px */
   --leading-3xl: 2.125rem; /* 34px */
   --leading-2xl: 1.875rem; /* 30px */
@@ -102,7 +109,8 @@
   --leading-s: 0.875rem; /* 14px */
 
   --linehight-normal: 1.5;
-  --linehight-narrow: 1;
+  --linehight-narrow: 1.2;
+  --linehight-single: 1;
 }
 
 /* lines and blocks */
@@ -111,5 +119,5 @@
   --border-line: 1px solid var(--color-border);
   --border-accent: 0.25rem solid var(--color-accent);
   --border-radius-s: 0.25rem;
-  --visible-focus-line: 1px dotted var(--color-link);
+  --visible-focus-line: 0.125rem solid var(--palette-iris);
 }

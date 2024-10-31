@@ -37,9 +37,9 @@
   {#each articles.items as article}
     <article>
       <a href="/a/{article.id}">
-        <h2 class="design">{article.title}</h2>
+        <h2>{article.title}</h2>
       </a>
-      <p class="design">
+      <p>
         <i>by</i>
         {article.authorName}
         <i>in</i>

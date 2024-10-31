@@ -3,6 +3,7 @@
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
   import './vars.css';
+  import './default.css';
   import './global.css';
 
   const { children, data } = $props();
@@ -18,43 +19,62 @@
   />
 </svelte:head>
 
-<header>
-  {#if $navigating}<Loading />{:else}<Logo />{/if}
-  <a class="design" href="/"><h1 class="design">EXODUS</h1></a>
-  <div style="flex: 1"></div>
-  {#if data.user}
-    <a href={`/u/${data.user.username}`}>{data.user.name}</a>
-  {:else}
-    <a href="/auth">注册/登录</a>
-  {/if}
-</header>
+<div class="page-container">
+  <header>
+    <a href="/" class="header-left">
+      {#if $navigating}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
+      <p>EXODUS</p>
+    </a>
+    {#if data.user}
+      <a href={`/u/${data.user.username}`}>{data.user.name}</a>
+    {:else}
+      <a href="/auth">注册/登录</a>
+    {/if}
+  </header>
 
-<main>
-  {@render children()}
-</main>
+  <main>
+    {@render children()}
+  </main>
+
+  <footer></footer>
+</div>
 
 <style>
+  .page-container {
+    max-width: var(--max-width-article);
+    margin: 0 var(--space-page-horizontal);
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--space-l);
+  }
+  @media (min-width: 43em) {
+    /* var(--max-width-article) + 2 * var(--page-horiz-margin) */
+    .page-container {
+      margin: 0 auto;
+    }
+  }
   header {
-    max-width: 40rem;
     display: flex;
     align-items: center;
-    column-gap: 0.5rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+    p {
+      font-size: var(--font-size-2xl);
+      font-family: var(--font-serif);
+      font-weight: var(--font-weight-bold);
+    }
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    column-gap: var(--space-xs);
   }
   main {
-    max-width: 40rem;
-    margin: 0 1.5rem;
-    padding-bottom: 4rem;
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--space-l);
   }
-  @media (min-width: 43rem) {
-    header {
-      margin: 0 auto;
-    }
-    main {
-      margin: 0 auto;
-    }
+  footer {
+    height: var(--space-2xl);
   }
 </style>

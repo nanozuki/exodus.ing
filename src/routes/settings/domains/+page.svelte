@@ -51,7 +51,7 @@
 <p>添加个人域名并通过 DNS 验证后，可以将域名中的文章添加到本站。</p>
 
 <form method="POST">
-  <h5 class="design">添加个人域名</h5>
+  <h5>添加个人域名</h5>
   <div class="input">
     <input type="text" name="domain" placeholder="example.com" required />
     <button type="submit">添加</button>

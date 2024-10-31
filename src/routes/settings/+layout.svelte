@@ -14,7 +14,7 @@
 <nav>
   {#each pages as { path, title }}
     <a href={path} class:current={path === $page.url.pathname}>
-      <h4 class="design">{title}</h4>
+      <h4>{title}</h4>
     </a>
   {/each}
 </nav>

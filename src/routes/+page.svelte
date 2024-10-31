@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { format } from 'date-fns';
+  import ArticleHeader from '$lib/component/ArticleHeader.svelte';
 
   const { data } = $props();
 </script>
@@ -17,34 +17,21 @@
   </p>
 {/if}
 
-<h4>文章列表</h4>
+<h5>文章列表</h5>
 
 <div class="article-list">
   {#each data.items as article}
-    <article>
-      <a href="/a/{article.id}">
-        <h2 class="design">{article.title}</h2>
-      </a>
-      <p class="design">
-        <i>by</i>
-        <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
-        <i>in</i>
-        {format(article.createdAt, 'yyyy-MM-dd')}
-      </p>
-    </article>
+    <ArticleHeader {article} inList />
   {/each}
 </div>
 
 <style>
+  h5 {
+    font-weight: var(--font-weight-bold);
+  }
   div.article-list {
     display: flex;
     flex-direction: column;
-    row-gap: 1rem;
-  }
-  article i {
-    color: var(--teritary-fg);
-  }
-  a.username {
-    text-decoration: none;
+    row-gap: var(--space-l);
   }
 </style>
