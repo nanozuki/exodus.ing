@@ -1,47 +1,54 @@
 .markdown {
-  --p-bottom: var(--space-m);
+  --p-margin-top: 1.25em;
+  --p-margin-bottom: 1rem;
 
   h1 {
     font-family: var(--font-serif);
     font-size: var(--font-size-4xl);
-    margin-top: var(--leading-4xl);
-    margin-bottom: var(--p-bottom);
+    font-weight: var(--font-weight-bold);
+    margin-top: var(--p-margin-top);
+    margin-bottom: var(--p-margin-bottom);
   }
   h2 {
     font-family: var(--font-serif);
     font-size: var(--font-size-3xl);
-    margin-top: var(--leading-3xl);
-    margin-bottom: var(--p-bottom);
+    font-weight: var(--font-weight-bold);
+    margin-top: var(--p-margin-top);
+    margin-bottom: var(--p-margin-bottom);
   }
   h3 {
     font-family: var(--font-serif);
     font-size: var(--font-size-2xl);
-    margin-top: var(--leading-2xl);
-    margin-bottom: var(--p-bottom);
+    font-weight: var(--font-weight-bold);
+    margin-top: var(--p-margin-top);
+    margin-bottom: var(--p-margin-bottom);
   }
   h4 {
     font-family: var(--font-serif);
     font-size: var(--font-size-xl);
-    margin-top: var(--leading-xl);
-    margin-bottom: var(--p-bottom);
+    font-weight: var(--font-weight-bold);
+    margin-top: var(--p-margin-top);
+    margin-bottom: var(--p-margin-bottom);
   }
   h5 {
     font-family: var(--font-serif);
     font-size: var(--font-size-l);
-    margin-top: var(--leading-l);
-    margin-bottom: var(--p-bottom);
+    font-weight: var(--font-weight-bold);
+    margin-top: var(--p-margin-top);
+    margin-bottom: var(--p-margin-bottom);
   }
   h6 {
     font-family: var(--font-sans-serif);
     font-size: var(--font-size-m);
-    margin-top: var(--leading-m);
-    margin-bottom: var(--p-bottom);
+    font-weight: var(--font-weight-bold);
+    margin-top: var(--p-margin-top);
+    margin-bottom: var(--p-margin-bottom);
   }
   p {
     font-family: var(--font-sans-serif);
     font-size: var(--font-size-m);
-    margin-top: var(--leading-m);
-    margin-bottom: var(--p-bottom);
+    margin-top: var(--p-margin-top);
+    margin-bottom: var(--p-margin-bottom);
   }
   a {
     color: var(--color-link);
@@ -49,11 +56,8 @@
   a:visited {
     color: var(--color-link-visited);
   }
-  a:focus-visible {
-    outline: var(--visible-focus-line);
-  }
   hr {
-    border-top: var(--border-line);
+    border-top: 1px solid var(--color-border);
   }
   img {
     display: block;
@@ -64,7 +68,7 @@
     margin: 1rem 0;
     padding: 1rem;
     background-color: var(--color-quote-odd);
-    border-left: var(--border-accent);
+    border-left: 0.25rem solid var(--color-hint);
   }
   blockquote > *:first-child {
     margin-top: 0;
@@ -82,16 +86,16 @@
     background-color: var(--color-quote-even);
   }
   pre {
-    background-color: var(--color-bg-highlight);
+    background-color: var(--color-code);
     padding: 1rem;
     overflow-x: auto;
   }
   code {
     font-family: var(--font-monospace);
     line-height: 1.5;
-    background-color: var(--color-bg-highlight);
+    background-color: var(--color-code);
     padding: 0 var(--space-2xs);
-    border-radius: var(--border-radius-s);
+    border-radius: 0.25rem;
   }
   pre code {
     padding: 0;
@@ -105,7 +109,7 @@
   }
   td,
   th {
-    border: var(--border-line);
+    border-top: 1px solid var(--color-border);
     padding: 0.25rem 0.5rem;
   }
   td {
@@ -115,7 +119,7 @@
   th {
     font-family: var(--font-serif);
     font-weight: bold;
-    background-color: var(--color-bg-3rd);
+    background-color: var(--palette-overlay);
   }
 
   /* list */

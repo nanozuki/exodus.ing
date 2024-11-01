@@ -2,9 +2,10 @@
   import { navigating } from '$app/stores';
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
-  import './vars.css';
-  import './default.css';
-  import './global.css';
+  import './app.css';
+  // import './vars.css';
+  // import './default.css';
+  // import './global.css';
 
   const { children, data } = $props();
 </script>
@@ -19,11 +20,11 @@
   />
 </svelte:head>
 
-<div class="page-container">
-  <header>
-    <a href="/" class="header-left">
+<div class="max-w-article mx-page-horizontal flex flex-col gap-y-l sm:mx-auto">
+  <header class="flex flex-row items-center justify-between py-xs">
+    <a href="/" class="flex flex-row items-center gap-x-xs">
       {#if $navigating}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
-      <p>EXODUS</p>
+      <p class="text-2xl font-serif font-bold">EXODUS</p>
     </a>
     {#if data.user}
       <a href={`/u/${data.user.username}`}>{data.user.name}</a>
@@ -32,49 +33,42 @@
     {/if}
   </header>
 
-  <main>
+  <main class="flex flex-col gap-y-l">
     {@render children()}
   </main>
 
-  <footer></footer>
+  <footer class="h-2xl"></footer>
 </div>
 
-<style>
-  .page-container {
-    max-width: var(--max-width-article);
-    margin: 0 var(--space-page-horizontal);
-    display: flex;
-    flex-direction: column;
-    row-gap: var(--space-l);
+<style lang="postcss">
+  :global(html) {
+    color: theme('colors.text');
+    background-color: theme('colors.base');
+    transition:
+      background-color 0.5s ease-in-out,
+      color 0.5s ease-in-out;
+    font-family: theme('fontFamily.sans');
+    font-size: theme('fontSize.base');
+    line-height: theme('lineHeight.normal');
+    overflow-y: scroll;
+    scrollbar-color: theme('colors.border') theme('colors.surface');
   }
-  @media (min-width: 43em) {
-    /* var(--max-width-article) + 2 * var(--page-horiz-margin) */
-    .page-container {
-      margin: 0 auto;
-    }
+  :global(a:focus-visible) {
+    outline: theme(size[0.5]) solid theme('colors.focus-visible');
   }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-xs) 0;
-    p {
-      font-size: var(--font-size-2xl);
-      font-family: var(--font-serif);
-      font-weight: var(--font-weight-bold);
-    }
+  :global(h1) {
+    font-size: theme('fontSize.4xl');
   }
-  .header-left {
-    display: flex;
-    align-items: center;
-    column-gap: var(--space-xs);
+  :global(h2) {
+    font-size: theme('fontSize.3xl');
   }
-  main {
-    display: flex;
-    flex-direction: column;
-    row-gap: var(--space-l);
+  :global(h3) {
+    font-size: theme('fontSize.2xl');
   }
-  footer {
-    height: var(--space-2xl);
+  :global(h4) {
+    font-size: theme('fontSize.xl');
+  }
+  :global(h5) {
+    font-size: theme('fontSize.lg');
   }
 </style>

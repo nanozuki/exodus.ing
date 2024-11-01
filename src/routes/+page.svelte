@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ArticleHeader from '$lib/component/ArticleHeader.svelte';
+  import ArticleListItem from '$lib/component/ArticleListItem.svelte';
 
   const { data } = $props();
 </script>
@@ -16,22 +16,10 @@
     by Charles Bukowski
   </p>
 {/if}
+<div class="flex flex-col gap-y-l">
+  <h5 class="font-semibold">文章列表</h5>
 
-<h5>文章列表</h5>
-
-<div class="article-list">
   {#each data.items as article}
-    <ArticleHeader {article} inList />
+    <ArticleListItem {article} />
   {/each}
 </div>
-
-<style>
-  h5 {
-    font-weight: var(--font-weight-bold);
-  }
-  div.article-list {
-    display: flex;
-    flex-direction: column;
-    row-gap: var(--space-l);
-  }
-</style>
