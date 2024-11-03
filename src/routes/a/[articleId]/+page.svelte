@@ -1,8 +1,18 @@
 <script lang="ts">
+  import MdiCalendar from '~icons/mdi/calendar';
+  import MdiReply from '~icons/mdi/reply';
   import Markdown from '$lib/component/Markdown.svelte';
   import { format, formatISO } from 'date-fns';
+  import ActionBar from './ActionBar.svelte';
+  import ArticleCard from '$lib/component/ArticleCard.svelte';
   const { data } = $props();
-  const { article, user } = data;
+  const { article } = data;
+  const actions = {
+    reply: false,
+    comment: false,
+    bookmark: false,
+    edit: true,
+  };
 </script>
 
 <svelte:head>
@@ -20,27 +30,24 @@
 
 <Markdown content={article.content.toString()} title={article.title}>
   {#snippet header()}
-    <header>
-      <h1>{article.title}</h1>
-      <p>
-        <i>by</i>
-        <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
-        <i>in</i>
-        {format(article.createdAt, 'yyyy-MM-dd')}
-        {#if user.isAuthor}
-          [<a href="/a/{article.id}/edit">编辑文章</a>]
-        {/if}
-      </p>
+    <header class="mb-8 flex flex-col gap-y-2 align-bottom">
+      <h1 class="font-serif font-bold">{article.title}</h1>
+      <div class="flex flex-wrap items-center gap-x-2xs">
+        <a class="text-hint hover:text-palette-iris" href={`/u/${article.authorUsername}`}>
+          {article.authorName}
+        </a>
+        <div class="flex items-center gap-x-0.5">
+          <MdiCalendar />发表于 {format(article.createdAt, 'yyyy-MM-dd')}
+        </div>
+      </div>
+      <ActionBar {...{ actions, ...data }} />
+      {#if article.replyTo}
+        <div class="text-subtle bg-surface p-2 flex flex-col gap-y-1">
+          <div class="flex flex-row gap-x-1"><MdiReply />此文回应了</div>
+          <ArticleCard {article} />
+        </div>
+      {/if}
     </header>
   {/snippet}
 </Markdown>
-
-<style>
-  header {
-    margin-top: 2em;
-    margin-bottom: 1.5em;
-  }
-  p {
-    color: var(--secondary-fg);
-  }
-</style>
+<ActionBar {...{ actions, ...data }} />

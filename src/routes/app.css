@@ -50,7 +50,7 @@
     --color-link: rgb(var(--palette-foam));
     --color-link-visited: rgb(var(--palette-pine));
     --color-hint: rgb(var(--palette-love));
-    --color-code: rgb(var(--palette-highlight-low));
+    --color-code: rgb(var(--palette-surface));
 
     --space-2xs: 0.25rem; /* 4px */
     --space-xs: 0.5rem; /* 8px */
