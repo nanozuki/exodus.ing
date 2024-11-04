@@ -28,7 +28,7 @@
     {#if data.user}
       <UserBadge name={data.user.name} username={data.user.username} />
     {:else}
-      <a class="bg-accent" href="/auth">注册/登录</a>
+      <a class="text-accent" href="/auth">注册/登录</a>
     {/if}
   </header>
 
@@ -50,7 +50,7 @@
     overflow-y: scroll;
     scrollbar-color: theme('colors.border') theme('colors.surface');
   }
-  :global(a:focus-visible) {
+  :global(*:focus-visible) {
     outline: theme(size[0.5]) solid theme('colors.focus-visible');
   }
   :global(h1) {

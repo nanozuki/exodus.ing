@@ -9,36 +9,17 @@
   ];
 </script>
 
-<h3>设置</h3>
+<h4 class="font-serif font-bold">设置</h4>
 
-<nav>
+<nav class="flex gap-x-m">
   {#each pages as { path, title }}
-    <a href={path} class:current={path === $page.url.pathname}>
-      <h4>{title}</h4>
+    <a
+      href={path}
+      class={`hover:text-accent ${path === $page.url.pathname && 'text-accent border-b-2 border-accent'}`}
+    >
+      <h5 class="font-serif font-bold">{title}</h5>
     </a>
   {/each}
 </nav>
 
 {@render children()}
-
-<style>
-  nav {
-    display: flex;
-    column-gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  a {
-    color: var(--primary-fg);
-    text-decoration: none;
-  }
-  a:visited {
-    color: var(--primary-fg);
-  }
-  a:hover {
-    color: var(--red);
-  }
-  a.current {
-    color: var(--red);
-    border-bottom: 0.125rem solid var(--red);
-  }
-</style>
