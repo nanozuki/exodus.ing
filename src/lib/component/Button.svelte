@@ -7,7 +7,6 @@
     variant?: Variant;
     children: Snippet;
   }
-
   const { variant = 'normal', children, ...rest }: ButtonProps = $props();
   const colorClass = {
     normal: 'bg-text/20 hover:bg-text/30 text-text border-text',
@@ -19,7 +18,7 @@
 
 <button
   {...rest}
-  class={colorClass[variant] + ' w-full font-semibold px-4 py-2 border-2'}
+  class={colorClass[variant] + ' w-full font-semibold px-4 py-1 border-2'}
   disabled={variant === 'disabled'}
 >
   {@render children()}

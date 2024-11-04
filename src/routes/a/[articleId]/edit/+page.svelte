@@ -14,6 +14,11 @@
   let title = $derived.by(() => (compiled.ok ? compiled.title : ''));
   let content = $derived.by(() => compiled.value);
 
+  let submitting = $state(false);
+  const preSubmit = () => {
+    submitting = true;
+  };
+
   const compile = () => {
     if (article !== articleSnapshot) {
       articleSnapshot = article;
@@ -79,10 +84,10 @@
   {/if}
 
   <!-- Row 4 -->
-  <form method="POST" use:enhance>
+  <form method="POST" use:enhance={preSubmit}>
     <input type="hidden" name="content" value={article} />
     <input type="hidden" name="title" value={title} />
-    <Button variant="primary" type="submit">发布</Button>
+    <Button variant={submitting ? 'disabled' : 'primary'} type="submit">发布</Button>
   </form>
 </div>
 
