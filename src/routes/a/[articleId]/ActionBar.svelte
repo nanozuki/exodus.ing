@@ -21,22 +21,22 @@
 
 {#if actions.reply || actions.comment || actions.bookmark || (actions.edit && user?.isAuthor)}
   <div
-    class="flex gap-x-2 border-t-[1px] border-b-[1px] text-palette-iris border-palette-iris/60 leading-relaxed"
+    class="flex gap-x-2 border-t-[1px] border-b-[1px] text-accent-alt border-accent-alt/60 leading-relaxed"
   >
     {#if actions.reply}
-      <div class="flex flex-x-1 gap-x-1 items-center hover:bg-palette-iris/30 py-0.5 px-1">
+      <div class="flex flex-x-1 gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1">
         <MdiReplyOutline />
         {#if replies.length > 0}{replies.length}{/if} 回应
       </div>
     {/if}
     {#if actions.comment}
-      <div class="flex flex-x-1 gap-x-1 items-center hover:bg-palette-iris/30 py-0.5 px-1">
+      <div class="flex flex-x-1 gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1">
         <MdiCommentTextOutline />
         {#if replies.length > 0}{comments.length}{/if} 评论
       </div>
     {/if}
     {#if actions.bookmark}
-      <div class="flex flex-x-1 gap-x-1 items-center hover:bg-palette-iris/30 py-0.5 px-1">
+      <div class="flex flex-x-1 gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1">
         {#if user?.isBookmarked}<MdiBookmark />{:else}<MdiBookmarkOutline />{/if}
         {#if article.bookmarkCount > 0}{article.bookmarkCount}{/if}
         {#if user?.isBookmarked}已{/if}收藏
@@ -45,7 +45,7 @@
     {#if actions.edit && user?.isAuthor}
       <a
         href={`/a/${article.id}/edit`}
-        class="flex flex-x-1 gap-x-1 items-center hover:bg-palette-iris/30 py-0.5 px-1"
+        class="flex flex-x-1 gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1"
       >
         <MdiTextBoxEditOutline />
         编辑

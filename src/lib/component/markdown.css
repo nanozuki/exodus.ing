@@ -68,7 +68,7 @@
     margin: 1rem 0;
     padding: 1rem;
     background-color: var(--color-quote-odd);
-    border-left: 0.25rem solid var(--color-hint);
+    border-left: 0.25rem solid var(--color-accent);
   }
   blockquote > *:first-child {
     margin-top: 0;

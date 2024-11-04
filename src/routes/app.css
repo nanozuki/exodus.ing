@@ -49,7 +49,8 @@
     --color-quote-even: rgb(var(--palette-surface));
     --color-link: rgb(var(--palette-foam));
     --color-link-visited: rgb(var(--palette-pine));
-    --color-hint: rgb(var(--palette-love));
+    --color-accent: rgb(var(--palette-love));
+    --color-accent-alt: rgb(var(--palette-iris));
     --color-code: rgb(var(--palette-surface));
 
     --space-2xs: 0.25rem; /* 4px */

@@ -5,7 +5,7 @@
 </script>
 
 <div class="text-subtle gap-x-2xs bg-quote-odd px-2">
-  <a class="text-hint hover:text-palette-iris inline" href={`/u/${article.authorUsername}`}>
+  <a class="text-accent hover:text-accent-alt inline" href={`/u/${article.authorUsername}`}>
     {article.authorName}
   </a>
   的

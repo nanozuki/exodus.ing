@@ -4,7 +4,7 @@ import type { User } from '$lib/domain/entities/user';
 import type { ArticleService } from '$lib/domain/services/article';
 import type { BookmarkService } from '$lib/domain/services/bookmark';
 import type { CommentService, CommentUpdateRequest } from '$lib/domain/services/comment';
-import { compileArticle } from '$lib/markdown';
+import { compileArticle, throwResultError } from '$lib/markdown';
 import type { Value } from 'vfile';
 
 type ArticleView = Omit<Article, 'content'> & {
@@ -38,7 +38,7 @@ export class ArticlePage {
     ]);
     const result = await compileArticle(article.content);
     if (!result.ok) {
-      return result.error.throw();
+      return throwResultError(result.errors);
     }
     return {
       article: {

@@ -5,6 +5,7 @@
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
   import { format } from 'date-fns';
   import type { ArticleListItem } from '$lib/domain/entities/article';
+  import UserBadge from './UserBadge.svelte';
 
   interface ArticleHeaderProps {
     article: ArticleListItem;
@@ -19,9 +20,7 @@
     <h3 class="font-serif font-bold">{article.title}</h3>
   </a>
   <div class="text-sm flex flex-wrap items-center gap-x-2xs">
-    <a class="text-link visited:text-link-visited" href={`/u/${article.authorUsername}`}
-      >{article.authorName}</a
-    >
+    <UserBadge name={article.authorName} username={article.authorUsername} />
     <div class={info}>
       <MdiCalendar /><span>发表</span><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>
     </div>

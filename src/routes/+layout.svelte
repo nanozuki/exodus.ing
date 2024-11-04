@@ -1,11 +1,10 @@
 <script lang="ts">
+  import './app.css';
+
   import { navigating } from '$app/stores';
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
-  import './app.css';
-  // import './vars.css';
-  // import './default.css';
-  // import './global.css';
+  import UserBadge from '$lib/component/UserBadge.svelte';
 
   const { children, data } = $props();
 </script>
@@ -20,24 +19,22 @@
   />
 </svelte:head>
 
-<div class="max-w-article mx-page-horizontal flex flex-col gap-y-l sm:mx-auto">
+<div class="max-w-article mx-page-horizontal flex flex-col gap-y-l sm:mx-auto min-h-svh">
   <header class="flex flex-row items-center justify-between py-xs">
     <a href="/" class="flex flex-row items-center gap-x-xs">
       {#if $navigating}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
       <p class="text-2xl font-serif font-bold">EXODUS</p>
     </a>
     {#if data.user}
-      <a href={`/u/${data.user.username}`}>{data.user.name}</a>
+      <UserBadge name={data.user.name} username={data.user.username} />
     {:else}
-      <a href="/auth">注册/登录</a>
+      <a class="bg-accent" href="/auth">注册/登录</a>
     {/if}
   </header>
 
-  <main class="flex flex-col gap-y-l">
+  <main class="flex flex-col gap-y-l pb-l flex-1">
     {@render children()}
   </main>
-
-  <footer class="h-2xl"></footer>
 </div>
 
 <style lang="postcss">

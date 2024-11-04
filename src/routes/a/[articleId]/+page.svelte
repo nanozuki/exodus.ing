@@ -5,6 +5,7 @@
   import { format, formatISO } from 'date-fns';
   import ActionBar from './ActionBar.svelte';
   import ArticleCard from '$lib/component/ArticleCard.svelte';
+  import UserBadge from '$lib/component/UserBadge.svelte';
   const { data } = $props();
   const { article } = data;
   const actions = {
@@ -33,9 +34,7 @@
     <header class="mb-8 flex flex-col gap-y-2 align-bottom">
       <h1 class="font-serif font-bold">{article.title}</h1>
       <div class="flex flex-wrap items-center gap-x-2xs">
-        <a class="text-hint hover:text-palette-iris" href={`/u/${article.authorUsername}`}>
-          {article.authorName}
-        </a>
+        <UserBadge name={article.authorName} username={article.authorUsername} />
         <div class="flex items-center gap-x-0.5">
           <MdiCalendar />发表于 {format(article.createdAt, 'yyyy-MM-dd')}
         </div>
