@@ -17,24 +17,3 @@
   <InputTextArea field="aboutMe" label="介绍" value={user.aboutMe} />
   <Button variant="primary" type="submit">更新</Button>
 </form>
-
-<style>
-  /* form { */
-  /*   display: flex; */
-  /*   flex-direction: column; */
-  /*   row-gap: 1rem; */
-  /* } */
-  /* label { */
-  /*   display: block; */
-  /*   font-family: var(--serif); */
-  /*   font-weight: bold; */
-  /* } */
-  /* input, */
-  /* textarea { */
-  /*   display: block; */
-  /*   width: 100%; */
-  /* } */
-  /* textarea { */
-  /*   height: 4rem; */
-  /* } */
-</style>

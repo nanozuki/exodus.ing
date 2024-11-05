@@ -17,7 +17,7 @@
 
 <article>
   <a href="/a/{article.id}">
-    <h3 class="font-serif font-bold">{article.title}</h3>
+    <h2 class="font-serif font-bold">{article.title}</h2>
   </a>
   <div class="text-sm flex flex-wrap items-center gap-x-2xs">
     <UserBadge name={article.authorName} username={article.authorUsername} />

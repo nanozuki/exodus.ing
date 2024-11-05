@@ -6,6 +6,7 @@
 
   const { data } = $props();
   const { user, articles, isMyself } = data;
+  const badgeClass = 'w-fit flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
 </script>
 
 <svelte:head>
@@ -14,11 +15,11 @@
 </svelte:head>
 
 {#if isMyself}
-  <div class="flex gap-x-s w-fit border-t border-b border-accent-alt/60 text-accent-alt leading-relaxed">
-    <a class="w-fit flex gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1" href="/settings">
+  <div class="flex gap-x-s w-fit border-accent-alt/60 text-accent-alt leading-relaxed">
+    <a class={badgeClass} href="/settings">
       <SettingIcon />设置
     </a>
-    <a class="w-fit flex gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1" href="/a/new/edit">
+    <a class={badgeClass} href="/a/new/edit">
       <AddIcon />新文章
     </a>
   </div>

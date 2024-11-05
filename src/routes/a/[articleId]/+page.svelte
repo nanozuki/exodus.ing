@@ -20,10 +20,7 @@
   <title>{article.title} - EXODUS</title>
   <meta property="og:title" content={article.title} />
   <meta property="og:type" content="article" />
-  <meta
-    property="og:description"
-    content={`${article.authorUsername}, ${format(article.updatedAt, 'yyyy-MM-dd')}`}
-  />
+  <meta property="og:description" content={`${article.authorUsername}, ${format(article.updatedAt, 'yyyy-MM-dd')}`} />
   <meta property="article:author" content={article.authorUsername} />
   <meta property="article:published_time" content={formatISO(article.createdAt)} />
   <meta property="article:modified_time" content={formatISO(article.updatedAt)} />
@@ -31,6 +28,7 @@
 
 <Markdown content={article.content.toString()} title={article.title}>
   {#snippet header()}
+    <ActionBar {...{ actions, ...data }} />
     <header class="mb-8 flex flex-col gap-y-2 align-bottom">
       <h1 class="font-serif font-bold">{article.title}</h1>
       <div class="flex flex-wrap items-center gap-x-2xs">
@@ -39,7 +37,6 @@
           <MdiCalendar />发表于 {format(article.createdAt, 'yyyy-MM-dd')}
         </div>
       </div>
-      <ActionBar {...{ actions, ...data }} />
       {#if article.replyTo}
         <div class="text-subtle bg-surface p-2 flex flex-col gap-y-1">
           <div class="flex flex-row gap-x-1"><MdiReply />此文回应了</div>
@@ -49,4 +46,12 @@
     </header>
   {/snippet}
 </Markdown>
-<ActionBar {...{ actions, ...data }} />
+<div class="wedge"></div>
+
+<!-- <ActionBar {...{ actions, ...data }} /> # disable for now -->
+
+<style>
+  .wedge {
+    flex: 1 1 1rem;
+  }
+</style>

@@ -17,34 +17,32 @@
   }
 
   const { article, replies, comments, user, actions }: ActionBarProps = $props();
+  const badgeClass = 'flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
 </script>
 
 {#if actions.reply || actions.comment || actions.bookmark || (actions.edit && user?.isAuthor)}
-  <div class="flex gap-x-2 border-t border-b text-accent-alt border-accent-alt/60 leading-relaxed">
+  <div class="w-fit flex gap-x-2 text-accent-alt leading-relaxed">
     {#if actions.reply}
-      <div class="flex gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1">
+      <div class={badgeClass}>
         <MdiReplyOutline />
         {#if replies.length > 0}{replies.length}{/if} 回应
       </div>
     {/if}
     {#if actions.comment}
-      <div class="flex gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1">
+      <div class={badgeClass}>
         <MdiCommentTextOutline />
         {#if replies.length > 0}{comments.length}{/if} 评论
       </div>
     {/if}
     {#if actions.bookmark}
-      <div class="flex gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1">
+      <div class={badgeClass}>
         {#if user?.isBookmarked}<MdiBookmark />{:else}<MdiBookmarkOutline />{/if}
         {#if article.bookmarkCount > 0}{article.bookmarkCount}{/if}
         {#if user?.isBookmarked}已{/if}收藏
       </div>
     {/if}
     {#if actions.edit && user?.isAuthor}
-      <a
-        href={`/a/${article.id}/edit`}
-        class="flex flex-x-1 gap-x-1 items-center hover:bg-accent-alt/30 py-0.5 px-1"
-      >
+      <a href={`/a/${article.id}/edit`} class={badgeClass}>
         <MdiTextBoxEditOutline />
         编辑
       </a>
