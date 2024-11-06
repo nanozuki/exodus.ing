@@ -1,6 +1,8 @@
 <script lang="ts">
   import { createDialog, melt } from '@melt-ui/svelte';
   import { enhance } from '$app/forms';
+  import Button from '$lib/component/Button.svelte';
+  import Input from '$lib/component/Input.svelte';
 
   const { data } = $props();
   const { user } = data;
@@ -15,25 +17,31 @@
   <meta property="og:title" content="账户设置" />
 </svelte:head>
 
-<div id="account-setting">
-  <p class="label">用户名:</p>
-  <p class="value">{user.username}</p>
-  <button use:melt={$trigger}>编辑</button>
-  <p class="label">GitHub ID:</p>
-  <p class="value">{user.githubId}</p>
+<div id="account-setting" class="items-center gap-x-m">
+  <p class="font-bold font-serif">用户名:</p>
+  <p>{user.username}</p>
+  <div use:melt={$trigger}>
+    <Button>编辑</Button>
+  </div>
+  <p class="font-bold font-serif">GitHub ID:</p>
+  <p>{user.githubId}</p>
 </div>
 
 {#if $open}
   <div use:melt={$portalled}>
-    <div class="overlay" use:melt={$overlay}></div>
-    <div class="dialog" use:melt={$content}>
-      <h2 class="design" use:melt={$title}>修改用户名</h2>
-      <p class="warn" use:melt={$description}>用户名更改后，个人主页地址也变更，请谨慎修改。</p>
-      <form method="POST" use:enhance>
-        <input type="text" name="username" value={user.username} required />
-        <div class="actions">
-          <button class="negative" type="button" use:melt={$close}>取消</button>
-          <button class="positive" type="submit">提交</button>
+    <div class="fixed top-0 left-0 w-full h-full z-40 bg-muted/20" use:melt={$overlay}></div>
+    <div class="dialog bg-surface z-50 px-l py-m flex flex-col gap-y-m" use:melt={$content}>
+      <div>
+        <h2 class="font-serif font-bold" use:melt={$title}>修改用户名</h2>
+        <p class="text-warn" use:melt={$description}>
+          用户名更改后，个人主页地址也变更，请谨慎修改。
+        </p>
+      </div>
+      <form class="flex flex-col gap-y-m" method="POST" use:enhance>
+        <Input type="text" field="username" label="用户名" value={user.username} required />
+        <div class="flex flex-row gap-x-m">
+          <div class="flex-1" use:melt={$close}><Button type="button">取消</Button></div>
+          <div class="flex-1"><Button variant="danger" type="submit">提交</Button></div>
         </div>
       </form>
     </div>
@@ -44,51 +52,14 @@
   #account-setting {
     display: grid;
     grid-template-columns: max-content max-content max-content;
-    column-gap: 1rem;
-  }
-  .label {
-    font-weight: bold;
-    font-family: var(--serif);
-    font-weight: bold;
-  }
-  button {
-    padding-top: 0;
-    padding-bottom: 0;
-    align-self: start;
-  }
-  div.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 50;
-    background-color: rgba(0, 0, 0, 0.5);
+    grid-template-rows: auto auto;
   }
   div.dialog {
-    background-color: var(--secondary-bg);
     position: fixed;
-    z-index: 50;
     width: 80%;
-    max-width: 20rem;
+    max-width: 30rem;
     left: 50%;
     top: 50%;
     translate: -50% -50%;
-    padding: 1rem;
-  }
-  p.warn {
-    color: var(--red);
-  }
-  input {
-    width: 100%;
-  }
-  div.actions {
-    display: flex;
-    column-gap: 1rem;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    button {
-      flex: 1;
-    }
   }
 </style>

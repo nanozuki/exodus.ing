@@ -1,8 +1,10 @@
 <script lang="ts">
+  import './app.css';
+
   import { navigating } from '$app/stores';
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
-  import './styles.css';
+  import UserBadge from '$lib/component/UserBadge.svelte';
 
   const { children, data } = $props();
 </script>
@@ -17,43 +19,53 @@
   />
 </svelte:head>
 
-<header>
-  {#if $navigating}<Loading />{:else}<Logo />{/if}
-  <a class="design" href="/"><h1 class="design">EXODUS</h1></a>
-  <div style="flex: 1"></div>
-  {#if data.user}
-    <a href={`/u/${data.user.username}`}>{data.user.name}</a>
-  {:else}
-    <a href="/auth">注册/登录</a>
-  {/if}
-</header>
+<div class="max-w-article mx-page-horizontal flex flex-col gap-y-l sm:mx-auto min-h-svh">
+  <header class="flex flex-row items-center justify-between py-xs">
+    <a href="/" class="flex flex-row items-center gap-x-xs">
+      {#if $navigating}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
+      <p class="text-2xl font-serif font-bold">EXODUS</p>
+    </a>
+    {#if data.user}
+      <UserBadge name={data.user.name} username={data.user.username} />
+    {:else}
+      <a class="text-accent" href="/auth">注册/登录</a>
+    {/if}
+  </header>
 
-<main>
-  {@render children()}
-</main>
+  <main class="flex flex-col gap-y-l pb-l flex-1">
+    {@render children()}
+  </main>
+</div>
 
-<style>
-  header {
-    max-width: 40rem;
-    display: flex;
-    align-items: center;
-    column-gap: 0.5rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
+<style lang="postcss">
+  :global(html) {
+    color: theme('colors.text');
+    background-color: theme('colors.base');
+    transition:
+      background-color 0.5s ease-in-out,
+      color 0.5s ease-in-out;
+    font-family: theme('fontFamily.sans');
+    font-size: theme('fontSize.base');
+    line-height: theme('lineHeight.normal');
+    overflow-y: scroll;
+    scrollbar-color: theme('colors.border') theme('colors.surface');
   }
-  main {
-    max-width: 40rem;
-    margin: 0 1.5rem;
-    padding-bottom: 4rem;
+  :global(*:focus-visible) {
+    outline: theme(size[0.5]) solid theme('colors.focus-visible');
   }
-  @media (min-width: 43rem) {
-    header {
-      margin: 0 auto;
-    }
-    main {
-      margin: 0 auto;
-    }
+  :global(h1) {
+    font-size: theme('fontSize.4xl');
+  }
+  :global(h2) {
+    font-size: theme('fontSize.3xl');
+  }
+  :global(h3) {
+    font-size: theme('fontSize.2xl');
+  }
+  :global(h4) {
+    font-size: theme('fontSize.xl');
+  }
+  :global(h5) {
+    font-size: theme('fontSize.lg');
   }
 </style>

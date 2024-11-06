@@ -1,5 +1,5 @@
 import type { Article, ArticleCard, ArticleRepository } from '$lib/domain/entities/article';
-import { compileArticle } from '$lib/markdown';
+import { compileArticle, throwResultError } from '$lib/markdown';
 
 export class ArticleService {
   constructor(private repository: ArticleRepository) {}
@@ -11,7 +11,7 @@ export class ArticleService {
   async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
     const result = await compileArticle(content);
     if (!result.ok) {
-      return result.error.throw();
+      return throwResultError(result.errors);
     }
     return await this.repository.create({
       userId,
@@ -25,7 +25,7 @@ export class ArticleService {
   async updateByMarkdown(articleId: string, content: string): Promise<void> {
     const result = await compileArticle(content);
     if (!result.ok) {
-      return result.error.throw();
+      return throwResultError(result.errors);
     }
     return await this.repository.update(articleId, {
       title: result.title,

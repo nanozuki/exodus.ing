@@ -16,6 +16,7 @@
             nodePackages.nodejs
             nodePackages.pnpm
             nodePackages.svelte-language-server
+            nodePackages."@tailwindcss/language-server"
           ];
           shellHook = ''
             export ESLINT_USE_FLAT_CONFIG="true"

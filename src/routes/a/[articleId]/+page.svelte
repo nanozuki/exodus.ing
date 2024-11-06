@@ -1,59 +1,57 @@
 <script lang="ts">
+  import MdiCalendar from '~icons/mdi/calendar';
+  import MdiReply from '~icons/mdi/reply';
+  import Markdown from '$lib/component/Markdown.svelte';
   import { format, formatISO } from 'date-fns';
+  import ActionBar from './ActionBar.svelte';
+  import ArticleCard from '$lib/component/ArticleCard.svelte';
+  import UserBadge from '$lib/component/UserBadge.svelte';
   const { data } = $props();
-  const { article, user } = data;
-
-  const contents = article.content
-    .toString()
-    .split(`<h1>${article.title}</h1>`)
-    .map((s) => s.trim());
+  const { article } = data;
+  const actions = {
+    reply: false,
+    comment: false,
+    bookmark: false,
+    edit: true,
+  };
 </script>
 
 <svelte:head>
   <title>{article.title} - EXODUS</title>
   <meta property="og:title" content={article.title} />
   <meta property="og:type" content="article" />
-  <meta
-    property="og:description"
-    content={`${article.authorUsername}, ${format(article.updatedAt, 'yyyy-MM-dd')}`}
-  />
+  <meta property="og:description" content={`${article.authorUsername}, ${format(article.updatedAt, 'yyyy-MM-dd')}`} />
   <meta property="article:author" content={article.authorUsername} />
   <meta property="article:published_time" content={formatISO(article.createdAt)} />
   <meta property="article:modified_time" content={formatISO(article.updatedAt)} />
 </svelte:head>
 
-<article>
-  {#each contents as content, i}
-    {#if i === 0}
-      {#if content}
-        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-        {@html content}
+<Markdown content={article.content.toString()} title={article.title}>
+  {#snippet header()}
+    <ActionBar {...{ actions, ...data }} />
+    <header class="mb-8 flex flex-col gap-y-2 align-bottom">
+      <h1 class="font-serif font-bold">{article.title}</h1>
+      <div class="flex flex-wrap items-center gap-x-2xs">
+        <UserBadge name={article.authorName} username={article.authorUsername} />
+        <div class="flex items-center gap-x-0.5">
+          <MdiCalendar />发表于 {format(article.createdAt, 'yyyy-MM-dd')}
+        </div>
+      </div>
+      {#if article.replyTo}
+        <div class="text-subtle bg-surface p-2 flex flex-col gap-y-1">
+          <div class="flex flex-row gap-x-1"><MdiReply />此文回应了</div>
+          <ArticleCard {article} />
+        </div>
       {/if}
-      <header>
-        <h1 class="design">{article.title}</h1>
-        <p class="design">
-          <i>by</i>
-          <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
-          <i>in</i>
-          {format(article.createdAt, 'yyyy-MM-dd')}
-          {#if user.isAuthor}
-            [<a href="/a/{article.id}/edit">编辑文章</a>]
-          {/if}
-        </p>
-      </header>
-    {:else}
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html content}
-    {/if}
-  {/each}
-</article>
+    </header>
+  {/snippet}
+</Markdown>
+<div class="wedge"></div>
+
+<!-- <ActionBar {...{ actions, ...data }} /> # disable for now -->
 
 <style>
-  header {
-    margin-top: 2em;
-    margin-bottom: 1.5em;
-  }
-  p {
-    color: var(--secondary-fg);
+  .wedge {
+    flex: 1 1 1rem;
   }
 </style>

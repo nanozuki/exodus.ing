@@ -2,105 +2,97 @@
   import { compileArticle, type ArticleCompileResult } from '$lib/markdown';
   import { onMount } from 'svelte';
   import { enhance } from '$app/forms';
+  import Markdown from '$lib/component/Markdown.svelte';
+  import Button from '$lib/component/Button.svelte';
 
   const { form, data } = $props();
 
   let mode: 'editor' | 'previewer' = $state('editor');
   let article: string = $state(form?.content || data.content);
-  let compiled: ArticleCompileResult | undefined = $state(undefined);
-  let title = $derived.by(() => (compiled ? (compiled.ok ? compiled.title : '') : data.title));
-  let content = $derived.by(() => (compiled ? compiled.value : data.content));
+  let articleSnapshot = $state('');
+  let compiled: ArticleCompileResult = $state({ ok: true, title: '', value: '' });
+  let title = $derived.by(() => (compiled.ok ? compiled.title : ''));
+  let content = $derived.by(() => compiled.value);
 
-  let articleSnapshot = '';
+  let submitting = $state(false);
+  const preSubmit = () => {
+    submitting = true;
+  };
+
+  const compile = () => {
+    if (article !== articleSnapshot) {
+      articleSnapshot = article;
+      compileArticle(article).then((result) => {
+        compiled = result;
+      });
+    }
+  };
+
   onMount(() => {
-    setInterval(() => {
-      if (article !== articleSnapshot) {
-        articleSnapshot = article;
-        compileArticle(article).then((result) => {
-          compiled = result;
-        });
-      }
-    }, 1000);
+    compile();
+    const interval = setInterval(compile, 1000);
+    return () => clearInterval(interval);
   });
+
+  const buttonClass = {
+    activated: 'flex-1 p-0.5 text-text bg-surface',
+    deactivated: 'flex-1 p-0.5 text-subtle bg-highlight-high/30 hover:text-text',
+  };
 </script>
 
 <svelte:head>
-  <title>编辑 {title ? title : '无标题'} - EXODUS</title>
+  <title>编辑 {title} - EXODUS</title>
 </svelte:head>
 
-<div class="container">
-  <div class="switch">
+<div class="flex-1 h-full flex flex-col gap-y-m">
+  <!-- Row 1 -->
+  <div class="switch flex border border-border">
     <button
-      class:activate={mode === 'editor'}
+      class={mode === 'editor' ? buttonClass.activated : buttonClass.deactivated}
       onclick={() => {
         mode = 'editor';
       }}>编辑</button
     >
     <button
-      class:activate={mode === 'previewer'}
+      class={mode === 'previewer' ? buttonClass.activated : buttonClass.deactivated}
       onclick={() => {
         mode = 'previewer';
       }}>预览</button
     >
   </div>
 
+  <!-- Row 2 -->
   {#if mode === 'editor'}
-    <h1 class="design">{title ? title : '无标题'}</h1>
-    <textarea bind:value={article}></textarea>
+    <textarea
+      class="editor border border-border overflow-y-scroll p-1 w-full resize-none"
+      bind:value={article}
+    ></textarea>
   {:else}
-    <article>
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html content}
-    </article>
+    <div class="editor border border-border overflow-y-scroll p-1">
+      <Markdown content={content.toString()} />
+    </div>
   {/if}
 
-  <form method="POST" use:enhance>
+  <!-- Row 3 -->
+  {#if !compiled.ok}
+    <div class="bg-error/30 text-error p-2">
+      {#if compiled.errors.noTitle}
+        <p class="font-bold">标题不能为空</p>
+        <small>标题为第一个一级标题</small>
+      {/if}
+    </div>
+  {/if}
+
+  <!-- Row 4 -->
+  <form method="POST" use:enhance={preSubmit}>
     <input type="hidden" name="content" value={article} />
     <input type="hidden" name="title" value={title} />
-    <small class:error={form?.error}
-      >{form?.error ? form?.error + '。' : ''}
-      文章标题来自第一个一级标题。</small
-    >
-    <button type="submit" class="positive">发布</button>
+    <Button variant={submitting ? 'disabled' : 'primary'} type="submit">发布</Button>
   </form>
 </div>
 
 <style>
-  div.container {
-    height: calc(100svh - 4rem);
-    display: flex;
-    flex-direction: column;
-    row-gap: 1rem;
-    padding-bottom: 1rem;
-  }
-
-  div.switch {
-    display: flex;
-    border: 1px solid var(--green);
-  }
-  div.switch button {
-    flex: 1;
-    background-color: var(--secondary-bg);
-    border: none;
-  }
-  div.switch button.activate {
-    color: var(--primary-bg);
-    background-color: var(--green);
-  }
-
-  textarea {
-    width: 100%;
-    flex: 1;
-    resize: none;
-  }
-  article {
-    flex: 1;
-    overflow-y: scroll;
-  }
-  small.error {
-    color: var(--red);
-  }
-  form button {
-    width: 100%;
+  .editor {
+    flex: 1 1 0;
   }
 </style>

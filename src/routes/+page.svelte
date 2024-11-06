@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { format } from 'date-fns';
+  import ArticleListItem from '$lib/component/ArticleListItem.svelte';
 
   const { data } = $props();
 </script>
@@ -17,34 +17,10 @@
   </p>
 {/if}
 
-<h4>文章列表</h4>
+<div class="flex flex-col gap-y-l">
+  <h5 class="font-semibold">文章列表</h5>
 
-<div class="article-list">
   {#each data.items as article}
-    <article>
-      <a href="/a/{article.id}">
-        <h2 class="design">{article.title}</h2>
-      </a>
-      <p class="design">
-        <i>by</i>
-        <a class="username" href={`/u/${article.authorUsername}`}>{article.authorName}</a>
-        <i>in</i>
-        {format(article.createdAt, 'yyyy-MM-dd')}
-      </p>
-    </article>
+    <ArticleListItem {article} />
   {/each}
 </div>
-
-<style>
-  div.article-list {
-    display: flex;
-    flex-direction: column;
-    row-gap: 1rem;
-  }
-  article i {
-    color: var(--teritary-fg);
-  }
-  a.username {
-    text-decoration: none;
-  }
-</style>
