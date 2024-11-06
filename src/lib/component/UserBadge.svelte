@@ -6,6 +6,6 @@
   const { name, username }: UserBadgeProps = $props();
 </script>
 
-<a class="text-accent hover:text-accent-alt" href={`/u/${username}`}>
+<a data-sveltekit-reload class="text-accent hover:text-accent-alt" href={`/u/${username}`}>
   {name}
 </a>
