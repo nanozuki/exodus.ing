@@ -1,16 +1,15 @@
 <script lang="ts">
   import type { UserDomain } from '$lib/domain/entities/user_domain';
-  import { newDialog } from '$lib/component';
-  import { melt } from '@melt-ui/svelte';
   import Input from '$lib/component/Input.svelte';
   import Button from '$lib/component/Button.svelte';
+  import Dialog from '$lib/component/Dialog.svelte';
 
   const { data } = $props();
 
   const domains = $state(data.domains);
   let processing = $state(false);
+  let open = $state(false);
   let deleteIndex: number | null = $state(null);
-  const { Dialog, dialogProps, close } = newDialog();
 
   const verifyDomain = async (index: number) => {
     processing = true;
@@ -28,7 +27,7 @@
 
   const openDeleteDialog = (index: number) => {
     deleteIndex = index;
-    dialogProps.states.open.set(true);
+    open = true;
   };
 
   const deleteDomain = async () => {
@@ -41,7 +40,7 @@
       domains.splice(deleteIndex, 1);
     }
     processing = false;
-    dialogProps.states.open.set(false);
+    open = false;
   };
 </script>
 
@@ -74,20 +73,27 @@
     </div>
     <div class="flex gap-x-m">
       {#if !domain.verifiedAt}
-        <Button variant="primary" disabled={processing} onclick={() => verifyDomain(index)}>
-          验证
-        </Button>
+        <Button variant="primary" disabled={processing} onclick={() => verifyDomain(index)}>验证</Button>
       {/if}
-      <Button variant="danger" disabled={processing} onclick={() => openDeleteDialog(index)}>
-        删除
-      </Button>
+      <Dialog bind:open>
+        {#snippet trigger()}
+          <Button variant="danger" disabled={processing} onclick={() => openDeleteDialog(index)}>删除</Button>
+        {/snippet}
+        {#snippet content()}
+          <div>
+            <h3>删除域名</h3>
+            <p class="text-error">确认删除 {domains[deleteIndex!].domain} 吗？相关文章不会被删除。</p>
+          </div>
+          <div class="grid grid-rows-1 grid-cols-2 gap-x-m">
+            <Button
+              onclick={() => {
+                open = false;
+              }}>取消</Button
+            >
+            <Button variant="danger" onclick={deleteDomain}>删除</Button>
+          </div>
+        {/snippet}
+      </Dialog>
     </div>
   </div>
-  <Dialog title={'删除域名'} {dialogProps}>
-    确认删除 {domains[deleteIndex!].domain} 吗？相关文章不会被删除。
-    <div class="flex flex-row gap-x-m">
-      <div class="flex-1" use:melt={$close}><Button>取消</Button></div>
-      <div class="flex-1"><Button variant="danger" onclick={deleteDomain}>删除</Button></div>
-    </div>
-  </Dialog>
 {/each}
