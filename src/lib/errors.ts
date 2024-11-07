@@ -10,6 +10,14 @@ export class AppError implements App.Error {
     console.log('Error:', { code, key, message, context });
   }
 
+  static catch(e: unknown): AppError {
+    if (e instanceof AppError) {
+      return e;
+    }
+    console.error(e);
+    return AppError.InternalServerError();
+  }
+
   throw(): never {
     const { code, key, message, context } = this;
     error(code, { key, message, context });

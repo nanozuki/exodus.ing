@@ -7,6 +7,7 @@
   import UserBadge from '$lib/component/UserBadge.svelte';
 
   const { children, data } = $props();
+  const { user } = $derived(data);
 </script>
 
 <!-- web fonts -->
@@ -25,8 +26,8 @@
       {#if $navigating}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
       <p class="text-2xl font-serif font-bold">EXODUS</p>
     </a>
-    {#if data.user}
-      <UserBadge name={data.user.name} username={data.user.username} />
+    {#if user}
+      <UserBadge name={user.name} username={user.username} />
     {:else}
       <a class="text-accent" href="/auth">注册/登录</a>
     {/if}

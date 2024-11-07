@@ -35,6 +35,9 @@ export default {
       link: 'rgb(var(--palette-foam))',
       'link-visited': 'rgb(var(--palette-pine))',
       'focus-visible': 'rgb(var(--palette-iris))',
+      primary: 'rgb(var(--palette-foam))',
+      danger: 'rgb(var(--palette-love))',
+      disabled: 'rgb(var(--palette-muted))',
     },
     fontFamily: {
       sans: ['IBM Plex Sans', 'Noto Sans SC', 'sans-serif'],

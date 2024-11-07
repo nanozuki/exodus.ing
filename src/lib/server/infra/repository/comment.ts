@@ -1,43 +1,46 @@
-import type {
-  Comment,
-  CommentInput,
-  CommentPatch,
-  CommentRepository,
-} from '$lib/domain/entities/comment';
-import { decodeIdPath, encodeIdPath } from '$lib/domain/values/id_path';
+import type { Comment, CommentInput, CommentPatch, CommentRepository } from '$lib/domain/entities/comment';
+import { decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import { AppError } from '$lib/errors';
 import { eq } from 'drizzle-orm/sql';
-import { tComment, type AppD1Database, type CommentModel } from './schema';
+import { tComment, tUser, type AppD1Database } from './schema';
 import { newNanoId, wrap } from './utils';
-
-function convertModelToEntity(model: CommentModel): Comment {
-  return {
-    ...model,
-    path: decodeIdPath(model.path),
-  };
-}
 
 export class D1CommentRepository implements CommentRepository {
   constructor(private db: AppD1Database) {}
 
+  private modelQuery() {
+    return this.db
+      .select({
+        id: tComment.id,
+        path: tComment.path,
+        createdAt: tComment.createdAt,
+        updatedAt: tComment.updatedAt,
+        articleId: tComment.articleId,
+        content: tComment.content,
+        author: {
+          id: tUser.id,
+          username: tUser.username,
+          name: tUser.name,
+        },
+      })
+      .from(tComment)
+      .innerJoin(tUser, eq(tComment.userId, tUser.id));
+  }
+
   async listByArticle(articleId: string): Promise<Comment[]> {
     return await wrap('comment.listByArticleId', async () => {
-      const comments = await this.db
-        .select()
-        .from(tComment)
-        .where(eq(tComment.articleId, articleId))
-        .orderBy(tComment.createdAt);
-      return comments.map(convertModelToEntity);
+      const comments = await this.modelQuery().where(eq(tComment.articleId, articleId)).orderBy(tComment.createdAt);
+      return comments.map(decodePathField);
     });
   }
 
   async getById(commentId: string): Promise<Comment> {
     return await wrap('comment.getById', async () => {
-      const comment = await this.db.select().from(tComment).where(eq(tComment.id, commentId));
+      const comment = await this.modelQuery().where(eq(tComment.id, commentId));
       if (comment.length === 0) {
         return AppError.CommentNotFound().throw();
       }
-      return convertModelToEntity(comment[0]);
+      return decodePathField(comment[0]);
     });
   }
 
@@ -77,8 +80,6 @@ export class D1CommentRepository implements CommentRepository {
   }
 
   async update(commentId: string, patch: Partial<CommentPatch>): Promise<void> {
-    await wrap('comment.update', () =>
-      this.db.update(tComment).set(patch).where(eq(tComment.id, commentId)),
-    );
+    await wrap('comment.update', () => this.db.update(tComment).set(patch).where(eq(tComment.id, commentId)));
   }
 }

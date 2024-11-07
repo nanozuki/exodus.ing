@@ -5,7 +5,7 @@
   import Dialog from '$lib/component/Dialog.svelte';
 
   const { data } = $props();
-  const { user } = data;
+  const { user } = $derived(data);
   let open = $state(false);
   let openDialog = () => {
     open = true;

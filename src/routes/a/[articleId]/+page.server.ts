@@ -1,7 +1,42 @@
+import { fail, redirect, type Actions } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { z } from 'zod';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+const commentSchema = z.object({
+  content: z.string().min(1, '不能为空'),
+  replyTo: z.string().optional(),
+});
+
+export const load: PageServerLoad = async ({ locals, params, url }) => {
   const user = locals.layouts.loggedInUser;
   const articleView = await locals.articlePage.getById(params.articleId, user);
-  return articleView;
+  console.log('page load!, comments: ', articleView.comments);
+  const focusComment = url.searchParams.get('comment');
+  const commentForm = await superValidate(zod(commentSchema));
+  return {
+    ...articleView,
+    commentForm,
+    focusComment,
+  };
 };
+
+export const actions = {
+  comment: async ({ locals, request, params }) => {
+    const commentForm = await superValidate(request, zod(commentSchema));
+    console.log('commentForm in server', commentForm);
+    if (!commentForm.valid) {
+      return fail(400, { commentForm });
+    }
+    const user = locals.layouts.requireLoggedInUser();
+    const commentId = await locals.articlePage.addComment({
+      articleId: params.articleId!,
+      userId: user.id,
+      content: commentForm.data.content,
+      replyTo: commentForm.data.replyTo,
+    });
+    await new Promise((r) => setTimeout(r, 2000));
+    redirect(303, `/a/${params.articleId}#comment-${commentId}`);
+  },
+} satisfies Actions;
