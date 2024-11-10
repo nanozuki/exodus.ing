@@ -1,52 +1,47 @@
 <script lang="ts">
-  import { createDialog, melt } from '@melt-ui/svelte';
+  import { createDialog, createSync, melt, type CreateDialogProps } from '@melt-ui/svelte';
   import type { Snippet } from 'svelte';
 
   interface DialogProps {
-    title: string;
-    description?: string;
-    children: Snippet;
-    dialogProps: ReturnType<typeof createDialog>;
+    trigger: Snippet;
+    content: Snippet;
+    open: ReturnType<typeof $bindable<boolean>>;
+    dialogProps?: CreateDialogProps;
   }
 
-  let props: DialogProps = $props();
+  let { open = $bindable(false), ...props }: DialogProps = $props();
 
   const {
-    elements: { portalled, overlay, content, title, description },
-    states: { open },
-  } = props.dialogProps;
+    elements: { portalled, overlay, content },
+    states,
+  } = createDialog(props.dialogProps || { role: 'alertdialog' });
+
+  const sync = createSync(states);
+  $effect(() => {
+    sync.open(open, (value) => {
+      open = value;
+    });
+  });
 </script>
 
-{#if $open}
+{@render props.trigger()}
+
+{#if open}
   <div use:melt={$portalled}>
-    <div class="overlay" use:melt={$overlay}></div>
-    <section class="dialog" use:melt={$content}>
-      <h2 use:melt={$title}>{props.title}</h2>
-      {#if props.description}<p use:melt={$description}>{props.description}</p>{/if}
-      {@render props.children()}
-    </section>
+    <div use:melt={$overlay} class="fixed top-0 left-0 w-full h-full z-40 bg-muted/20"></div>
+    <div use:melt={$content} class="dialog bg-surface z-50 px-l py-m flex flex-col gap-y-m">
+      {@render props.content()}
+    </div>
   </div>
 {/if}
 
 <style>
-  div.overlay {
+  .dialog {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 50;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-  section.dialog {
-    background-color: var(--secondary-bg);
-    position: fixed;
-    z-index: 50;
     width: 80%;
-    max-width: 20rem;
+    max-width: 30rem;
     left: 50%;
     top: 50%;
     translate: -50% -50%;
-    padding: 0 1rem 1rem 1rem;
   }
 </style>

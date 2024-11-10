@@ -1,25 +1,23 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
 
-  interface Props {
-    href: string;
+  type BaseActionProps = {
+    ['class']?: string;
     children: Snippet;
-  }
-  const { href, children }: Props = $props();
+  };
+  type ActionProps =
+    | ({ element: 'a' } & BaseActionProps & HTMLAnchorAttributes)
+    | ({ element: 'button' } & BaseActionProps & HTMLButtonAttributes);
+
+  const { element, children, class: outerClass, ...rest }: ActionProps = $props();
 </script>
 
-<a role="button" {href}>{@render children()}</a>
-
-<style>
-  a {
-    display: inline-flex;
-    font-size: 1rem;
-    padding: 0.125rem 0.5rem;
-    text-decoration: none;
-    align-items: center;
-    color: var(--secondary-fg);
-    border: 0.125rem solid var(--secondary-fg);
-    border-radius: 0.5rem;
-    gap: 0.125rem;
-  }
-</style>
+<svelte:element
+  this={element}
+  class={'flex gap-x-1 items-center text-accent-alt bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2 ' +
+    (outerClass || '')}
+  {...rest}
+>
+  {@render children()}
+</svelte:element>

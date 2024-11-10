@@ -1,0 +1,37 @@
+<script lang="ts">
+  import MdiCalendar from '~icons/mdi/calendar';
+  import MdiReplyOutline from '~icons/mdi/reply-outline';
+  import MdiCommentTextOutline from '~icons/mdi/comment-text-outline';
+  import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
+  import { format } from 'date-fns';
+  import type { ArticleListItem } from '$lib/domain/entities/article';
+  import UserBadge from './UserBadge.svelte';
+
+  interface ArticleHeaderProps {
+    article: ArticleListItem;
+  }
+
+  const { article }: ArticleHeaderProps = $props();
+  const info = 'flex items-center gap-x-0.5';
+</script>
+
+<article>
+  <a href="/a/{article.id}">
+    <h2 class="font-serif font-bold">{article.title}</h2>
+  </a>
+  <div class="text-sm flex flex-wrap items-center gap-x-2xs">
+    <UserBadge name={article.authorName} username={article.authorUsername} />
+    <div class={info}>
+      <MdiCalendar /><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>
+    </div>
+    {#if article.replyCount > 0}
+      <div class={info}><MdiReplyOutline />回复 {article.replyCount}</div>
+    {/if}
+    {#if article.commentCount > 0}
+      <div class={info}><MdiCommentTextOutline />评论 {article.commentCount}</div>
+    {/if}
+    {#if article.bookmarkCount > 0}
+      <div class={info}><MdiBookmarkOutline />收藏 {article.bookmarkCount}</div>
+    {/if}
+  </div>
+</article>

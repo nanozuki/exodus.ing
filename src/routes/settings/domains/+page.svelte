@@ -1,14 +1,15 @@
 <script lang="ts">
   import type { UserDomain } from '$lib/domain/entities/user_domain';
-  import { newDialog } from '$lib/component';
-  import { melt } from '@melt-ui/svelte';
+  import Input from '$lib/component/Input.svelte';
+  import Button from '$lib/component/Button.svelte';
+  import Dialog from '$lib/component/Dialog.svelte';
 
   const { data } = $props();
 
   const domains = $state(data.domains);
   let processing = $state(false);
+  let open = $state(false);
   let deleteIndex: number | null = $state(null);
-  const { Dialog, dialogProps, close } = newDialog();
 
   const verifyDomain = async (index: number) => {
     processing = true;
@@ -26,7 +27,7 @@
 
   const openDeleteDialog = (index: number) => {
     deleteIndex = index;
-    dialogProps.states.open.set(true);
+    open = true;
   };
 
   const deleteDomain = async () => {
@@ -39,7 +40,7 @@
       domains.splice(deleteIndex, 1);
     }
     processing = false;
-    dialogProps.states.open.set(false);
+    open = false;
   };
 </script>
 
@@ -50,102 +51,49 @@
 
 <p>添加个人域名并通过 DNS 验证后，可以将域名中的文章添加到本站。</p>
 
-<form method="POST">
-  <h5 class="design">添加个人域名</h5>
-  <div class="input">
-    <input type="text" name="domain" placeholder="example.com" required />
-    <button type="submit">添加</button>
-  </div>
+<form class="flex flex-col gap-y-xs" method="POST">
+  <Input label="添加新域名" field="domain" type="text" placeholder="example.com" required />
+  <Button type="submit">添加</Button>
 </form>
 {#each domains as domain, index (domain.domain)}
-  <div class="domain">
-    <div class="info">
-      <span class:verified={domain.verifiedAt} class:unverified={!domain.verifiedAt}>
-        {domain.verifiedAt ? '已验证' : '未验证'}
-      </span>
-      <span>{domain.domain}</span>
-    </div>
-    {#if !domain.verifiedAt}
-      <div class="hint">
-        <small>请添加以下 TXT DNS 记录以验证域名：</small>
-        <small class="record">{domain.verifyTxtRecord}</small>
-      </div>
-    {/if}
-    <div class="actions">
-      {#if !domain.verifiedAt}
-        <button disabled={processing} onclick={() => verifyDomain(index)}>验证</button>
+  <div class="border-t last:border-b border-border flex flex-col gap-y-s py-m">
+    <div>
+      {#if domain.verifiedAt}
+        <span class="px-2xs break-all bg-link text-base">已验证</span>
+      {:else}
+        <span class="px-2xs break-all bg-error text-base">未验证</span>
       {/if}
-      <button disabled={processing} onclick={() => openDeleteDialog(index)}>删除</button>
+      <span>{domain.domain}</span>
+      {#if !domain.verifiedAt}
+        <div class="text-accent">
+          <p class="text-sm">请添加以下 TXT DNS 记录以验证域名：</p>
+          <p class="text-sm font-mono break-all">{domain.verifyTxtRecord}</p>
+        </div>
+      {/if}
+    </div>
+    <div class="flex gap-x-m">
+      {#if !domain.verifiedAt}
+        <Button variant="primary" disabled={processing} onclick={() => verifyDomain(index)}>验证</Button>
+      {/if}
+      <Dialog bind:open>
+        {#snippet trigger()}
+          <Button variant="danger" disabled={processing} onclick={() => openDeleteDialog(index)}>删除</Button>
+        {/snippet}
+        {#snippet content()}
+          <div>
+            <h3>删除域名</h3>
+            <p class="text-error">确认删除 {domains[deleteIndex!].domain} 吗？相关文章不会被删除。</p>
+          </div>
+          <div class="grid grid-rows-1 grid-cols-2 gap-x-m">
+            <Button
+              onclick={() => {
+                open = false;
+              }}>取消</Button
+            >
+            <Button variant="danger" onclick={deleteDomain}>删除</Button>
+          </div>
+        {/snippet}
+      </Dialog>
     </div>
   </div>
-  <Dialog title={'删除域名'} {dialogProps}>
-    确认删除 {domains[deleteIndex!].domain} 吗？相关文章不会被删除。
-    <div class="dialog-actions">
-      <button class="negative" use:melt={$close}>取消</button>
-      <button class="positive" onclick={deleteDomain}>删除</button>
-    </div>
-  </Dialog>
 {/each}
-
-<style>
-  form {
-    display: flex;
-    flex-direction: column;
-    row-gap: 0.5rem;
-    margin: 1rem 0;
-
-    .input {
-      display: flex;
-      column-gap: 0.5rem;
-    }
-    input {
-      display: block;
-      flex: 4;
-    }
-    button {
-      display: block;
-      flex: 1;
-    }
-  }
-  .dialog-actions {
-    display: flex;
-    column-gap: 1rem;
-    margin-top: 1rem;
-    button {
-      flex: 1;
-    }
-  }
-  .domain {
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    row-gap: 0.5rem;
-    padding: 1rem 0;
-  }
-  .domain:last-child {
-    border-bottom: 1px solid var(--border-color);
-  }
-  .record {
-    font-family: var(--monospace);
-    word-break: break-all;
-  }
-  span {
-    padding: 0 0.25rem;
-    word-break: break-all;
-  }
-  span.verified {
-    background-color: var(--green);
-    color: var(--primary-bg);
-  }
-  span.unverified {
-    background-color: var(--red);
-    color: var(--primary-bg);
-  }
-  div.actions {
-    display: flex;
-    column-gap: 1rem;
-    button {
-      flex: 1;
-    }
-  }
-</style>

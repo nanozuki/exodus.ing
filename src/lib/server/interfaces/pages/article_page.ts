@@ -4,22 +4,45 @@ import type { User } from '$lib/domain/entities/user';
 import type { ArticleService } from '$lib/domain/services/article';
 import type { BookmarkService } from '$lib/domain/services/bookmark';
 import type { CommentService, CommentUpdateRequest } from '$lib/domain/services/comment';
-import { compileArticle } from '$lib/markdown';
+import { compileArticle, throwResultError } from '$lib/markdown';
 import type { Value } from 'vfile';
 
-type ArticleView = Omit<Article, 'content'> & {
+export type ArticleView = Omit<Article, 'content'> & {
   content: Value;
   title: string;
 };
 
+export type CommentView = Comment & { replyTo?: Comment };
+
+function commentViews(comments: Comment[]): CommentView[] {
+  const map = new Map<string, Comment>();
+  for (const comment of comments) {
+    map.set(comment.id, comment);
+  }
+  const views: CommentView[] = [];
+  for (const comment of comments) {
+    if (comment.path.length === 1) {
+      views.push(comment);
+    } else {
+      const replyTo = map.get(comment.path[comment.path.length - 2]);
+      views.push({ ...comment, replyTo });
+    }
+  }
+  return views;
+}
+
+export type UserView = {
+  id: string;
+  username: string;
+  name: string;
+  isBookmarked: boolean;
+};
+
 export interface ArticleData {
   article: ArticleView;
-  comments: Comment[];
+  comments: CommentView[];
   replies: ArticleCard[];
-  user: {
-    isAuthor: boolean;
-    isBookmarked: boolean;
-  };
+  user?: UserView;
 }
 
 export class ArticlePage {
@@ -29,7 +52,7 @@ export class ArticlePage {
     private readonly bookmark: BookmarkService,
   ) {}
 
-  async getById(articleId: string, loggedUser?: User | null): Promise<ArticleData> {
+  async getById(articleId: string, loggedUser?: User): Promise<ArticleData> {
     const [article, isBookmarked, comments, replies] = await Promise.all([
       this.article.getById(articleId),
       loggedUser ? this.bookmark.isBookmarked(articleId, loggedUser.id) : false,
@@ -38,7 +61,7 @@ export class ArticlePage {
     ]);
     const result = await compileArticle(article.content);
     if (!result.ok) {
-      return result.error.throw();
+      return throwResultError(result.errors);
     }
     return {
       article: {
@@ -46,11 +69,13 @@ export class ArticlePage {
         content: result.value,
         title: result.title,
       },
-      comments,
+      comments: commentViews(comments),
       replies,
-      user: {
-        isAuthor: loggedUser ? article.authorId === loggedUser.id : false,
-        isBookmarked,
+      user: loggedUser && {
+        id: loggedUser.id,
+        username: loggedUser.username,
+        name: loggedUser.name,
+        isBookmarked: isBookmarked,
       },
     };
   }

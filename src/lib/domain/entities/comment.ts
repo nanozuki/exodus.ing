@@ -1,4 +1,5 @@
 import type { IdPath } from '$lib/domain/values/id_path';
+import type { Author } from '../values/author';
 
 export interface Comment {
   id: string;
@@ -6,7 +7,7 @@ export interface Comment {
   createdAt: Date;
   updatedAt: Date;
   articleId: string;
-  userId: string;
+  author: Author;
   content: string;
 }
 

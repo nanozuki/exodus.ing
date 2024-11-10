@@ -8,13 +8,29 @@ import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
 import { matter } from 'vfile-matter';
 
-import { AppError } from '$lib/errors';
 import type { Root } from 'mdast';
 import type { VFile, Value } from 'vfile';
+import { AppError } from './errors';
+
+type ArticleCompileErrors = {
+  noTitle?: boolean;
+};
+const ArticleCompileErrorMessage: {
+  [K in keyof ArticleCompileErrors]: string;
+} = {
+  noTitle: '标题不能为空',
+};
 
 export type ArticleCompileResult =
   | { ok: true; value: Value; title: string }
-  | { ok: false; value: Value; error: AppError };
+  | { ok: false; value: Value; errors: ArticleCompileErrors };
+
+export function throwResultError(errors: ArticleCompileErrors): never {
+  const error = Object.keys(errors)
+    .map((key) => ArticleCompileErrorMessage[key as keyof ArticleCompileErrors])
+    .join(', ');
+  throw AppError.InvalidMarkdownError(error).throw();
+}
 
 interface FileData {
   matter?: Record<string, unknown>;
@@ -51,7 +67,7 @@ export const compileArticle = async (article: string): Promise<ArticleCompileRes
     .use(rehypeStringify)
     .process(article);
   if (!file.data.title) {
-    return { ok: false, value: file.value, error: AppError.InvalidMarkdownError('No title found') };
+    return { ok: false, value: file.value, errors: { noTitle: true } };
   }
   return { ok: true, value: file.value, title: file.data.title };
 };

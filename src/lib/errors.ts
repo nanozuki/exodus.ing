@@ -6,8 +6,14 @@ export class AppError implements App.Error {
     public key: string,
     public message: string,
     public context?: string,
-  ) {
-    console.log('Error:', { code, key, message, context });
+  ) {}
+
+  static catch(e: unknown): AppError {
+    if (e instanceof AppError) {
+      return e;
+    }
+    console.error(e);
+    return AppError.InternalServerError();
   }
 
   throw(): never {

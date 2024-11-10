@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
-import { State, type AuthPort } from '$lib/domain/ports';
+import { type State, type AuthPort } from '$lib/domain/ports';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser } from '$lib/server/infra/repository/schema';
@@ -8,6 +8,7 @@ import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
+import { z } from 'zod';
 import type { AppD1Database, UserModel } from '../repository/schema';
 
 declare module 'lucia' {
@@ -37,6 +38,11 @@ interface GithubCodeResponse {
   id: number;
   login: string;
 }
+
+export const StateSchema = z.object({
+  state: z.string(),
+  inviteCode: z.string().optional(),
+});
 
 export class LuciaAuthService implements AuthPort {
   private lucia: ReturnType<typeof getLucia>;
@@ -96,7 +102,7 @@ export class LuciaAuthService implements AuthPort {
     if (!stateCookie) {
       return AppError.OAuthValidationError('state cookie not found').throw();
     }
-    const stateResult = State.safeParse(JSON.parse(stateCookie));
+    const stateResult = StateSchema.safeParse(JSON.parse(stateCookie));
     if (!stateResult.success) {
       return AppError.OAuthValidationError('state cookie parse error').throw();
     }
