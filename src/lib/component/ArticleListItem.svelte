@@ -22,7 +22,7 @@
   <div class="text-sm flex flex-wrap items-center gap-x-2xs">
     <UserBadge name={article.authorName} username={article.authorUsername} />
     <div class={info}>
-      <MdiCalendar /><span>发表</span><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>
+      <MdiCalendar /><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>
     </div>
     {#if article.replyCount > 0}
       <div class={info}><MdiReplyOutline />回复 {article.replyCount}</div>

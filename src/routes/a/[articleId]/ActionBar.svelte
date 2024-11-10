@@ -5,6 +5,7 @@
   import MdiBookmark from '~icons/mdi/bookmark';
   import MdiTextBoxEditOutline from '~icons/mdi/text-box-edit-outline';
   import type { ArticleData } from '$lib/server/interfaces/pages/article_page';
+  import Action from '$lib/component/Action.svelte';
 
   interface Actions {
     reply: boolean;
@@ -29,10 +30,10 @@
       </div>
     {/if}
     {#if actions.comment}
-      <div class={badgeClass}>
+      <Action element="a" href="#comment-section">
         <MdiCommentTextOutline />
-        {#if replies.length > 0}{comments.length}{/if} 评论
-      </div>
+        评论 {#if comments.length > 0}{comments.length}{/if}
+      </Action>
     {/if}
     {#if actions.bookmark}
       <div class={badgeClass}>
@@ -42,10 +43,10 @@
       </div>
     {/if}
     {#if actions.edit && user && user.id === article.authorId}
-      <a href={`/a/${article.id}/edit`} class={badgeClass}>
+      <Action element="a" href={`/a/${article.id}/edit`} class={badgeClass}>
         <MdiTextBoxEditOutline />
         编辑
-      </a>
+      </Action>
     {/if}
   </div>
 {/if}

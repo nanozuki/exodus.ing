@@ -50,8 +50,10 @@
   };
 </script>
 
-<div class="border-t-4 border-accent flex flex-col gap-y-m">
-  <h2 class="font-serif font-bold">评论</h2>
+<div id="comment-section" class="border-t-4 border-accent flex flex-col gap-y-m">
+  <h2 class="font-serif font-bold">
+    评论 {#if comments.length > 0}{comments.length}{/if}
+  </h2>
   <form method="POST" action="?/comment" class="flex flex-col gap-y-xs" use:enhance>
     {#if replied}
       <div class="bg-overlay p-1">

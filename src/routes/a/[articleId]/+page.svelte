@@ -11,9 +11,15 @@
   let { data } = $props();
   let { article } = $derived(data);
 
-  const actions = {
+  const topActions = {
     reply: false,
     comment: true,
+    bookmark: false,
+    edit: true,
+  };
+  const buttomActions = {
+    reply: false,
+    comment: false,
     bookmark: false,
     edit: true,
   };
@@ -31,7 +37,7 @@
 
 <Markdown content={article.content.toString()} title={article.title}>
   {#snippet header()}
-    <ActionBar {...{ actions, ...data }} />
+    <ActionBar {...{ actions: topActions, ...data }} />
     <header class="mb-8 flex flex-col gap-y-2 align-bottom">
       <h1 class="font-serif font-bold">{article.title}</h1>
       <div class="flex flex-wrap items-center gap-x-2xs">
@@ -50,6 +56,6 @@
   {/snippet}
 </Markdown>
 
-<ActionBar {...{ actions, ...data }} />
+<ActionBar {...{ actions: buttomActions, ...data }} />
 
 <Comments {data} />
