@@ -20,7 +20,7 @@
   const badgeClass = 'flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
 </script>
 
-{#if actions.reply || actions.comment || actions.bookmark || (actions.edit && user?.isAuthor)}
+{#if actions.reply || actions.comment || actions.bookmark || (actions.edit && user && user.id === article.authorId)}
   <div class="w-fit flex gap-x-2 text-accent-alt leading-relaxed">
     {#if actions.reply}
       <div class={badgeClass}>
@@ -41,7 +41,7 @@
         {#if user?.isBookmarked}已{/if}收藏
       </div>
     {/if}
-    {#if actions.edit && user?.isAuthor}
+    {#if actions.edit && user && user.id === article.authorId}
       <a href={`/a/${article.id}/edit`} class={badgeClass}>
         <MdiTextBoxEditOutline />
         编辑

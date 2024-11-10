@@ -14,7 +14,7 @@ export class CommentService {
 
   async update(req: CommentUpdateRequest): Promise<void> {
     const comment = await this.repository.getById(req.commentId);
-    if (comment.userId !== req.userId) {
+    if (comment.author.id !== req.userId) {
       return AppError.Forbidden('Only the author can edit the comment').throw();
     }
     return await this.repository.update(req.commentId, { content: req.content });

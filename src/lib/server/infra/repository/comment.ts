@@ -1,5 +1,5 @@
 import type { Comment, CommentInput, CommentPatch, CommentRepository } from '$lib/domain/entities/comment';
-import { decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
+import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import { AppError } from '$lib/errors';
 import { eq } from 'drizzle-orm/sql';
 import { tComment, tUser, type AppD1Database } from './schema';
@@ -64,7 +64,7 @@ export class D1CommentRepository implements CommentRepository {
         if (replyTo.length === 0) {
           return AppError.CommentNotFound('replyTo').throw();
         }
-        path = [...replyTo[0].path, id];
+        path = [...decodeIdPath(replyTo[0].path), id];
       }
       const now = new Date();
       const comment = {

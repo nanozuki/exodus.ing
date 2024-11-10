@@ -5,14 +5,15 @@ import { z } from 'zod';
 import type { PageServerLoad } from './$types';
 
 const commentSchema = z.object({
+  action: z.literal('new').or(z.literal('edit')),
   content: z.string().min(1, '不能为空'),
   replyTo: z.string().optional(),
+  commentId: z.string().optional(),
 });
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   const user = locals.layouts.loggedInUser;
-  const articleView = await locals.articlePage.getById(params.articleId, user);
-  console.log('page load!, comments: ', articleView.comments);
+  const articleView = await locals.articlePage.getById(params.articleId, user || undefined);
   const focusComment = url.searchParams.get('comment');
   const commentForm = await superValidate(zod(commentSchema));
   return {
@@ -25,18 +26,28 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 export const actions = {
   comment: async ({ locals, request, params }) => {
     const commentForm = await superValidate(request, zod(commentSchema));
-    console.log('commentForm in server', commentForm);
     if (!commentForm.valid) {
       return fail(400, { commentForm });
     }
     const user = locals.layouts.requireLoggedInUser();
-    const commentId = await locals.articlePage.addComment({
-      articleId: params.articleId!,
-      userId: user.id,
-      content: commentForm.data.content,
-      replyTo: commentForm.data.replyTo,
-    });
-    await new Promise((r) => setTimeout(r, 2000));
-    redirect(303, `/a/${params.articleId}#comment-${commentId}`);
+    const { action } = commentForm.data;
+    if (action === 'new') {
+      const commentId = await locals.articlePage.addComment({
+        articleId: params.articleId!,
+        userId: user.id,
+        content: commentForm.data.content,
+        replyTo: commentForm.data.replyTo,
+      });
+      redirect(303, `/a/${params.articleId}#comment-${commentId}`);
+    }
+    if (action === 'edit') {
+      const commentId = commentForm.data.commentId!;
+      await locals.articlePage.editComment({
+        userId: user.id,
+        commentId,
+        content: commentForm.data.content,
+      });
+      redirect(303, `/a/${params.articleId}#comment-${commentId}`);
+    }
   },
 } satisfies Actions;

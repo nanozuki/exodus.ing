@@ -1,24 +1,50 @@
 <script lang="ts">
+  import Action from '$lib/component/Action.svelte';
+  import Button from '$lib/component/Button.svelte';
+  import InputTextArea from '$lib/component/InputTextArea.svelte';
   import MdiCalendar from '~icons/mdi/calendar';
   import MdiReply from '~icons/mdi/reply';
-  import { format } from 'date-fns';
+  import MdiTextBoxEditOutline from '~icons/mdi/text-box-edit-outline';
   import UserBadge from '$lib/component/UserBadge.svelte';
-  import InputTextArea from '$lib/component/InputTextArea.svelte';
-  import Button from '$lib/component/Button.svelte';
-  import { superForm } from 'sveltekit-superforms/client';
-  import Action from '$lib/component/Action.svelte';
   import type { PageData } from './$types';
+  import { format } from 'date-fns';
+  import { superForm } from 'sveltekit-superforms/client';
+  import type { CommentView } from '$lib/server/interfaces/pages/article_page';
 
   let { data }: { data: PageData } = $props();
-  let { comments } = $derived(data);
-  const { form, errors, enhance } = superForm(data.commentForm);
+  let { comments, user } = $derived(data);
+  let btnVariant = $state<'primary' | 'disabled'>('primary');
+  const { form, errors, enhance } = superForm(data.commentForm, {
+    onSubmit: () => {
+      btnVariant = 'disabled';
+    },
+    onResult: () => {
+      btnVariant = 'primary';
+    },
+  });
 
-  let replyTo = $state<string | null>(null);
+  let formState = $state<'new' | 'edit'>('new');
+  let replyTo = $state<string | undefined>(undefined);
   let replied = $derived.by(() => {
     return replyTo ? comments.find((comment) => comment.id === replyTo) : undefined;
   });
+
   const reply = (commentId: string) => {
+    formState = 'new';
+    form.set({ action: 'new', content: '', replyTo: commentId, commentId: undefined });
     replyTo = commentId;
+    document.getElementById('comment-input')?.scrollIntoView();
+    document.getElementById('comment-input')?.focus();
+  };
+  const edit = (comment: CommentView) => {
+    formState = 'edit';
+    form.set({
+      action: 'edit',
+      content: comment.content,
+      replyTo: comment.replyTo?.id,
+      commentId: comment.id,
+    });
+    replyTo = comment.replyTo?.id;
     document.getElementById('comment-input')?.scrollIntoView();
     document.getElementById('comment-input')?.focus();
   };
@@ -33,16 +59,18 @@
         <p class="text-subtle">{replied.content}</p>
       </div>
     {/if}
+    <input type="hidden" name="action" value={formState} />
     <input type="hidden" name="replyTo" value={replyTo} />
+    <input type="hidden" name="commentId" value={$form.commentId} />
     <InputTextArea
       id="comment-input"
-      placeholder="发表评论"
+      placeholder={formState === 'new' ? '发表评论' : '更新评论'}
       field="content"
-      label={replyTo ? '回复评论' : '新评论'}
+      label={formState === 'new' ? '新评论' : '编辑评论'}
       bind:value={$form.content}
       bind:errors={$errors.content}
     />
-    <Button variant="primary" type="submit">发表评论</Button>
+    <Button variant={btnVariant} type="submit">{formState === 'new' ? '发表评论' : '更新评论'}</Button>
   </form>
   <div class="flex flex-col gap-y-m">
     {#each comments as comment (comment.id)}
@@ -55,8 +83,23 @@
           </div>
           <div class="flex-1"></div>
         </div>
-        <p class="pt-1 py-2">{comment.content}</p>
-        <Action element="button" onclick={() => reply(comment.id)}><MdiReply />回复</Action>
+        {#if comment.replyTo}
+          <div class="bg-overlay p-1">
+            <p>回复 <UserBadge name={comment.replyTo.author.name} username={comment.replyTo.author.username} /></p>
+            {#each comment.replyTo.content.split('\n') as line}
+              <p class="text-subtle">{line}</p>
+            {/each}
+          </div>
+        {/if}
+        {#each comment.content.split('\n') as line}
+          <p class="pt-1 py-2">{line}</p>
+        {/each}
+        <div class="flex flex-row gap-x-2">
+          <Action element="button" onclick={() => reply(comment.id)}><MdiReply />回复</Action>
+          {#if user && user.id === comment.author.id}
+            <Action element="button" onclick={() => edit(comment)}><MdiTextBoxEditOutline /> 编辑</Action>
+          {/if}
+        </div>
       </div>
     {/each}
     <div class="border-t border-border"></div>
