@@ -4,7 +4,7 @@
   import InputTextArea from '$lib/component/InputTextArea.svelte';
 
   const { data } = $props();
-  const { user } = data;
+  const { user } = $derived(data);
 </script>
 
 <svelte:head>

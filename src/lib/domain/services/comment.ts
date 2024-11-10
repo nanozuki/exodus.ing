@@ -5,19 +5,19 @@ export class CommentService {
   constructor(private repository: CommentRepository) {}
 
   async listByArticle(articleId: string): Promise<Comment[]> {
-    return this.repository.listByArticle(articleId);
+    return await this.repository.listByArticle(articleId);
   }
 
   async create(comment: CommentInput): Promise<string> {
-    return this.repository.create(comment);
+    return await this.repository.create(comment);
   }
 
   async update(req: CommentUpdateRequest): Promise<void> {
     const comment = await this.repository.getById(req.commentId);
-    if (comment.userId !== req.userId) {
+    if (comment.author.id !== req.userId) {
       return AppError.Forbidden('Only the author can edit the comment').throw();
     }
-    return this.repository.update(req.commentId, { content: req.content });
+    return await this.repository.update(req.commentId, { content: req.content });
   }
 }
 

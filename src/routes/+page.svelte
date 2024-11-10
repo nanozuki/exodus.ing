@@ -2,6 +2,7 @@
   import ArticleListItem from '$lib/component/ArticleListItem.svelte';
 
   const { data } = $props();
+  const { items } = $derived(data);
 </script>
 
 <svelte:head>
@@ -10,7 +11,7 @@
   <meta property="og:description" content="A blog platform for friends." />
 </svelte:head>
 
-{#if data.items.length === 0}
+{#if items.length === 0}
   <p>
     Nothing can save you except writing<br />
     by Charles Bukowski
@@ -20,7 +21,7 @@
 <div class="flex flex-col gap-y-l">
   <h5 class="font-semibold">文章列表</h5>
 
-  {#each data.items as article}
+  {#each items as article}
     <ArticleListItem {article} />
   {/each}
 </div>

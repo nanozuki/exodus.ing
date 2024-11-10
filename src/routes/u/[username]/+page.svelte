@@ -5,7 +5,7 @@
   import ArticleListItem from '$lib/component/ArticleListItem.svelte';
 
   const { data } = $props();
-  const { user, articles, isMyself } = data;
+  const { user, articles, isMyself } = $derived(data);
   const badgeClass = 'w-fit flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
 </script>
 

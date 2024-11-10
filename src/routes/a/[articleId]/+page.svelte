@@ -6,11 +6,14 @@
   import ActionBar from './ActionBar.svelte';
   import ArticleCard from '$lib/component/ArticleCard.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
-  const { data } = $props();
-  const { article } = data;
+  import Comments from './Comments.svelte';
+
+  let { data } = $props();
+  let { article } = $derived(data);
+
   const actions = {
     reply: false,
-    comment: false,
+    comment: true,
     bookmark: false,
     edit: true,
   };
@@ -46,12 +49,7 @@
     </header>
   {/snippet}
 </Markdown>
-<div class="wedge"></div>
 
-<!-- <ActionBar {...{ actions, ...data }} /> # disable for now -->
+<ActionBar {...{ actions, ...data }} />
 
-<style>
-  .wedge {
-    flex: 1 1 1rem;
-  }
-</style>
+<Comments {data} />

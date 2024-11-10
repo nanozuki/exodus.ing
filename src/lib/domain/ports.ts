@@ -1,5 +1,4 @@
 import type { User } from '$lib/domain/entities/user';
-import { z } from 'zod';
 import type { GitHubUser } from './services/user';
 
 export interface Cookie {
@@ -16,11 +15,10 @@ export interface Cookie {
   };
 }
 
-export const State = z.object({
-  state: z.string(),
-  inviteCode: z.string().optional(),
-});
-export type State = z.infer<typeof State>;
+export interface State {
+  state: string;
+  inviteCode?: string;
+}
 
 export interface AuthPort {
   get loggedInUser(): User | null;
