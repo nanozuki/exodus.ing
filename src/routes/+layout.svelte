@@ -5,9 +5,14 @@
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
+  import { page } from '$app/stores';
 
-  const { children, data } = $props();
-  const { user } = $derived(data);
+  let { children, data } = $props();
+  let { user } = $derived(data);
+  let current = $derived.by(() => {
+    let url = $page.url;
+    return encodeURIComponent(url.toString().replace(`${url.protocol}//${url.host}`, ''));
+  });
 </script>
 
 <!-- web fonts -->
@@ -29,7 +34,7 @@
     {#if user}
       <UserBadge name={user.name} username={user.username} />
     {:else}
-      <a class="text-accent" href="/auth">注册/登录</a>
+      <a class="text-accent" href={`/auth?next=${current}`}>注册/登录</a>
     {/if}
   </header>
 

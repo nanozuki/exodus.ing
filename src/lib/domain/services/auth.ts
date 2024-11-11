@@ -1,5 +1,5 @@
 import type { User } from '$lib/domain/entities/user';
-import type { AuthPort, State } from '$lib/domain/ports';
+import type { AuthPort, State, StateInput } from '$lib/domain/ports';
 import { AppError } from '$lib/errors';
 import type { GitHubUser } from './user';
 
@@ -34,8 +34,8 @@ export class AuthService {
     return storedState;
   }
 
-  async authByGithub(inviteCode?: string): Promise<URL> {
-    const state = await this.auth.createAndSetState(inviteCode);
+  async authByGithub(input: StateInput): Promise<URL> {
+    const state = await this.auth.createAndSetState(input);
     return await this.auth.createGithubAuthUrl(state);
   }
 
@@ -47,21 +47,5 @@ export class AuthService {
 
     const gitHubUser = await this.auth.validateGithubCode(code);
     return gitHubUser;
-    // const existingUser = await this.user.findByGitHubId(gitHubUser.id);
-    // if (existingUser) {
-    //   await this.auth.setSession(existingUser.id);
-    //   return;
-    // }
-    //
-    // if (!storedState.inviteCode) {
-    //   return AppError.InviteCodeMissed().throw();
-    // }
-    // const valid = await this.validateInviteCode(storedState.inviteCode);
-    // if (!valid) {
-    //   return AppError.InvalidInviteCode().throw();
-    // }
-    //
-    // const user = await this.createUserByGitHub(gitHubUser);
-    // await this.auth.setSession(user.id);
   }
 }

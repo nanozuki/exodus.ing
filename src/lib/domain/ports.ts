@@ -18,6 +18,12 @@ export interface Cookie {
 export interface State {
   state: string;
   inviteCode?: string;
+  next?: string;
+}
+
+export interface StateInput {
+  inviteCode?: string;
+  next?: string;
 }
 
 export interface AuthPort {
@@ -26,7 +32,7 @@ export interface AuthPort {
   loadSession(): Promise<void>;
   setSession(userId: string): Promise<void>;
   getState(state: string): Promise<State>;
-  createAndSetState(inviteCode?: string): Promise<string>;
+  createAndSetState(input: StateInput): Promise<string>;
 
   createGithubAuthUrl(state: string): Promise<URL>;
   validateGithubCode(code: string): Promise<GitHubUser>;

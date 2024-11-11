@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
-import { type State, type AuthPort } from '$lib/domain/ports';
+import { type AuthPort, type State, type StateInput } from '$lib/domain/ports';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser } from '$lib/server/infra/repository/schema';
@@ -42,6 +42,7 @@ interface GithubCodeResponse {
 export const StateSchema = z.object({
   state: z.string(),
   inviteCode: z.string().optional(),
+  next: z.string().optional(),
 });
 
 export class LuciaAuthService implements AuthPort {
@@ -109,10 +110,11 @@ export class LuciaAuthService implements AuthPort {
     return stateResult.data;
   }
 
-  async createAndSetState(inviteCode?: string): Promise<string> {
+  async createAndSetState({ inviteCode, next }: StateInput): Promise<string> {
     const state = {
       state: generateState(),
       inviteCode,
+      next,
     };
     const stateJson = JSON.stringify(state);
     this.cookies.set('github_oauth_state', stateJson, {

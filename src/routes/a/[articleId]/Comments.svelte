@@ -12,7 +12,8 @@
   import type { CommentView } from '$lib/server/interfaces/pages/article_page';
 
   let { data }: { data: PageData } = $props();
-  let { comments, user } = $derived(data);
+  let { article, comments, user } = $derived(data);
+  let authNext = $derived(encodeURIComponent(`/a/${article.id}#comment-section`));
   let btnVariant = $state<'primary' | 'disabled'>('primary');
   const { form, errors, enhance } = superForm(data.commentForm, {
     onSubmit: () => {
@@ -51,29 +52,36 @@
 </script>
 
 <div id="comment-section" class="border-t-4 border-accent flex flex-col gap-y-m">
-  <h2 class="font-serif font-bold">
+  <h2 class="font-serif font-bold pt-1">
     评论 {#if comments.length > 0}{comments.length}{/if}
   </h2>
-  <form method="POST" action="?/comment" class="flex flex-col gap-y-xs" use:enhance>
-    {#if replied}
-      <div class="bg-overlay p-1">
-        <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
-        <p class="text-subtle">{replied.content}</p>
-      </div>
-    {/if}
-    <input type="hidden" name="action" value={formState} />
-    <input type="hidden" name="replyTo" value={replyTo} />
-    <input type="hidden" name="commentId" value={$form.commentId} />
-    <InputTextArea
-      id="comment-input"
-      placeholder={formState === 'new' ? '发表评论' : '更新评论'}
-      field="content"
-      label={formState === 'new' ? '新评论' : '编辑评论'}
-      bind:value={$form.content}
-      bind:errors={$errors.content}
-    />
-    <Button variant={btnVariant} type="submit">{formState === 'new' ? '发表评论' : '更新评论'}</Button>
-  </form>
+  {#if user}
+    <form method="POST" action="?/comment" class="flex flex-col gap-y-xs" use:enhance>
+      {#if replied}
+        <div class="bg-overlay p-1">
+          <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
+          <p class="text-subtle">{replied.content}</p>
+        </div>
+      {/if}
+      <input type="hidden" name="action" value={formState} />
+      <input type="hidden" name="replyTo" value={replyTo} />
+      <input type="hidden" name="commentId" value={$form.commentId} />
+      <InputTextArea
+        id="comment-input"
+        placeholder={formState === 'new' ? '发表评论' : '更新评论'}
+        field="content"
+        label={formState === 'new' ? '新评论' : '编辑评论'}
+        bind:value={$form.content}
+        bind:errors={$errors.content}
+      />
+      <Button variant={btnVariant} type="submit">{formState === 'new' ? '发表评论' : '更新评论'}</Button>
+    </form>
+  {:else}
+    <div class="bg-overlay p-m flex flex-row items-center justify-between">
+      <p>登录后方可评论</p>
+      <Action element="a" href={`/auth?next=${authNext}`}>登录/注册</Action>
+    </div>
+  {/if}
   <div class="flex flex-col gap-y-m">
     {#each comments as comment (comment.id)}
       <div class="border-t border-border"></div>
@@ -96,12 +104,14 @@
         {#each comment.content.split('\n') as line}
           <p class="pt-1 py-2">{line}</p>
         {/each}
-        <div class="flex flex-row gap-x-2">
-          <Action element="button" onclick={() => reply(comment.id)}><MdiReply />回复</Action>
-          {#if user && user.id === comment.author.id}
-            <Action element="button" onclick={() => edit(comment)}><MdiTextBoxEditOutline /> 编辑</Action>
-          {/if}
-        </div>
+        {#if user}
+          <div class="flex flex-row gap-x-2">
+            <Action element="button" onclick={() => reply(comment.id)}><MdiReply />回复</Action>
+            {#if user && user.id === comment.author.id}
+              <Action element="button" onclick={() => edit(comment)}><MdiTextBoxEditOutline /> 编辑</Action>
+            {/if}
+          </div>
+        {/if}
       </div>
     {/each}
     <div class="border-t border-border"></div>

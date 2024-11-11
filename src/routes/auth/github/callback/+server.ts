@@ -3,17 +3,17 @@ import { type RequestEvent } from '@sveltejs/kit';
 
 export async function GET({ locals, url }: RequestEvent): Promise<Response> {
   const code = url.searchParams.get('code');
-  const state = url.searchParams.get('state');
-  if (!code || !state) {
+  const stateId = url.searchParams.get('state');
+  if (!code || !stateId) {
     return AppError.OAuthValidationError('code or state is empty').throw();
   }
 
-  await locals.authPage.handleGithubCallback(code, state);
+  const state = await locals.authPage.handleGithubCallback(code, stateId);
 
   return new Response(null, {
     status: 302,
     headers: {
-      Location: '/',
+      Location: state.next?.startsWith('/') ? state.next : '/',
     },
   });
 }
