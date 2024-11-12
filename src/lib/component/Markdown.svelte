@@ -6,14 +6,14 @@
     content: string;
     title?: string;
     header?: Snippet;
-    className?: string;
+    ['class']?: string;
   }
 
-  const { title, content, header, className }: MarkdownProps = $props();
+  const { title, content, header, class: classProp }: MarkdownProps = $props();
   const contents = title && header ? content.split(`<h1>${title}</h1>`, 2).map((s) => s.trim()) : [content];
 </script>
 
-<article class={className}>
+<article class={classProp}>
   {#each contents as content, i}
     {#if i === 0 && header && title}
       {#if content}

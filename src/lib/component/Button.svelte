@@ -1,14 +1,14 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
+  import { twMerge } from 'tailwind-merge';
 
   type Variant = 'normal' | 'primary' | 'danger' | 'disabled';
   interface ButtonProps extends HTMLButtonAttributes {
     variant?: Variant;
-    className?: string;
     children: Snippet;
   }
-  const { variant = 'normal', children, className, ...rest }: ButtonProps = $props();
+  const { variant = 'normal', children, class: classProp, ...rest }: ButtonProps = $props();
   const colorClass = {
     normal: 'bg-text/20 hover:bg-text/30 text-text border-text',
     primary: 'bg-link/20 hover:bg-link/30 text-link font-semibold border-link',
@@ -19,7 +19,7 @@
 
 <button
   {...rest}
-  class={[colorClass[variant], 'w-full font-semibold px-4 py-1 border-2', className].join(' ')}
+  class={twMerge(colorClass[variant], 'w-full font-semibold px-4 py-1 border-2', classProp)}
   disabled={variant === 'disabled'}
 >
   {@render children()}
