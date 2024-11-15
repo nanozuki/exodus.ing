@@ -6,13 +6,14 @@
   import ActionBar from './ActionBar.svelte';
   import ArticleCard from '$lib/component/ArticleCard.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
+  import Replies from './Replies.svelte';
   import Comments from './Comments.svelte';
 
   let { data } = $props();
   let { article } = $derived(data);
 
   const topActions = {
-    reply: false,
+    reply: true,
     comment: true,
     bookmark: false,
     edit: true,
@@ -57,5 +58,7 @@
 </Markdown>
 
 <ActionBar {...{ actions: buttomActions, ...data }} />
+
+<Replies {data} />
 
 <Comments {data} />
