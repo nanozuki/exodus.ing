@@ -24,6 +24,7 @@
     bookmark: false,
     edit: true,
   };
+  console.log('data:', data);
 </script>
 
 <svelte:head>
@@ -50,7 +51,7 @@
       {#if article.replyTo}
         <div class="text-subtle bg-surface p-2 flex flex-col gap-y-1">
           <div class="flex flex-row gap-x-1"><MdiReply />此文回应了</div>
-          <ArticleCard {article} />
+          <ArticleCard article={article.replyTo} />
         </div>
       {/if}
     </header>
