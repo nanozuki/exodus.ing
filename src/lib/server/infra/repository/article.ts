@@ -59,7 +59,19 @@ export class D1ArticleRepository implements ArticleRepository {
   private listItemQuery() {
     const p = aliasedTable(tArticle, 'parent');
     const pu = aliasedTable(tUser, 'pu');
+    const r = aliasedTable(tArticle, 'r');
+    const replies = this.db.$with('replies').as(
+      this.db
+        .select({
+          id: tArticle.id,
+          replyCount: sql<number>`COALESCE(COUNT(r.id), 0)`.as('reply_count'),
+        })
+        .from(tArticle)
+        .leftJoin(r, and(ne(tArticle.id, r.id), eq(sql`${tArticle.path} || ${r.id} || '/'`, r.path)))
+        .groupBy(tArticle.id),
+    );
     return this.db
+      .with(replies)
       .select({
         id: tArticle.id,
         createdAt: tArticle.createdAt,
@@ -76,17 +88,15 @@ export class D1ArticleRepository implements ArticleRepository {
           authorUsername: pu.username,
           authorName: pu.name,
         },
-        replyCount: this.db.$count(
-          tArticle,
-          and(ne(tArticle.id, p.id), like(tArticle.path, sql`${tArticle.path} || '%'`)),
-        ),
+        replyCount: replies.replyCount,
         bookmarkCount: this.db.$count(tBookmark, eq(tBookmark.articleId, tArticle.id)),
         commentCount: this.db.$count(tComment, eq(tComment.articleId, tArticle.id)),
       })
       .from(tArticle)
       .leftJoin(tUser, eq(tArticle.userId, tUser.id))
       .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
-      .leftJoin(pu, eq(p.userId, pu.id));
+      .leftJoin(pu, eq(p.userId, pu.id))
+      .leftJoin(replies, eq(tArticle.id, replies.id));
   }
 
   private cardQuery() {

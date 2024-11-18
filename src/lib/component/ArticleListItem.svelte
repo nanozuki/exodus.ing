@@ -25,13 +25,13 @@
       <MdiCalendar /><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>
     </div>
     {#if article.replyCount > 0}
-      <div class={info}><MdiReplyOutline />回复 {article.replyCount}</div>
+      <div class={info}><MdiReplyOutline /> {article.replyCount}</div>
     {/if}
     {#if article.commentCount > 0}
-      <div class={info}><MdiCommentTextOutline />评论 {article.commentCount}</div>
+      <div class={info}><MdiCommentTextOutline /> {article.commentCount}</div>
     {/if}
     {#if article.bookmarkCount > 0}
-      <div class={info}><MdiBookmarkOutline />收藏 {article.bookmarkCount}</div>
+      <div class={info}><MdiBookmarkOutline /> {article.bookmarkCount}</div>
     {/if}
   </div>
 </article>
