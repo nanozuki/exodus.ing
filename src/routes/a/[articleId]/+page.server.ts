@@ -13,7 +13,8 @@ const commentSchema = z.object({
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   const user = locals.layouts.loggedInUser;
-  const articleView = await locals.articlePage.getById(params.articleId, user || undefined);
+  const articleId = params.articleId!;
+  const articleView = await locals.articlePage.getById(articleId, user || undefined);
   const focusComment = url.searchParams.get('comment');
   const commentForm = await superValidate(zod(commentSchema));
   return {

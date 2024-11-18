@@ -10,7 +10,7 @@
   }
 
   const { title, content, header, class: classProp }: MarkdownProps = $props();
-  const contents = title && header ? content.split(`<h1>${title}</h1>`, 2).map((s) => s.trim()) : [content];
+  const contents = $derived(title && header ? content.split(`<h1>${title}</h1>`, 2).map((s) => s.trim()) : [content]);
 </script>
 
 <article class={classProp}>

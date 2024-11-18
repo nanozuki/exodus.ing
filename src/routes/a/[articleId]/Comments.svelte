@@ -52,9 +52,7 @@
 </script>
 
 <div id="comment-section" class="border-t-4 border-accent flex flex-col gap-y-m">
-  <h2 class="font-serif font-bold pt-1">
-    评论 {#if comments.length > 0}{comments.length}{/if}
-  </h2>
+  <h2 class="font-serif font-bold pt-1">评论</h2>
   {#if user}
     <form method="POST" action="?/comment" class="flex flex-col gap-y-xs" use:enhance>
       {#if replied}
@@ -82,6 +80,9 @@
       <Action element="a" href={`/auth?next=${authNext}`}>登录/注册</Action>
     </div>
   {/if}
+  <h6 class="font-bold pt-1">
+    评论 {#if comments.length > 0}{comments.length}{/if}
+  </h6>
   <div class="flex flex-col gap-y-m">
     {#each comments as comment (comment.id)}
       <div class="border-t border-border"></div>
