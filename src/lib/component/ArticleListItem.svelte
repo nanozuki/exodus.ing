@@ -1,5 +1,6 @@
 <script lang="ts">
   import MdiCalendar from '~icons/mdi/calendar';
+  import MdiReply from '~icons/mdi/reply';
   import MdiReplyOutline from '~icons/mdi/reply-outline';
   import MdiCommentTextOutline from '~icons/mdi/comment-text-outline';
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
@@ -19,6 +20,18 @@
   <a href="/a/{article.id}">
     <h2 class="font-serif font-bold">{article.title}</h2>
   </a>
+  {#if article.replyTo}
+    <p class="text-subtle bg-accent-alt/10 px-2xs w-fit">
+      <MdiReply style="display: inline; vertical-align: text-top;" />
+      <a class="text-accent hover:text-accent-alt inline" href={`/u/${article.replyTo.authorUsername}`}>
+        {article.replyTo.authorName}
+      </a>
+      的
+      <a class="text-text font-serif font-bold inline underline" href={`/a/${article.replyTo.id}`}>
+        {article.replyTo.title}
+      </a>
+    </p>
+  {/if}
   <div class="text-sm flex flex-wrap items-center gap-x-2xs">
     <UserBadge name={article.authorName} username={article.authorUsername} />
     <div class={info}>

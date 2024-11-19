@@ -28,10 +28,10 @@
   <div class="flex flex-col gap-y-m">
     {#each replies as reply (reply.id)}
       <p class="bg-overlay py-xs px-s">
-        <a class="font-serif font-bold text-2xl hover:text-primary" href={`/u/${article.authorUsername}`}>
+        <a class="font-serif font-bold text-2xl hover:text-primary mr-2" href={`/a/${article.id}`}>
           {reply.title}
         </a>
-        <a class="font-semibold text-accent hover:text-accent-alt ml-2" href={`/a/${article.id}`}>
+        <a class="font-semibold text-accent hover:text-accent-alt" href={`/u/${article.authorUsername}`}>
           {reply.authorName}
         </a>
       </p>
