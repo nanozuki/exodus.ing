@@ -15,13 +15,13 @@
   const topActions = {
     reply: true,
     comment: true,
-    bookmark: false,
+    bookmark: true,
     edit: true,
   };
   const buttomActions = {
     reply: false,
     comment: false,
-    bookmark: false,
+    bookmark: true,
     edit: true,
   };
 </script>
