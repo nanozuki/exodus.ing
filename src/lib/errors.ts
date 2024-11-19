@@ -33,6 +33,11 @@ export class AppError implements App.Error {
     return new AppError(400, 'INVITE_CODE_MISSED', '邀请码不能为空', context);
   }
 
+  // for invisible form
+  static InvalidFormDataError(context?: string): AppError {
+    return new AppError(400, 'INVALID_FORM_DATA_ERROR', '表单数据错误', context);
+  }
+
   static OAuthValidationError(context?: string): AppError {
     return new AppError(400, 'OAUTH_VALIDATION_ERROR', 'OAuth 验证错误', context);
   }

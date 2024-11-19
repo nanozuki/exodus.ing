@@ -4,20 +4,23 @@
   import { enhance } from '$app/forms';
   import Markdown from '$lib/component/Markdown.svelte';
   import Button from '$lib/component/Button.svelte';
+  import ArticleCard from '$lib/component/ArticleCard.svelte';
 
   const { form, data } = $props();
 
   let mode: 'editor' | 'previewer' = $state('editor');
-  let article: string = $state(form?.content || data.content);
+  let article: string = $state(form?.content || data.article?.content || '');
   let articleSnapshot = $state('');
-  let compiled: ArticleCompileResult = $state({ ok: true, title: '', value: '' });
+  let compiled: ArticleCompileResult = $state({ ok: false, title: '', value: '', errors: { noTitle: true } });
   let title = $derived.by(() => (compiled.ok ? compiled.title : ''));
   let content = $derived.by(() => compiled.value);
+  let { replyTo } = $derived(data);
 
   let submitting = $state(false);
   const preSubmit = () => {
     submitting = true;
   };
+  let btnVariant: 'primary' | 'disabled' = $derived(!submitting && compiled.ok ? 'primary' : 'disabled');
 
   const compile = () => {
     if (article !== articleSnapshot) {
@@ -45,7 +48,13 @@
 </svelte:head>
 
 <div class="flex-1 h-full flex flex-col gap-y-m">
-  <!-- Row 1 -->
+  {#if replyTo}
+    <div class="flex flex-row gap-x-m bg-accent/10 p-2">
+      <p class="font-bold">回应</p>
+      <ArticleCard article={replyTo} />
+    </div>
+  {/if}
+
   <div class="switch flex border border-border">
     <button
       class={mode === 'editor' ? buttonClass.activated : buttonClass.deactivated}
@@ -61,11 +70,8 @@
     >
   </div>
 
-  <!-- Row 2 -->
   {#if mode === 'editor'}
-    <textarea
-      class="editor border border-border overflow-y-scroll p-1 w-full resize-none"
-      bind:value={article}
+    <textarea class="editor border border-border overflow-y-scroll p-1 w-full resize-none" bind:value={article}
     ></textarea>
   {:else}
     <div class="editor border border-border overflow-y-scroll p-1">
@@ -73,7 +79,6 @@
     </div>
   {/if}
 
-  <!-- Row 3 -->
   {#if !compiled.ok}
     <div class="bg-error/30 text-error p-2">
       {#if compiled.errors.noTitle}
@@ -83,11 +88,11 @@
     </div>
   {/if}
 
-  <!-- Row 4 -->
   <form method="POST" use:enhance={preSubmit}>
     <input type="hidden" name="content" value={article} />
     <input type="hidden" name="title" value={title} />
-    <Button variant={submitting ? 'disabled' : 'primary'} type="submit">发布</Button>
+    <input type="hidden" name="replyTo" value={replyTo?.id} />
+    <Button variant={btnVariant} type="submit">发布</Button>
   </form>
 </div>
 

@@ -4,15 +4,16 @@
   import Markdown from '$lib/component/Markdown.svelte';
   import { format, formatISO } from 'date-fns';
   import ActionBar from './ActionBar.svelte';
-  import ArticleCard from '$lib/component/ArticleCard.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
+  import Replies from './Replies.svelte';
   import Comments from './Comments.svelte';
 
   let { data } = $props();
   let { article } = $derived(data);
+  let content = $derived(article.content.toString());
 
   const topActions = {
-    reply: false,
+    reply: true,
     comment: true,
     bookmark: false,
     edit: true,
@@ -35,10 +36,9 @@
   <meta property="article:modified_time" content={formatISO(article.updatedAt)} />
 </svelte:head>
 
-<Markdown content={article.content.toString()} title={article.title}>
+<Markdown {content} title={article.title}>
   {#snippet header()}
-    <ActionBar {...{ actions: topActions, ...data }} />
-    <header class="mb-8 flex flex-col gap-y-2 align-bottom">
+    <header class="mb-2xl flex flex-col gap-y-xs align-bottom">
       <h1 class="font-serif font-bold">{article.title}</h1>
       <div class="flex flex-wrap items-center gap-x-2xs">
         <UserBadge name={article.authorName} username={article.authorUsername} />
@@ -47,15 +47,25 @@
         </div>
       </div>
       {#if article.replyTo}
-        <div class="text-subtle bg-surface p-2 flex flex-col gap-y-1">
-          <div class="flex flex-row gap-x-1"><MdiReply />此文回应了</div>
-          <ArticleCard {article} />
-        </div>
+        <p class="text-subtle bg-accent-alt/10 py-0.5 px-xs w-fit">
+          <MdiReply style="display: inline; vertical-align: text-top;" />
+          此文回应了
+          <a class="text-accent hover:text-accent-alt inline" href={`/u/${article.replyTo.authorUsername}`}>
+            {article.replyTo.authorName}
+          </a>
+          的
+          <a class="text-text font-serif font-bold inline underline" href={`/a/${article.replyTo.id}`}>
+            {article.replyTo.title}
+          </a>
+        </p>
       {/if}
+      <ActionBar {...{ actions: topActions, ...data }} />
     </header>
   {/snippet}
 </Markdown>
 
 <ActionBar {...{ actions: buttomActions, ...data }} />
+
+<Replies {data} />
 
 <Comments {data} />

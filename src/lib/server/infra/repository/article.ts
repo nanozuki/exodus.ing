@@ -1,12 +1,13 @@
 import type {
   Article,
   ArticleCard,
+  ArticleEditorData,
   ArticleInput,
   ArticleListItem,
   ArticlePatch,
   ArticleRepository,
 } from '$lib/domain/entities/article';
-import { decodeIdPath, encodeIdPath } from '$lib/domain/values/id_path';
+import { decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
 import { AppError } from '$lib/errors';
 import { aliasedTable } from 'drizzle-orm';
@@ -14,13 +15,12 @@ import { and, desc, eq, like, ne, sql } from 'drizzle-orm/sql';
 import { tArticle, tBookmark, tComment, tUser, type AppD1Database } from './schema';
 import { newNanoId, wrap } from './utils';
 
-type ArticleResult = Omit<Article, 'path'> & { path: string };
+type ReplyToModel = ArticleCard | { id: null; title: null; authorId: null; authorUsername: null; authorName: null };
+type ArticleResult = Omit<Article, 'path' | 'replyTo'> & { path: string; replyTo: ReplyToModel };
+type ArticleItemResult = Omit<ArticleListItem, 'replyTo'> & { replyTo: ReplyToModel };
 
-function convertModelToEntity(result: ArticleResult): Article {
-  return {
-    ...result,
-    path: decodeIdPath(result.path),
-  };
+function convertReplyTo<T extends { replyTo: ReplyToModel }>(item: T): Omit<T, 'replyTo'> & { replyTo?: ArticleCard } {
+  return { ...item, replyTo: item.replyTo.id ? item.replyTo : undefined };
 }
 
 export class D1ArticleRepository implements ArticleRepository {
@@ -41,9 +41,10 @@ export class D1ArticleRepository implements ArticleRepository {
         authorName: tUser.name,
         contentType: tArticle.contentType,
         content: tArticle.content,
-        replyTo: p.id ?? {
+        replyTo: {
           id: p.id,
           title: p.title,
+          authorId: p.userId,
           authorUsername: pu.username,
           authorName: pu.name,
         },
@@ -58,7 +59,19 @@ export class D1ArticleRepository implements ArticleRepository {
   private listItemQuery() {
     const p = aliasedTable(tArticle, 'parent');
     const pu = aliasedTable(tUser, 'pu');
+    const r = aliasedTable(tArticle, 'r');
+    const replies = this.db.$with('replies').as(
+      this.db
+        .select({
+          id: tArticle.id,
+          replyCount: sql<number>`COALESCE(COUNT(r.id), 0)`.as('reply_count'),
+        })
+        .from(tArticle)
+        .leftJoin(r, and(ne(tArticle.id, r.id), eq(sql`${tArticle.path} || ${r.id} || '/'`, r.path)))
+        .groupBy(tArticle.id),
+    );
     return this.db
+      .with(replies)
       .select({
         id: tArticle.id,
         createdAt: tArticle.createdAt,
@@ -68,23 +81,22 @@ export class D1ArticleRepository implements ArticleRepository {
         authorUsername: tUser.username,
         authorName: tUser.name,
         contentType: tArticle.contentType,
-        replyTo: p.id ?? {
+        replyTo: {
           id: p.id,
           title: p.title,
+          authorId: p.userId,
           authorUsername: pu.username,
           authorName: pu.name,
         },
-        replyCount: this.db.$count(
-          tArticle,
-          and(ne(tArticle.id, p.id), like(tArticle.path, sql`${tArticle.path} || '%'`)),
-        ),
+        replyCount: replies.replyCount,
         bookmarkCount: this.db.$count(tBookmark, eq(tBookmark.articleId, tArticle.id)),
         commentCount: this.db.$count(tComment, eq(tComment.articleId, tArticle.id)),
       })
       .from(tArticle)
       .leftJoin(tUser, eq(tArticle.userId, tUser.id))
       .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
-      .leftJoin(pu, eq(p.userId, pu.id));
+      .leftJoin(pu, eq(p.userId, pu.id))
+      .leftJoin(replies, eq(tArticle.id, replies.id));
   }
 
   private cardQuery() {
@@ -97,7 +109,7 @@ export class D1ArticleRepository implements ArticleRepository {
         authorName: tUser.name,
       })
       .from(tArticle)
-      .leftJoin(tUser, eq(tArticle.userId, tUser.id));
+      .innerJoin(tUser, eq(tArticle.userId, tUser.id));
   }
 
   async getById(articleId: string): Promise<Article> {
@@ -106,8 +118,33 @@ export class D1ArticleRepository implements ArticleRepository {
       if (articles.length === 0) {
         return AppError.ArticleNotFound(articleId).throw();
       }
-      return convertModelToEntity(articles[0]);
+      return convertReplyTo(decodePathField(articles[0] as ArticleResult));
     });
+  }
+
+  async getArticleEditorData(req: { articleId?: string; replyTo?: string }): Promise<ArticleEditorData> {
+    const getArticle = async () => {
+      if (!req.articleId) {
+        return undefined;
+      }
+      const rows = await this.db
+        .select({
+          title: tArticle.title,
+          content: tArticle.content,
+        })
+        .from(tArticle)
+        .where(eq(tArticle.id, req.articleId));
+      return rows.length > 0 ? rows[0] : undefined;
+    };
+    const getReplyTo = async () => {
+      if (!req.replyTo) {
+        return undefined;
+      }
+      const rows = await this.cardQuery().where(eq(tArticle.id, req.replyTo));
+      return rows.length > 0 ? rows[0] : undefined;
+    };
+    const [article, replyTo] = await Promise.all([getArticle(), getReplyTo()]);
+    return { article, replyTo };
   }
 
   async list(page: Pagination): Promise<Paginated<ArticleListItem>> {
@@ -120,7 +157,7 @@ export class D1ArticleRepository implements ArticleRepository {
       return {
         number: page.number,
         total: (count + page.size - 1) / page.size,
-        items: articles as ArticleListItem[],
+        items: (articles as ArticleItemResult[]).map(convertReplyTo),
       };
     });
   }
@@ -136,7 +173,7 @@ export class D1ArticleRepository implements ArticleRepository {
       return {
         number: page.number,
         total: (count + page.size - 1) / page.size,
-        items: articles as ArticleListItem[],
+        items: (articles as ArticleItemResult[]).map(convertReplyTo),
       };
     });
   }
@@ -184,8 +221,6 @@ export class D1ArticleRepository implements ArticleRepository {
   }
 
   async update(articleId: string, patch: Partial<ArticlePatch>): Promise<void> {
-    await wrap('article.update', () =>
-      this.db.update(tArticle).set(patch).where(eq(tArticle.id, articleId)),
-    );
+    await wrap('article.update', () => this.db.update(tArticle).set(patch).where(eq(tArticle.id, articleId)));
   }
 }

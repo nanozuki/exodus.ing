@@ -47,9 +47,6 @@
   :global(html) {
     color: theme('colors.text');
     background-color: theme('colors.base');
-    transition:
-      background-color 0.5s ease-in-out,
-      color 0.5s ease-in-out;
     font-family: theme('fontFamily.sans');
     font-size: theme('fontSize.base');
     line-height: theme('lineHeight.normal');

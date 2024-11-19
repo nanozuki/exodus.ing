@@ -24,10 +24,10 @@
 {#if actions.reply || actions.comment || actions.bookmark || (actions.edit && user && user.id === article.authorId)}
   <div class="w-fit flex gap-x-2 text-accent-alt leading-relaxed">
     {#if actions.reply}
-      <div class={badgeClass}>
+      <Action element="a" href="#reply-section">
         <MdiReplyOutline />
         {#if replies.length > 0}{replies.length}{/if} 回应
-      </div>
+      </Action>
     {/if}
     {#if actions.comment}
       <Action element="a" href="#comment-section">

@@ -1,12 +1,13 @@
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
-  if (params.articleId === 'new') {
-    locals.layouts.requireLoggedInUser('load article editor');
-    return { title: '', content: '' };
-  }
-  return await locals.articleEditPage.getArticleContent(params.articleId);
+export const load: PageServerLoad = async ({ locals, params, url }) => {
+  locals.layouts.requireLoggedInUser('load article editor');
+  const data = await locals.articleEditPage.getArticleContent({
+    articleId: params.articleId === 'new' ? 'new' : params.articleId,
+    replyTo: url.searchParams.get('replyTo') || undefined,
+  });
+  return data;
 };
 
 interface FormData {
@@ -19,6 +20,7 @@ export const actions = {
     const data = await request.formData();
     const title = data.get('title');
     const content = data.get('content');
+    const replyTo = data.get('replyTo') || undefined;
     if (typeof title !== 'string' || title.length === 0 || title === '无标题') {
       return {
         content: typeof content === 'string' ? content : undefined,
@@ -31,10 +33,16 @@ export const actions = {
         error: '内容不能为空',
       };
     }
+    if (typeof replyTo !== 'string' && typeof replyTo !== 'undefined') {
+      return {
+        content: typeof content === 'string' ? content : undefined,
+        error: '必须是字符串',
+      };
+    }
 
     // New Article
     if (params.articleId === 'new') {
-      const articleId = await locals.articleEditPage.createByMarkdown(content);
+      const articleId = await locals.articleEditPage.createByMarkdown(content, replyTo);
       redirect(301, `/a/${articleId}`);
     }
 
