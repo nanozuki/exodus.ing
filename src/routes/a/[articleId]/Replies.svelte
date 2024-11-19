@@ -22,9 +22,11 @@
       <Action element="a" href={`/auth?next=${authNext}`}>登录/注册</Action>
     </div>
   {/if}
-  <h6 class="font-bold pt-1">
-    回应文章 {#if replies.length > 0}{replies.length}{/if}
-  </h6>
+  {#if replies.length > 0}
+    <h6 class="font-bold pt-1">
+      回应文章 {replies.length}
+    </h6>
+  {/if}
   <div class="flex flex-col gap-y-m">
     {#each replies as reply (reply.id)}
       <p class="bg-overlay py-xs px-s">

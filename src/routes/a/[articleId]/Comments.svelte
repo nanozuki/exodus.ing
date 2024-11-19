@@ -80,9 +80,11 @@
       <Action element="a" href={`/auth?next=${authNext}`}>登录/注册</Action>
     </div>
   {/if}
-  <h6 class="font-bold pt-1">
-    评论 {#if comments.length > 0}{comments.length}{/if}
-  </h6>
+  {#if comments.length > 0}
+    <h6 class="font-bold pt-1">
+      评论 {comments.length}
+    </h6>
+  {/if}
   <div class="flex flex-col gap-y-m">
     {#each comments as comment (comment.id)}
       <div class="border-t border-border"></div>
