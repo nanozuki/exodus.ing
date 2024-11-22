@@ -13,4 +13,8 @@ export class ArticleListService {
   async listByUserId(userId: string, pageNumber: number): Promise<Paginated<ArticleListItem>> {
     return await this.repository.listByUserId(userId, { number: pageNumber, size: PAGE_SIZE });
   }
+
+  async listUserBookmarked(userId: string, pageNumber: number): Promise<Paginated<ArticleListItem>> {
+    return await this.repository.listUserBookmarks(userId, { number: pageNumber, size: PAGE_SIZE });
+  }
 }

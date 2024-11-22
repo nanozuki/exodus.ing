@@ -70,6 +70,7 @@ export interface ArticleRepository {
   list(page: Pagination): Promise<Paginated<ArticleListItem>>;
   listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
   listReplies(articleId: string): Promise<ArticleCard[]>;
+  listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
   create(input: ArticleInput): Promise<string>;
   update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
 }

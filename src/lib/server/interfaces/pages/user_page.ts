@@ -32,4 +32,8 @@ export class UserPage {
       isMyself: loggedInUser ? user.id === loggedInUser.id : false,
     };
   }
+
+  async getBookmarkedArticles(userId: string, page: number): Promise<Paginated<ArticleListItem>> {
+    return await this.articleList.listUserBookmarked(userId, page);
+  }
 }

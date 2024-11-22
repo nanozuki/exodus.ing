@@ -187,6 +187,23 @@ export class D1ArticleRepository implements ArticleRepository {
     });
   }
 
+  async listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>> {
+    return await wrap('article.listUserBookmarks', async () => {
+      const count = await this.db.$count(tBookmark, eq(tBookmark.userId, userId));
+      const articles = await this.listItemQuery()
+        .innerJoin(tBookmark, eq(tArticle.id, tBookmark.articleId))
+        .where(eq(tBookmark.userId, userId))
+        .orderBy(desc(tBookmark.createdAt))
+        .limit(page.size)
+        .offset(page.size * (page.number - 1));
+      return {
+        number: page.number,
+        total: (count + page.size - 1) / page.size,
+        items: (articles as ArticleItemResult[]).map(convertReplyTo),
+      };
+    });
+  }
+
   private async generateId(): Promise<string> {
     return await wrap('article.generateId', async () => {
       let id = newNanoId();
