@@ -152,11 +152,11 @@ export class D1ArticleRepository implements ArticleRepository {
       const count = await this.db.$count(tArticle);
       const articles = await this.listItemQuery()
         .orderBy(desc(tArticle.createdAt))
-        .limit(page.size)
-        .offset(page.size * (page.number - 1));
+        .limit(page.pageSize)
+        .offset(page.pageSize * (page.pageNumber - 1));
       return {
-        number: page.number,
-        total: (count + page.size - 1) / page.size,
+        pageNumber: page.pageNumber,
+        count,
         items: (articles as ArticleItemResult[]).map(convertReplyTo),
       };
     });
@@ -168,11 +168,11 @@ export class D1ArticleRepository implements ArticleRepository {
       const articles = await this.listItemQuery()
         .where(eq(tArticle.userId, userId))
         .orderBy(desc(tArticle.createdAt))
-        .limit(page.size)
-        .offset(page.size * (page.number - 1));
+        .limit(page.pageSize)
+        .offset(page.pageSize * (page.pageNumber - 1));
       return {
-        number: page.number,
-        total: (count + page.size - 1) / page.size,
+        pageNumber: page.pageNumber,
+        count,
         items: (articles as ArticleItemResult[]).map(convertReplyTo),
       };
     });
@@ -194,11 +194,11 @@ export class D1ArticleRepository implements ArticleRepository {
         .innerJoin(tBookmark, eq(tArticle.id, tBookmark.articleId))
         .where(eq(tBookmark.userId, userId))
         .orderBy(desc(tBookmark.createdAt))
-        .limit(page.size)
-        .offset(page.size * (page.number - 1));
+        .limit(page.pageSize)
+        .offset(page.pageSize * (page.pageNumber - 1));
       return {
-        number: page.number,
-        total: (count + page.size - 1) / page.size,
+        pageNumber: page.pageNumber,
+        count,
         items: (articles as ArticleItemResult[]).map(convertReplyTo),
       };
     });

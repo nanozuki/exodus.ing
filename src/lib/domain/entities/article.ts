@@ -74,3 +74,5 @@ export interface ArticleRepository {
   create(input: ArticleInput): Promise<string>;
   update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
 }
+
+export const ARTICLE_PAGE_SIZE = 3;
