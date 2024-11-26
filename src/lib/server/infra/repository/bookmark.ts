@@ -8,11 +8,7 @@ export class D1BookmarkRepository implements BookmarkRepository {
 
   async listByUserId(userId: string): Promise<Bookmark[]> {
     return await wrap('bookmark.listByUserId', () =>
-      this.db
-        .select()
-        .from(tBookmark)
-        .where(eq(tBookmark.userId, userId))
-        .orderBy(tBookmark.createdAt),
+      this.db.select().from(tBookmark).where(eq(tBookmark.userId, userId)).orderBy(tBookmark.createdAt),
     );
   }
 
@@ -26,18 +22,16 @@ export class D1BookmarkRepository implements BookmarkRepository {
     });
   }
 
-  async create(userId: string, articleId: string): Promise<void> {
+  async create(articleId: string, userId: string): Promise<void> {
     await wrap('bookmark.create', async () => {
       const bookmark = { userId, articleId, createdAt: new Date() };
       await this.db.insert(tBookmark).values(bookmark);
     });
   }
 
-  async delete(userId: string, articleId: string): Promise<void> {
+  async delete(articleId: string, userId: string): Promise<void> {
     await wrap('bookmark.delete', () =>
-      this.db
-        .delete(tBookmark)
-        .where(and(eq(tBookmark.userId, userId), eq(tBookmark.articleId, articleId))),
+      this.db.delete(tBookmark).where(and(eq(tBookmark.userId, userId), eq(tBookmark.articleId, articleId))),
     );
   }
 }

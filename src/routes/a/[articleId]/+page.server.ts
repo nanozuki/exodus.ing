@@ -11,16 +11,26 @@ const commentSchema = z.object({
   commentId: z.string().optional(),
 });
 
-export const load: PageServerLoad = async ({ locals, params, url }) => {
+const bookmarkSchema = z.object({
+  action: z.literal('add').or(z.literal('remove')),
+  articleId: z.string(),
+});
+
+export const load: PageServerLoad = async ({ locals, params }) => {
   const user = locals.layouts.loggedInUser;
   const articleId = params.articleId!;
   const articleView = await locals.articlePage.getById(articleId, user || undefined);
-  const focusComment = url.searchParams.get('comment');
   const commentForm = await superValidate(zod(commentSchema));
+  const bookmarkForm = await superValidate(zod(bookmarkSchema), {
+    defaults: {
+      action: articleView.user?.isBookmarked ? 'remove' : 'add',
+      articleId,
+    },
+  });
   return {
     ...articleView,
     commentForm,
-    focusComment,
+    bookmarkForm,
   };
 };
 
@@ -49,6 +59,20 @@ export const actions = {
         content: commentForm.data.content,
       });
       redirect(303, `/a/${params.articleId}#comment-${commentId}`);
+    }
+  },
+  bookmark: async ({ locals, request }) => {
+    const bookmarkForm = await superValidate(request, zod(bookmarkSchema));
+    if (!bookmarkForm.valid) {
+      return fail(400, { bookmarkForm });
+    }
+    const user = locals.layouts.requireLoggedInUser();
+    const { action, articleId } = bookmarkForm.data;
+    if (action === 'add') {
+      await locals.articlePage.addBookmark(articleId, user.id);
+    }
+    if (action === 'remove') {
+      await locals.articlePage.removeBookmark(articleId, user.id);
     }
   },
 } satisfies Actions;

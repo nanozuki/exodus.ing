@@ -1,10 +1,10 @@
 export interface Pagination {
-  number: number; // 1-indexed
-  size: number;
+  pageNumber: number; // 1-indexed
+  pageSize: number;
 }
 
 export interface Paginated<T> {
-  number: number; // 1-indexed
-  total: number;
+  pageNumber: number; // 1-indexed
+  count: number;
   items: T[];
 }

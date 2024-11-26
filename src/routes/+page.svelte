@@ -1,8 +1,9 @@
 <script lang="ts">
-  import ArticleListItem from '$lib/component/ArticleListItem.svelte';
+  import ArticleList from '$lib/component/ArticleList.svelte';
 
   const { data } = $props();
-  const { items } = $derived(data);
+  let { items } = $derived(data);
+  const pageLink = (page: number) => `?page=${page}`;
 </script>
 
 <svelte:head>
@@ -18,10 +19,6 @@
   </p>
 {/if}
 
-<div class="flex flex-col gap-y-l">
-  <h5 class="font-semibold">文章列表</h5>
+<h5 class="font-semibold">文章列表</h5>
 
-  {#each items as article}
-    <ArticleListItem {article} />
-  {/each}
-</div>
+<ArticleList articles={data} {pageLink} />
