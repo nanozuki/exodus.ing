@@ -9,14 +9,11 @@ import type { Value } from 'vfile';
 export interface UserView {
   user: Omit<User, 'aboutMe'> & { aboutMe: Value };
   articles: Paginated<ArticleListItem>;
+  bookmarks: Paginated<ArticleListItem>;
   isMyself: boolean;
-  tab: PageTab;
 }
 
-export type PageTab = 'articles' | 'bookmarks';
-
 interface GetUserViewRequest {
-  tab: PageTab;
   pageNumber: number;
   username: string;
   loggedInUser: User | null;
@@ -28,28 +25,23 @@ export class UserPage {
     private readonly articleList: ArticleListService,
   ) {}
 
-  async getViewByUsernameOrId({ username, loggedInUser, tab, pageNumber }: GetUserViewRequest): Promise<UserView> {
+  async getViewByUsernameOrId({ username, loggedInUser, pageNumber }: GetUserViewRequest): Promise<UserView> {
     let user = await this.user.findUserByUsername(username);
     user = user ? user : await this.user.getUserById(username);
     const aboutMe = await compileMarkdown(user.aboutMe);
-    let articles: Paginated<ArticleListItem>;
-    if (tab === 'articles') {
-      articles = await this.articleList.listByUserId(user.id, pageNumber);
-    } else {
-      articles = await this.getBookmarkedArticles(user.id, pageNumber);
-    }
+    const articles = await this.articleList.listByUserId(user.id, pageNumber);
+    const bookmarks: Paginated<ArticleListItem> =
+      loggedInUser && loggedInUser.id === user.id
+        ? await this.articleList.listUserBookmarked(user.id, pageNumber)
+        : { items: [], count: 0, pageNumber: 0 };
     return {
       user: {
         ...user,
         aboutMe,
       },
       articles,
+      bookmarks,
       isMyself: loggedInUser ? user.id === loggedInUser.id : false,
-      tab,
     };
-  }
-
-  async getBookmarkedArticles(userId: string, page: number): Promise<Paginated<ArticleListItem>> {
-    return await this.articleList.listUserBookmarked(userId, page);
   }
 }

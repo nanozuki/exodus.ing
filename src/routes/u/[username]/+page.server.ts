@@ -1,5 +1,6 @@
-import type { PageTab } from '$lib/server/interfaces/pages/user_page';
 import type { PageServerLoad } from './$types';
+
+type PageTab = 'articles' | 'bookmarks';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   const username = params.username;
@@ -9,8 +10,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
   const view = await locals.userPage.getViewByUsernameOrId({
     username,
     loggedInUser,
-    tab,
     pageNumber: page,
   });
-  return view;
+  return { ...view, tab };
 };

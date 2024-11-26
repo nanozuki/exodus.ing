@@ -5,7 +5,7 @@
   import ArticleList from '$lib/component/ArticleList.svelte';
 
   const { data } = $props();
-  let { user, articles, isMyself, tab } = $derived(data);
+  let { user, articles, bookmarks, isMyself, tab } = $derived(data);
   const badgeClass = 'w-fit flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
   const pageLink = (page: number) => `?page=${page}#articles`;
 </script>
@@ -39,7 +39,7 @@
   <div class="flex flex-row border-b border-accent">
     {#if tab === 'articles'}
       <h5 class="font-semibold px-s border-b-2 border-accent hover:bg-accent/20">文章列表</h5>
-      {#if articles.items.length > 0}
+      {#if bookmarks.items.length > 0}
         <a href="?tab=bookmarks" class="text-lg font-semibold px-s hover:bg-accent/20">收藏列表</a>
       {/if}
     {:else}
@@ -48,9 +48,9 @@
     {/if}
   </div>
 
-  {#if tab === 'bookmarks'}
+  {#if tab === 'articles'}
     <ArticleList {articles} {pageLink} />
-  {:else}
-    <ArticleList {articles} {pageLink} />
+  {:else if tab === 'bookmarks' && bookmarks.items.length > 0}
+    <ArticleList articles={bookmarks} {pageLink} />
   {/if}
 </div>
