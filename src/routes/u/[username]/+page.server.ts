@@ -1,17 +1,16 @@
+import type { PageTab } from '$lib/server/interfaces/pages/user_page';
 import type { PageServerLoad } from './$types';
 
-type PageTab = 'articles' | 'bookmarks';
-
 export const load: PageServerLoad = async ({ locals, params, url }) => {
-  const view = await locals.userPage.getViewByUsernameOrId(params.username, locals.layouts.loggedInUser);
+  const username = params.username;
   const tab: PageTab = url.searchParams.get('tab') === 'bookmarks' ? 'bookmarks' : 'articles';
+  const page: number = url.searchParams.get('page') ? parseInt(url.searchParams.get('page')!) : 1;
   const loggedInUser = locals.layouts.loggedInUser;
-  const bookmarkedArticles = loggedInUser
-    ? await locals.userPage.getBookmarkedArticles(loggedInUser.id, 1)
-    : { number: 1, total: 1, items: [] };
-  return {
-    ...view,
+  const view = await locals.userPage.getViewByUsernameOrId({
+    username,
+    loggedInUser,
     tab,
-    bookmarkedArticles,
-  };
+    pageNumber: page,
+  });
+  return view;
 };

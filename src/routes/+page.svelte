@@ -1,10 +1,8 @@
 <script lang="ts">
-  import ArticleListItem from '$lib/component/ArticleListItem.svelte';
-  import ArticlePager from '$lib/component/ArticlePager.svelte';
-  import { ARTICLE_PAGE_SIZE } from '$lib/domain/entities/article.js';
+  import ArticleList from '$lib/component/ArticleList.svelte';
 
   const { data } = $props();
-  let { pageNumber, count, items } = $derived(data);
+  let { items } = $derived(data);
   const pageLink = (page: number) => `?page=${page}`;
 </script>
 
@@ -21,12 +19,6 @@
   </p>
 {/if}
 
-<div class="flex flex-col gap-y-l">
-  <h5 class="font-semibold">文章列表</h5>
+<h5 class="font-semibold">文章列表</h5>
 
-  <ArticlePager count={1000} perPage={ARTICLE_PAGE_SIZE} page={pageNumber} {pageLink} />
-
-  {#each items as article}
-    <ArticleListItem {article} />
-  {/each}
-</div>
+<ArticleList articles={data} {pageLink} />
