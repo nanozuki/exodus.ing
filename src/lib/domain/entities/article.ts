@@ -75,4 +75,4 @@ export interface ArticleRepository {
   update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
 }
 
-export const ARTICLE_PAGE_SIZE = 3;
+export const ARTICLE_PAGE_SIZE = 10;
