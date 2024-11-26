@@ -14,11 +14,20 @@
 
   let { articles, pageLink, class: outerClass }: Props = $props();
   let { pageNumber, count, items } = $derived(articles);
+  let hashedLink = $derived((page: number) => {
+    return pageLink(page) + '#article-list';
+  });
 </script>
 
-<div class={twMerge('flex flex-col', outerClass)}>
+<div id="article-list" class={twMerge('flex flex-col', outerClass)}>
   {#if count > ARTICLE_PAGE_SIZE}
-    <ArticlePager class="sticky top-0 py-xs bg-base" {count} perPage={ARTICLE_PAGE_SIZE} page={pageNumber} {pageLink} />
+    <ArticlePager
+      class="sticky top-0 py-xs bg-base"
+      {count}
+      perPage={ARTICLE_PAGE_SIZE}
+      page={pageNumber}
+      pageLink={hashedLink}
+    />
   {:else}
     <div class="pt-xs"></div>
   {/if}
