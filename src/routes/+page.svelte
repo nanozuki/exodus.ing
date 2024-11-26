@@ -24,7 +24,7 @@
 <div class="flex flex-col gap-y-l">
   <h5 class="font-semibold">文章列表</h5>
 
-  <ArticlePager count={100} perPage={ARTICLE_PAGE_SIZE} page={pageNumber} {pageLink} />
+  <ArticlePager count={1000} perPage={ARTICLE_PAGE_SIZE} page={pageNumber} {pageLink} />
 
   {#each items as article}
     <ArticleListItem {article} />

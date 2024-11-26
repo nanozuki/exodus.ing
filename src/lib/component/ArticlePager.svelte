@@ -28,31 +28,31 @@
   });
 </script>
 
-<nav class="flex flex-col items-center gap-4" aria-label="pagination" use:melt={$root}>
-  <div class="flex items-center gap-2">
-    <button
-      class="grid h-8 items-center rounded-md bg-white px-3 text-sm text-magnum-900 shadow-sm
-      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
-      data-[selected]:text-white"
-      use:melt={$prevButton}><MdiChevronLeft class="size-4" /></button
-    >
-    {#each $pages as page (page.key)}
-      {#if page.type === 'ellipsis'}
-        <span>...</span>
-      {:else}
-        <button
-          class="grid h-8 items-center rounded-md bg-white px-3 text-sm text-magnum-900 shadow-sm
-          hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
-        data-[selected]:text-white"
-          use:melt={$pageTrigger(page)}>{page.value}</button
-        >
-      {/if}
-    {/each}
-    <button
-      class="grid h-8 items-center rounded-md bg-white px-3 text-sm text-magnum-900 shadow-sm
-      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
-    data-[selected]:text-white"
-      use:melt={$nextButton}><MdiChevronRight class="size-4" /></button
-    >
-  </div>
+<nav class="flex flex-row items-center gap-xs" aria-label="pagination" use:melt={$root}>
+  <button
+    class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
+    disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
+    data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+    use:melt={$prevButton}><MdiChevronLeft class="size-6" /></button
+  >
+  {#each $pages as page (page.key)}
+    {#if page.type === 'ellipsis'}
+      <div class="grid h-8 items-center justify-center text-text">
+        <span>/</span>
+      </div>
+    {:else}
+      <button
+        class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
+        disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
+        data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+        use:melt={$pageTrigger(page)}>{page.value}</button
+      >
+    {/if}
+  {/each}
+  <button
+    class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
+    disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
+    data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+    use:melt={$nextButton}><MdiChevronRight class="size-6" /></button
+  >
 </nav>
