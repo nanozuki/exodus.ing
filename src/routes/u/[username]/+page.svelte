@@ -7,7 +7,7 @@
   const { data } = $props();
   let { user, articles, isMyself, tab } = $derived(data);
   const badgeClass = 'w-fit flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
-  const pageLink = (page: number) => `?page=${page}`;
+  const pageLink = (page: number) => `?page=${page}#articles`;
 </script>
 
 <svelte:head>
@@ -35,7 +35,7 @@
   {/if}
 </article>
 
-<div class="flex flex-col gap-y-xs">
+<div id="articles" class="flex flex-col gap-y-xs">
   <div class="flex flex-row border-b border-accent">
     {#if tab === 'articles'}
       <h5 class="font-semibold px-s border-b-2 border-accent hover:bg-accent/20">文章列表</h5>
