@@ -1,16 +1,15 @@
 <script lang="ts">
   import './app.css';
 
-  import { navigating } from '$app/stores';
+  import { navigating, page } from '$app/state';
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
-  import { page } from '$app/stores';
 
   let { children, data } = $props();
   let { user } = $derived(data);
   let current = $derived.by(() => {
-    let url = $page.url;
+    let url = page.url;
     return encodeURIComponent(url.toString().replace(`${url.protocol}//${url.host}`, ''));
   });
 </script>
@@ -28,7 +27,7 @@
 <div class="max-w-article mx-page-horizontal flex flex-col gap-y-l sm:mx-auto min-h-svh">
   <header class="flex flex-row items-center justify-between py-xs">
     <a href="/" class="flex flex-row items-center gap-x-xs">
-      {#if $navigating}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
+      {#if navigating.to}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
       <p class="text-2xl font-serif font-bold">EXODUS</p>
     </a>
     {#if user}

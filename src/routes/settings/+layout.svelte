@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
 
   const { children } = $props();
   const pages = [
@@ -15,7 +15,7 @@
   {#each pages as { path, title }}
     <a
       href={path}
-      class={`hover:text-accent ${path === $page.url.pathname && 'text-accent border-b-2 border-accent'}`}
+      class={`hover:text-accent ${path === page.url.pathname && 'text-accent border-b-2 border-accent'}`}
     >
       <h5 class="font-serif font-bold">{title}</h5>
     </a>
