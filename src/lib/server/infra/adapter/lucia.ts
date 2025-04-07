@@ -1,5 +1,6 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
+import { EXODUSING_HOST } from '$env/static/public';
 import { type AuthPort, type State, type StateInput } from '$lib/domain/ports';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
@@ -53,7 +54,7 @@ export class LuciaAuthService implements AuthPort {
 
   constructor(event: RequestEvent, db: AppD1Database) {
     this.lucia = getLucia(db);
-    this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET);
+    this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, `${EXODUSING_HOST}/auth/github/callback`);
     this.cookies = event.cookies;
   }
 
@@ -128,15 +129,17 @@ export class LuciaAuthService implements AuthPort {
   }
 
   async createGithubAuthUrl(state: string): Promise<URL> {
-    return await this.github.createAuthorizationURL(state);
+    const authUrl = this.github.createAuthorizationURL(state, []);
+    return authUrl;
   }
 
   async validateGithubCode(code: string): Promise<GitHubUser> {
     try {
       const tokens = await this.github.validateAuthorizationCode(code);
+      console.log('tokens', tokens);
       const githubUserResponse = await fetch('https://api.github.com/user', {
         headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
+          Authorization: `Bearer ${tokens.accessToken()}`,
           Accept: 'application/json',
           'User-Agent': 'exodus.ing',
         },

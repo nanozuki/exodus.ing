@@ -45,30 +45,30 @@
 
 <style lang="postcss">
   :global(html) {
-    color: theme('colors.text');
-    background-color: theme('colors.base');
-    font-family: theme('fontFamily.sans');
-    font-size: theme('fontSize.base');
-    line-height: theme('lineHeight.normal');
+    color: var(--color-text);
+    background-color: var(--color-base);
+    font-family: var(--font-sans-serif);
+    font-size: var(--text-base);
+    line-height: var(--linehight-normal);
     overflow-y: scroll;
-    scrollbar-color: theme('colors.border') theme('colors.surface');
+    scrollbar-color: var(--color-border) var(--color-surface);
   }
   :global(*:focus-visible) {
-    outline: theme(size[0.5]) solid theme('colors.focus-visible');
+    outline: 0.125rem solid var(--color-focus-visible);
   }
   :global(h1) {
-    font-size: theme('fontSize.4xl');
+    font-size: var(--font-size-4xl);
   }
   :global(h2) {
-    font-size: theme('fontSize.3xl');
+    font-size: var(--font-size-3xl);
   }
   :global(h3) {
-    font-size: theme('fontSize.2xl');
+    font-size: var(--font-size-2xl);
   }
   :global(h4) {
-    font-size: theme('fontSize.xl');
+    font-size: var(--font-size-xl);
   }
   :global(h5) {
-    font-size: theme('fontSize.lg');
+    font-size: var(--font-size-l);
   }
 </style>
