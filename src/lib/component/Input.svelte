@@ -17,7 +17,7 @@
   {#if description}<small class="text-subtle">{description}</small>{/if}
   {#if error}<small class="text-error">{error}</small>{/if}
   <input
-    class="p-1 bg-surface border-2 border-accent-alt focus-visible:border-accent focus-visible:outline-none leading-6"
+    class="p-1 bg-surface border-2 border-accent-alt focus-visible:border-accent focus-visible:outline-hidden leading-6"
     name={field}
     bind:value
     {...rest}

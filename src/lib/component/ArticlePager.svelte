@@ -34,7 +34,7 @@
   <button
     class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
     disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
-    data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+    data-selected:border-accent data-selected:bg-accent/20 data-selected:text-accent"
     use:melt={$prevButton}
   >
     <MdiChevronLeft class="size-6" />
@@ -48,7 +48,7 @@
       <button
         class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
         disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
-        data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+        data-selected:border-accent data-selected:bg-accent/20 data-selected:text-accent"
         use:melt={$pageTrigger(page)}
       >
         {page.value}
@@ -58,7 +58,7 @@
   <button
     class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
     disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
-    data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+    data-selected:border-accent data-selected:bg-accent/20 data-selected:text-accent"
     use:melt={$nextButton}
   >
     <MdiChevronRight class="size-6" />
