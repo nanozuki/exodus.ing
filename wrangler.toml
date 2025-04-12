@@ -68,8 +68,8 @@ database_id = "fafc0684-b91c-4195-8e70-e317f0ed2441"
 
 ######## PREVIEW environment config ########
 
-# [env.preview.vars]
-# API_KEY = "xyz789"
+[env.preview.vars]
+EXODUSING_HOST = "https://preview.exodus.ing"
 
 # [[env.preview.kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
@@ -77,8 +77,8 @@ database_id = "fafc0684-b91c-4195-8e70-e317f0ed2441"
 
 ######## PRODUCTION environment config ########
 
-# [env.production.vars]
-# API_KEY = "abc123"
+[env.production.vars]
+EXODUSING_HOST = "https://exodus.ing"
 
 # [[env.production.kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
