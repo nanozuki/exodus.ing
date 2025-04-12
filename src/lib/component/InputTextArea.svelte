@@ -27,7 +27,7 @@
   {#if error}<small class="text-error">{error}</small>{/if}
   {#if errors}<small class="text-error">{errors}</small>{/if}
   <textarea
-    class="p-1 border-2 border-accent-alt h-[5em] focus-visible:border-accent focus-visible:outline-none"
+    class="p-1 bg-surface border-2 border-accent-alt h-[5em] focus-visible:border-accent focus-visible:outline-none"
     name={field}
     bind:value
     {...rest}
