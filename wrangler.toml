@@ -70,6 +70,7 @@ database_id = "fafc0684-b91c-4195-8e70-e317f0ed2441"
 
 [env.preview.vars]
 EXODUSING_HOST = "https://preview.exodus.ing"
+NODE_VERSION = "22.14.0"
 
 # [[env.preview.kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
