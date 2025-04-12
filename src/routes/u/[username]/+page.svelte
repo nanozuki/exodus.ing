@@ -16,7 +16,7 @@
 </svelte:head>
 
 {#if isMyself}
-  <div class="flex gap-x-s w-fit border-accent-alt/60 text-accent-alt leading-relaxed">
+  <div class="gap-x-s border-accent-alt/60 text-accent-alt flex w-fit leading-relaxed">
     <a class={badgeClass} href="/settings">
       <SettingIcon /><span>设置</span>
     </a>
@@ -27,7 +27,7 @@
 {/if}
 
 <article>
-  <h1 class="text-4xl font-serif font-bold">
+  <h1 class="font-serif text-4xl font-bold">
     {user.name}
   </h1>
   {#if user.aboutMe}
@@ -35,16 +35,16 @@
   {/if}
 </article>
 
-<div class="flex flex-col gap-y-xs">
-  <div class="flex flex-row border-b border-accent">
+<div class="gap-y-xs flex flex-col">
+  <div class="border-accent flex flex-row border-b">
     {#if tab === 'articles'}
-      <h5 class="font-semibold px-s border-b-2 border-accent hover:bg-accent/20">文章列表</h5>
+      <h5 class="px-s border-accent hover:bg-accent/20 border-b-2 font-semibold">文章列表</h5>
       {#if bookmarks.items.length > 0}
-        <a href="?tab=bookmarks" class="text-lg font-semibold px-s hover:bg-accent/20">收藏列表</a>
+        <a href="?tab=bookmarks" class="px-s hover:bg-accent/20 text-lg font-semibold">收藏列表</a>
       {/if}
     {:else}
-      <a href="?tab=" class="text-lg font-semibold px-s hover:bg-accent/20">文章列表</a>
-      <h5 class="font-semibold px-s border-b-2 border-accent hover:bg-accent/20">收藏列表</h5>
+      <a href="?tab=" class="px-s hover:bg-accent/20 text-lg font-semibold">文章列表</a>
+      <h5 class="px-s border-accent hover:bg-accent/20 border-b-2 font-semibold">收藏列表</h5>
     {/if}
   </div>
 

@@ -9,7 +9,7 @@
     {article.authorName}
   </a>
   的
-  <a class="font-serif font-bold inline" href={`/a/${article.id}`}>
+  <a class="inline font-serif font-bold" href={`/a/${article.id}`}>
     {article.title}
   </a>
 </div>

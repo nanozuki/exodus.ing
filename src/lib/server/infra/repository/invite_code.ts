@@ -8,10 +8,7 @@ export class D1InviteCodeRepository implements InviteCodeRepository {
 
   async findByCode(code: string): Promise<InviteCode | null> {
     return await wrap('inviteCode.findByCode', async () => {
-      const inviteCodes = await this.db
-        .select()
-        .from(tInviteCode)
-        .where(eq(tInviteCode.code, code));
+      const inviteCodes = await this.db.select().from(tInviteCode).where(eq(tInviteCode.code, code));
       return inviteCodes.length !== 0 ? inviteCodes[0] : null;
     });
   }

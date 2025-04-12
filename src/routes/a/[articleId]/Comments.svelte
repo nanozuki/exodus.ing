@@ -51,10 +51,10 @@
   };
 </script>
 
-<div id="comment-section" class="border-t-4 border-accent flex flex-col gap-y-m">
-  <h2 class="font-serif font-bold pt-1">评论</h2>
+<div id="comment-section" class="border-accent gap-y-m flex flex-col border-t-4">
+  <h2 class="pt-1 font-serif font-bold">评论</h2>
   {#if user}
-    <form method="POST" action="?/comment" class="flex flex-col gap-y-xs" use:enhance>
+    <form method="POST" action="?/comment" class="gap-y-xs flex flex-col" use:enhance>
       {#if replied}
         <div class="bg-overlay p-1">
           <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
@@ -81,17 +81,17 @@
     </div>
   {/if}
   {#if comments.length > 0}
-    <h6 class="font-bold pt-1">
+    <h6 class="pt-1 font-bold">
       评论 {comments.length}
     </h6>
   {/if}
-  <div class="flex flex-col gap-y-m">
+  <div class="gap-y-m flex flex-col">
     {#each comments as comment (comment.id)}
-      <div class="border-t border-border"></div>
+      <div class="border-border border-t"></div>
       <div id={`comment-${comment.id}`}>
-        <div class="flex flex-row items-center gap-x-xs">
+        <div class="gap-x-xs flex flex-row items-center">
           <UserBadge name={comment.author.name} username={comment.author.username} />
-          <div class="flex flex-row items-center gap-x-2xs">
+          <div class="gap-x-2xs flex flex-row items-center">
             <MdiCalendar />{format(comment.createdAt, 'yyyy-MM-dd HH:mm')}
           </div>
           <div class="flex-1"></div>
@@ -105,7 +105,7 @@
           </div>
         {/if}
         {#each comment.content.split('\n') as line}
-          <p class="pt-1 py-2">{line}</p>
+          <p class="py-2 pt-1">{line}</p>
         {/each}
         {#if user}
           <div class="flex flex-row gap-x-2">
@@ -117,6 +117,6 @@
         {/if}
       </div>
     {/each}
-    <div class="border-t border-border"></div>
+    <div class="border-border border-t"></div>
   </div>
 </div>

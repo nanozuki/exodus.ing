@@ -22,7 +22,7 @@
 </script>
 
 {#if actions.reply || actions.comment || actions.bookmark || (actions.edit && user && user.id === article.authorId)}
-  <div class="w-fit flex gap-x-2 text-accent-alt leading-relaxed">
+  <div class="text-accent-alt flex w-fit gap-x-2 leading-relaxed">
     {#if actions.reply}
       <Action element="a" href="#reply-section">
         <MdiReplyOutline />

@@ -10,7 +10,11 @@ declare global {
       context?: string;
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface Locals extends ReturnType<typeof buildPages> {}
+    interface Locals extends ReturnType<typeof buildPages> {
+      // Import example:
+      // user: import('$lib/server/auth').SessionValidationResult['user'];
+      // session: import('$lib/server/auth').SessionValidationResult['session'];
+    }
     // interface PageData {}
     // interface PageState {}
     interface Platform {

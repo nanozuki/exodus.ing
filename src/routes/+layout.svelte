@@ -1,5 +1,5 @@
 <script lang="ts">
-  import './app.css';
+  import '../app.css';
 
   import { navigating, page } from '$app/state';
   import Logo from '$lib/component/Logo.svelte';
@@ -24,11 +24,11 @@
   />
 </svelte:head>
 
-<div class="max-w-article mx-page-horizontal flex flex-col gap-y-l sm:mx-auto min-h-svh">
-  <header class="flex flex-row items-center justify-between py-xs">
-    <a href="/" class="flex flex-row items-center gap-x-xs">
+<div class="max-w-article mx-page-horizontal gap-y-l flex min-h-svh flex-col sm:mx-auto">
+  <header class="py-xs flex flex-row items-center justify-between">
+    <a href="/" class="gap-x-xs flex flex-row items-center">
       {#if navigating.to}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
-      <p class="text-2xl font-serif font-bold">EXODUS</p>
+      <p class="font-serif text-2xl font-bold">EXODUS</p>
     </a>
     {#if user}
       <UserBadge name={user.name} username={user.username} />
@@ -37,7 +37,7 @@
     {/if}
   </header>
 
-  <main class="flex flex-col gap-y-l pb-l flex-1">
+  <main class="gap-y-l pb-l flex flex-1 flex-col">
     {@render children()}
   </main>
 </div>

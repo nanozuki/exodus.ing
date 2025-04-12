@@ -28,8 +28,8 @@
 
 {#if open}
   <div use:melt={$portalled}>
-    <div use:melt={$overlay} class="fixed top-0 left-0 w-full h-full z-40 bg-muted/20"></div>
-    <div use:melt={$content} class="dialog bg-surface z-50 px-l py-m flex flex-col gap-y-m">
+    <div use:melt={$overlay} class="bg-muted/20 fixed top-0 left-0 z-40 h-full w-full"></div>
+    <div use:melt={$content} class="dialog bg-surface px-l py-m gap-y-m z-50 flex flex-col">
       {@render props.content()}
     </div>
   </div>

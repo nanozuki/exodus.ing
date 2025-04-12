@@ -20,8 +20,8 @@
   <meta property="og:title" content="账户设置" />
 </svelte:head>
 
-<div id="account-setting" class="items-center gap-x-m">
-  <p class="font-bold font-serif">用户名:</p>
+<div id="account-setting" class="gap-x-m items-center">
+  <p class="font-serif font-bold">用户名:</p>
   <p>{user.username}</p>
   <Dialog bind:open>
     {#snippet trigger()}
@@ -32,9 +32,9 @@
         <h2 class="font-serif font-bold">修改用户名</h2>
         <p class="text-warn">用户名更改后，个人主页地址也变更，请谨慎修改。</p>
       </div>
-      <form class="flex flex-col gap-y-m" method="POST" use:enhance>
+      <form class="gap-y-m flex flex-col" method="POST" use:enhance>
         <Input type="text" field="username" label="用户名" value={user.username} required />
-        <div class="flex flex-row gap-x-m">
+        <div class="gap-x-m flex flex-row">
           <div class="flex-1">
             <Button type="button" onclick={closeDialog}>取消</Button>
           </div>
@@ -43,7 +43,7 @@
       </form>
     {/snippet}
   </Dialog>
-  <p class="font-bold font-serif">GitHub ID:</p>
+  <p class="font-serif font-bold">GitHub ID:</p>
   <p>{user.githubId}</p>
 </div>
 

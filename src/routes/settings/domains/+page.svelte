@@ -51,27 +51,27 @@
 
 <p>添加个人域名并通过 DNS 验证后，可以将域名中的文章添加到本站。</p>
 
-<form class="flex flex-col gap-y-xs" method="POST">
+<form class="gap-y-xs flex flex-col" method="POST">
   <Input label="添加新域名" field="domain" type="text" placeholder="example.com" required />
   <Button type="submit">添加</Button>
 </form>
 {#each domains as domain, index (domain.domain)}
-  <div class="border-t last:border-b border-border flex flex-col gap-y-s py-m">
+  <div class="border-border gap-y-s py-m flex flex-col border-t last:border-b">
     <div>
       {#if domain.verifiedAt}
-        <span class="px-2xs break-all bg-link text-base">已验证</span>
+        <span class="px-2xs bg-link text-base break-all">已验证</span>
       {:else}
-        <span class="px-2xs break-all bg-error text-base">未验证</span>
+        <span class="px-2xs bg-error text-base break-all">未验证</span>
       {/if}
       <span>{domain.domain}</span>
       {#if !domain.verifiedAt}
         <div class="text-accent">
           <p class="text-sm">请添加以下 TXT DNS 记录以验证域名：</p>
-          <p class="text-sm font-mono break-all">{domain.verifyTxtRecord}</p>
+          <p class="font-mono text-sm break-all">{domain.verifyTxtRecord}</p>
         </div>
       {/if}
     </div>
-    <div class="flex gap-x-m">
+    <div class="gap-x-m flex">
       {#if !domain.verifiedAt}
         <Button variant="primary" disabled={processing} onclick={() => verifyDomain(index)}>验证</Button>
       {/if}
@@ -84,7 +84,7 @@
             <h3>删除域名</h3>
             <p class="text-error">确认删除 {domains[deleteIndex!].domain} 吗？相关文章不会被删除。</p>
           </div>
-          <div class="grid grid-rows-1 grid-cols-2 gap-x-m">
+          <div class="gap-x-m grid grid-cols-2 grid-rows-1">
             <Button
               onclick={() => {
                 open = false;

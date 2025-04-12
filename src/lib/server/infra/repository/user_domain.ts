@@ -46,11 +46,7 @@ export class D1UserDomainRepository implements UserDomainRepository {
     });
   }
 
-  async update(
-    userId: string,
-    domain: string,
-    patch: Partial<UserDomainPatch>,
-  ): Promise<UserDomain> {
+  async update(userId: string, domain: string, patch: Partial<UserDomainPatch>): Promise<UserDomain> {
     return await wrap('userDomain.update', async () => {
       const domains = await this.db
         .update(tUserDomain)
@@ -66,9 +62,7 @@ export class D1UserDomainRepository implements UserDomainRepository {
 
   async delete(userId: string, domain: string): Promise<void> {
     await wrap('userDomain.delete', () =>
-      this.db
-        .delete(tUserDomain)
-        .where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain))),
+      this.db.delete(tUserDomain).where(and(eq(tUserDomain.userId, userId), eq(tUserDomain.domain, domain))),
     );
   }
 }

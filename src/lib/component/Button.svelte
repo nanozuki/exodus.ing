@@ -19,7 +19,7 @@
 
 <button
   {...rest}
-  class={twMerge(colorClass[variant], 'w-full font-semibold px-4 py-1 border-2', classProp)}
+  class={twMerge(colorClass[variant], 'w-full border-2 px-4 py-1 font-semibold', classProp)}
   disabled={variant === 'disabled'}
 >
   {@render children()}

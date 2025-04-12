@@ -47,15 +47,15 @@
   <title>编辑 {title} - EXODUS</title>
 </svelte:head>
 
-<div class="flex-1 h-full flex flex-col gap-y-m">
+<div class="gap-y-m flex h-full flex-1 flex-col">
   {#if replyTo}
-    <div class="flex flex-row gap-x-m bg-accent/10 p-2">
+    <div class="gap-x-m bg-accent/10 flex flex-row p-2">
       <p class="font-bold">回应</p>
       <ArticleCard article={replyTo} />
     </div>
   {/if}
 
-  <div class="switch flex border border-border">
+  <div class="switch border-border flex border">
     <button
       class={mode === 'editor' ? buttonClass.activated : buttonClass.deactivated}
       onclick={() => {
@@ -71,10 +71,10 @@
   </div>
 
   {#if mode === 'editor'}
-    <textarea class="editor border border-border overflow-y-scroll p-1 w-full resize-none" bind:value={article}
+    <textarea class="editor border-border w-full resize-none overflow-y-scroll border p-1" bind:value={article}
     ></textarea>
   {:else}
-    <div class="editor border border-border overflow-y-scroll p-1">
+    <div class="editor border-border overflow-y-scroll border p-1">
       <Markdown content={content.toString()} />
     </div>
   {/if}
