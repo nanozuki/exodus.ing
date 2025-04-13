@@ -1,6 +1,5 @@
 import { dev } from '$app/environment';
-import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET } from '$env/static/private';
-import { EXODUSING_HOST } from '$env/static/public';
+import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } from '$env/static/private';
 import { type AuthPort, type State, type StateInput } from '$lib/domain/ports';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
