@@ -1,95 +1,5 @@
 @import 'tailwindcss';
 
-@theme {
-  --color-*: initial;
-  --color-palette-love: rgb(var(--palette-love));
-  --color-palette-gold: rgb(var(--palette-gold));
-  --color-palette-rose: rgb(var(--palette-rose));
-  --color-palette-pine: rgb(var(--palette-pine));
-  --color-palette-foam: rgb(var(--palette-foam));
-  --color-palette-iris: rgb(var(--palette-iris));
-
-  --color-base: rgb(var(--palette-base));
-  --color-surface: rgb(var(--palette-surface));
-  --color-overlay: rgb(var(--palette-overlay));
-  --color-muted: rgb(var(--palette-muted));
-  --color-subtle: rgb(var(--palette-subtle));
-  --color-text: rgb(var(--palette-text));
-
-  --color-highlight-low: rgb(var(--palette-highlight-low));
-  --color-highlight-med: rgb(var(--palette-highlight-med));
-  --color-highlight-high: rgb(var(--palette-highlight-high));
-
-  --color-quote-odd: rgb(var(--palette-overlay));
-  --color-quote-even: rgb(var(--palette-surface));
-
-  --color-border: rgb(var(--palette-highlight-high));
-  --color-error: rgb(var(--palette-love));
-  --color-warn: rgb(var(--palette-gold));
-  --color-accent: rgb(var(--palette-rose));
-  --color-accent-alt: rgb(var(--palette-iris));
-  --color-link: rgb(var(--palette-foam));
-  --color-link-visited: rgb(var(--palette-pine));
-  --color-focus-visible: rgb(var(--palette-iris));
-  --color-primary: rgb(var(--palette-foam));
-  --color-danger: rgb(var(--palette-love));
-  --color-disabled: rgb(var(--palette-muted));
-
-  --font-*: initial;
-  --font-sans: IBM Plex Sans, Noto Sans SC, sans-serif;
-  --font-serif: IBM Plex Serif, Noto Serif SC, serif;
-  --font-mono: IBM Plex Mono, Noto Mono, monospace;
-
-  --text-*: initial;
-  --text-sm: var(--font-size-s);
-  --text-base: var(--font-size-m);
-  --text-lg: var(--font-size-l);
-  --text-xl: var(--font-size-xl);
-  --text-2xl: var(--font-size-2xl);
-  --text-3xl: var(--font-size-3xl);
-  --text-4xl: var(--font-size-4xl);
-
-  --breakpoint-*: initial;
-  --breakpoint-sm: 43rem;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-
-  --container-article: 40rem;
-
-  --spacing-page-vertical: 1rem;
-  --spacing-page-horizontal: 1.5rem;
-  --spacing-2xs: 0.25rem;
-  --spacing-xs: 0.5rem;
-  --spacing-s: 0.75rem;
-  --spacing-m: 1rem;
-  --spacing-l: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-  --spacing-3xl: 4rem;
-  --spacing-4xl: 6rem;
-  --spacing-5xl: 8rem;
-}
-
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
-}
-
 @layer base {
   :root {
     /* Rosé Pine, Dawn light theme: r g b */
@@ -130,45 +40,73 @@
       --palette-highlight-high: 82 79 103; /* #524f67 */
     }
   }
+}
 
-  :root {
-    --color-border: rgb(var(--palette-highlight-high));
-    --color-quote-odd: rgb(var(--palette-overlay));
-    --color-quote-even: rgb(var(--palette-surface));
-    --color-link: rgb(var(--palette-foam));
-    --color-link-visited: rgb(var(--palette-pine));
-    --color-accent: rgb(var(--palette-rose));
-    --color-accent-alt: rgb(var(--palette-iris));
-    --color-code: rgb(var(--palette-surface));
+@theme {
+  --color-*: initial;
 
-    --space-2xs: 0.25rem; /* 4px */
-    --space-xs: 0.5rem; /* 8px */
-    --space-s: 0.75rem; /* 12px */
-    --space-m: 1rem; /* 16px */
-    --space-l: 1.5rem; /* 24px */
-    --space-xl: 2rem; /* 32px */
-    --space-2xl: 3rem; /* 48px */
-    --space-3xl: 4rem; /* 64px */
-    --space-4xl: 6rem; /* 96px */
-    --space-5xl: 8rem; /* 128px */
+  --color-base: rgb(var(--palette-base));
+  --color-surface: rgb(var(--palette-surface));
+  --color-overlay: rgb(var(--palette-overlay));
+  --color-muted: rgb(var(--palette-muted));
+  --color-subtle: rgb(var(--palette-subtle));
+  --color-text: rgb(var(--palette-text));
 
-    --font-sans-serif: 'IBM Plex Sans', 'Noto Sans SC', sans-serif;
-    --font-serif: 'IBM Plex Serif', 'Noto Serif SC', serif;
-    --font-monospace: 'IBM Plex Mono', 'Noto Mono', monospace;
+  --color-highlight-low: rgb(var(--palette-highlight-low));
+  --color-highlight-med: rgb(var(--palette-highlight-med));
+  --color-highlight-high: rgb(var(--palette-highlight-high));
 
-    --font-weight-normal: normal;
-    --font-weight-bold: bold;
+  --color-quote-odd: rgb(var(--palette-overlay));
+  --color-quote-even: rgb(var(--palette-surface));
 
-    --font-size-4xl: 2rem; /* 32px */
-    --font-size-3xl: 1.75rem; /* 28px */
-    --font-size-2xl: 1.5rem; /* 24px */
-    --font-size-xl: 1.25rem; /* 20px */
-    --font-size-l: 1.125rem; /* 18px */
-    --font-size-m: 1rem; /* 16px */
-    --font-size-s: 0.875rem; /* 14px */
+  --color-border: rgb(var(--palette-highlight-high));
+  --color-error: rgb(var(--palette-love));
+  --color-warn: rgb(var(--palette-gold));
+  --color-accent: rgb(var(--palette-rose));
+  --color-accent-alt: rgb(var(--palette-iris));
+  --color-code: rgb(var(--palette-surface));
+  --color-link: rgb(var(--palette-foam));
+  --color-link-visited: rgb(var(--palette-pine));
+  --color-focus-visible: rgb(var(--palette-iris));
+  --color-primary: rgb(var(--palette-foam));
+  --color-danger: rgb(var(--palette-love));
+  --color-disabled: rgb(var(--palette-muted));
 
-    --linehight-normal: 1.5;
-    --linehight-narrow: 1.2;
-    --linehight-single: 1;
-  }
+  --font-*: initial;
+  --font-sans: IBM Plex Sans, Noto Sans SC, sans-serif;
+  --font-serif: IBM Plex Serif, Noto Serif SC, serif;
+  --font-mono: IBM Plex Mono, Noto Mono, monospace;
+
+  --text-*: initial;
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.75rem; /* 28px */
+  --text-4xl: 2rem; /* 32px */
+
+  --leading-single: 1;
+
+  --breakpoint-*: initial;
+  --breakpoint-sm: 43rem;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  --container-article: 40rem;
+
+  --spacing-page-vertical: 1rem;
+  --spacing-page-horizontal: 1.5rem;
+  --spacing-2xs: 0.25rem; /* 4px */
+  --spacing-xs: 0.5rem; /* 8px */
+  --spacing-s: 0.75rem; /* 12px */
+  --spacing-m: 1rem; /* 16px */
+  --spacing-l: 1.5rem; /* 24px */
+  --spacing-xl: 2rem; /* 32px */
+  --spacing-2xl: 3rem; /* 48px */
+  --spacing-3xl: 4rem; /* 64px */
+  --spacing-4xl: 6rem; /* 96px */
+  --spacing-5xl: 8rem; /* 128px */
 }

@@ -46,9 +46,9 @@
   :global(html) {
     color: var(--color-text);
     background-color: var(--color-base);
-    font-family: var(--font-sans-serif);
+    font-family: var(--font-sans);
     font-size: var(--text-base);
-    line-height: var(--linehight-normal);
+    line-height: var(--leading-relaxed);
     overflow-y: scroll;
     scrollbar-color: var(--color-border) var(--color-surface);
   }
@@ -56,18 +56,18 @@
     outline: 0.125rem solid var(--color-focus-visible);
   }
   :global(h1) {
-    font-size: var(--font-size-4xl);
+    font-size: var(--text-4xl);
   }
   :global(h2) {
-    font-size: var(--font-size-3xl);
+    font-size: var(--text-3xl);
   }
   :global(h3) {
-    font-size: var(--font-size-2xl);
+    font-size: var(--text-2xl);
   }
   :global(h4) {
-    font-size: var(--font-size-xl);
+    font-size: var(--text-xl);
   }
   :global(h5) {
-    font-size: var(--font-size-l);
+    font-size: var(--text-lg);
   }
 </style>

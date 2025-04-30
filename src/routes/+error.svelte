@@ -9,6 +9,6 @@
 
 <style>
   small {
-    font-family: var(--monospace);
+    font-family: var(--font-mono);
   }
 </style>
