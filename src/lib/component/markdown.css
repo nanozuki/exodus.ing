@@ -4,49 +4,49 @@
 
   h1 {
     font-family: var(--font-serif);
-    font-size: var(--font-size-4xl);
+    font-size: var(--text-4xl);
     font-weight: var(--font-weight-bold);
     margin-top: var(--p-margin-top);
     margin-bottom: var(--p-margin-bottom);
   }
   h2 {
     font-family: var(--font-serif);
-    font-size: var(--font-size-3xl);
+    font-size: var(--text-3xl);
     font-weight: var(--font-weight-bold);
     margin-top: var(--p-margin-top);
     margin-bottom: var(--p-margin-bottom);
   }
   h3 {
     font-family: var(--font-serif);
-    font-size: var(--font-size-2xl);
+    font-size: var(--text-2xl);
     font-weight: var(--font-weight-bold);
     margin-top: var(--p-margin-top);
     margin-bottom: var(--p-margin-bottom);
   }
   h4 {
     font-family: var(--font-serif);
-    font-size: var(--font-size-xl);
+    font-size: var(--text-xl);
     font-weight: var(--font-weight-bold);
     margin-top: var(--p-margin-top);
     margin-bottom: var(--p-margin-bottom);
   }
   h5 {
     font-family: var(--font-serif);
-    font-size: var(--font-size-l);
+    font-size: var(--text-lg);
     font-weight: var(--font-weight-bold);
     margin-top: var(--p-margin-top);
     margin-bottom: var(--p-margin-bottom);
   }
   h6 {
-    font-family: var(--font-sans-serif);
-    font-size: var(--font-size-m);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
     font-weight: var(--font-weight-bold);
     margin-top: var(--p-margin-top);
     margin-bottom: var(--p-margin-bottom);
   }
   p {
-    font-family: var(--font-sans-serif);
-    font-size: var(--font-size-m);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
     margin-top: var(--p-margin-top);
     margin-bottom: var(--p-margin-bottom);
   }
@@ -91,15 +91,14 @@
     overflow-x: auto;
   }
   code {
-    font-family: var(--font-monospace);
-    line-height: 1.5;
+    font-family: var(--font-mono);
     background-color: var(--color-code);
     padding: 0 var(--space-2xs);
     border-radius: 0.25rem;
   }
   pre code {
     padding: 0;
-    line-height: 1;
+    line-height: var(--leading-tight);
   }
 
   /* table */

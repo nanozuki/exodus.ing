@@ -12,12 +12,12 @@
   let { field, label, description, error, value = $bindable(), ...rest }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-y-xs w-full">
+<div class="gap-y-xs flex w-full flex-col">
   <label class="font-semibold" for={field}>{label}</label>
   {#if description}<small class="text-subtle">{description}</small>{/if}
   {#if error}<small class="text-error">{error}</small>{/if}
   <input
-    class="p-1 bg-surface border-2 border-accent-alt focus-visible:border-accent focus-visible:outline-none leading-6"
+    class="bg-surface border-accent-alt focus-visible:border-accent border-2 p-1 leading-6 focus-visible:outline-hidden"
     name={field}
     bind:value
     {...rest}

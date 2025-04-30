@@ -9,8 +9,8 @@
   let authNext = $derived(encodeURIComponent(`/a/new/edit?replyTo=${article.id}`));
 </script>
 
-<div id="reply-section" class="border-t-4 border-accent flex flex-col gap-y-m">
-  <h2 class="font-serif font-bold pt-1">回应</h2>
+<div id="reply-section" class="border-accent gap-y-m flex flex-col border-t-4">
+  <h2 class="pt-1 font-serif font-bold">回应</h2>
   {#if user}
     <div class="bg-overlay p-m flex flex-row items-center justify-between">
       <p>撰文回应此文章</p>
@@ -23,17 +23,17 @@
     </div>
   {/if}
   {#if replies.length > 0}
-    <h6 class="font-bold pt-1">
+    <h6 class="pt-1 font-bold">
       回应文章 {replies.length}
     </h6>
   {/if}
-  <div class="flex flex-col gap-y-m">
+  <div class="gap-y-m flex flex-col">
     {#each replies as reply (reply.id)}
       <p class="bg-overlay py-xs px-s">
-        <a class="font-serif font-bold text-2xl hover:text-primary mr-2" href={`/a/${article.id}`}>
+        <a class="hover:text-primary mr-2 font-serif text-2xl font-bold" href={`/a/${article.id}`}>
           {reply.title}
         </a>
-        <a class="font-semibold text-accent hover:text-accent-alt" href={`/u/${article.authorUsername}`}>
+        <a class="text-accent hover:text-accent-alt font-semibold" href={`/u/${article.authorUsername}`}>
           {reply.authorName}
         </a>
       </p>

@@ -1,16 +1,15 @@
 <script lang="ts">
-  import './app.css';
+  import '../app.css';
 
-  import { navigating } from '$app/stores';
+  import { navigating, page } from '$app/state';
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
-  import { page } from '$app/stores';
 
   let { children, data } = $props();
   let { user } = $derived(data);
   let current = $derived.by(() => {
-    let url = $page.url;
+    let url = page.url;
     return encodeURIComponent(url.toString().replace(`${url.protocol}//${url.host}`, ''));
   });
 </script>
@@ -25,11 +24,11 @@
   />
 </svelte:head>
 
-<div class="max-w-article mx-page-horizontal flex flex-col gap-y-l sm:mx-auto min-h-svh">
-  <header class="flex flex-row items-center justify-between py-xs">
-    <a href="/" class="flex flex-row items-center gap-x-xs">
-      {#if $navigating}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
-      <p class="text-2xl font-serif font-bold">EXODUS</p>
+<div class="max-w-article mx-page-horizontal gap-y-l flex min-h-svh flex-col sm:mx-auto">
+  <header class="py-xs flex flex-row items-center justify-between">
+    <a href="/" class="gap-x-xs flex flex-row items-center">
+      {#if navigating.to}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
+      <p class="font-serif text-2xl font-bold">EXODUS</p>
     </a>
     {#if user}
       <UserBadge name={user.name} username={user.username} />
@@ -38,37 +37,37 @@
     {/if}
   </header>
 
-  <main class="flex flex-col gap-y-l pb-l flex-1">
+  <main class="gap-y-l pb-l flex flex-1 flex-col">
     {@render children()}
   </main>
 </div>
 
 <style lang="postcss">
   :global(html) {
-    color: theme('colors.text');
-    background-color: theme('colors.base');
-    font-family: theme('fontFamily.sans');
-    font-size: theme('fontSize.base');
-    line-height: theme('lineHeight.normal');
+    color: var(--color-text);
+    background-color: var(--color-base);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
     overflow-y: scroll;
-    scrollbar-color: theme('colors.border') theme('colors.surface');
+    scrollbar-color: var(--color-border) var(--color-surface);
   }
   :global(*:focus-visible) {
-    outline: theme(size[0.5]) solid theme('colors.focus-visible');
+    outline: 0.125rem solid var(--color-focus-visible);
   }
   :global(h1) {
-    font-size: theme('fontSize.4xl');
+    font-size: var(--text-4xl);
   }
   :global(h2) {
-    font-size: theme('fontSize.3xl');
+    font-size: var(--text-3xl);
   }
   :global(h3) {
-    font-size: theme('fontSize.2xl');
+    font-size: var(--text-2xl);
   }
   :global(h4) {
-    font-size: theme('fontSize.xl');
+    font-size: var(--text-xl);
   }
   :global(h5) {
-    font-size: theme('fontSize.lg');
+    font-size: var(--text-lg);
   }
 </style>

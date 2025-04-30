@@ -18,7 +18,7 @@
 
 <svelte:element
   this={element}
-  class={twMerge(`flex gap-x-1 items-center text-accent-alt ${colorClass} py-1 px-2`, classProp)}
+  class={twMerge(`text-accent-alt flex items-center gap-x-1 ${colorClass} px-2 py-1`, classProp)}
   {...rest}
 >
   {@render children()}

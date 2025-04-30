@@ -22,7 +22,7 @@
 <div id="article-list" class={twMerge('flex flex-col', outerClass)}>
   {#if count > ARTICLE_PAGE_SIZE}
     <ArticlePager
-      class="sticky top-0 py-xs bg-base"
+      class="py-xs bg-base sticky top-0"
       {count}
       perPage={ARTICLE_PAGE_SIZE}
       page={pageNumber}
@@ -31,7 +31,7 @@
   {:else}
     <div class="pt-xs"></div>
   {/if}
-  <div class="flex flex-col gap-y-l mt-m">
+  <div class="gap-y-l mt-m flex flex-col">
     {#each items as a (a.id)}
       <ArticleListItem article={a} />
     {/each}

@@ -38,23 +38,23 @@
 
 <Markdown {content} title={article.title}>
   {#snippet header()}
-    <header class="mb-2xl flex flex-col gap-y-xs align-bottom">
+    <header class="mb-2xl gap-y-xs flex flex-col align-bottom">
       <h1 class="font-serif font-bold">{article.title}</h1>
-      <div class="flex flex-wrap items-center gap-x-2xs">
+      <div class="gap-x-2xs flex flex-wrap items-center">
         <UserBadge name={article.authorName} username={article.authorUsername} />
         <div class="flex items-center gap-x-0.5">
           <MdiCalendar />发表于 {format(article.createdAt, 'yyyy-MM-dd')}
         </div>
       </div>
       {#if article.replyTo}
-        <p class="text-subtle bg-accent-alt/10 py-0.5 px-xs w-fit">
+        <p class="text-subtle bg-accent-alt/10 px-xs w-fit py-0.5">
           <MdiReply style="display: inline; vertical-align: text-top;" />
           此文回应了
           <a class="text-accent hover:text-accent-alt inline" href={`/u/${article.replyTo.authorUsername}`}>
             {article.replyTo.authorName}
           </a>
           的
-          <a class="text-text font-serif font-bold inline underline" href={`/a/${article.replyTo.id}`}>
+          <a class="text-text inline font-serif font-bold underline" href={`/a/${article.replyTo.id}`}>
             {article.replyTo.title}
           </a>
         </p>

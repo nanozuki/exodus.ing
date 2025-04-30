@@ -27,12 +27,12 @@
         {article.replyTo.authorName}
       </a>
       的
-      <a class="text-text font-serif font-bold inline underline" href={`/a/${article.replyTo.id}`}>
+      <a class="text-text inline font-serif font-bold underline" href={`/a/${article.replyTo.id}`}>
         {article.replyTo.title}
       </a>
     </p>
   {/if}
-  <div class="text-sm flex flex-wrap items-center gap-x-2xs">
+  <div class="gap-x-2xs flex flex-wrap items-center text-sm">
     <UserBadge name={article.authorName} username={article.authorUsername} />
     <div class={info}>
       <MdiCalendar /><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>

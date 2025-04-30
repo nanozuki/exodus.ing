@@ -30,25 +30,25 @@
   });
 </script>
 
-<nav class={twMerge('flex flex-row items-center gap-xs', outerClass)} aria-label="pagination" use:melt={$root}>
+<nav class={twMerge('gap-xs flex flex-row items-center', outerClass)} aria-label="pagination" use:melt={$root}>
   <button
-    class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
-    disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
-    data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+    class="bg-text/20 hover:bg-text/30 text-text border-text disabled:bg-highlight-med disabled:text-muted disabled:border-muted data-selected:border-accent data-selected:bg-accent/20 data-selected:text-accent grid
+    h-8 min-w-8 items-center justify-center
+    border-2 px-0.5 disabled:cursor-not-allowed"
     use:melt={$prevButton}
   >
     <MdiChevronLeft class="size-6" />
   </button>
   {#each $pages as page (page.key)}
     {#if page.type === 'ellipsis'}
-      <div class="grid h-8 items-center justify-center text-text">
+      <div class="text-text grid h-8 items-center justify-center">
         <span>/</span>
       </div>
     {:else}
       <button
-        class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
-        disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
-        data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+        class="bg-text/20 hover:bg-text/30 text-text border-text disabled:bg-highlight-med disabled:text-muted disabled:border-muted data-selected:border-accent data-selected:bg-accent/20 data-selected:text-accent grid
+        h-8 min-w-8 items-center justify-center
+        border-2 px-0.5 disabled:cursor-not-allowed"
         use:melt={$pageTrigger(page)}
       >
         {page.value}
@@ -56,9 +56,9 @@
     {/if}
   {/each}
   <button
-    class="grid h-8 min-w-8 items-center justify-center px-0.5 bg-text/20 hover:bg-text/30 text-text border-2 border-text
-    disabled:cursor-not-allowed disabled:bg-highlight-med disabled:text-muted disabled:border-muted
-    data-[selected]:border-accent data-[selected]:bg-accent/20 data-[selected]:text-accent"
+    class="bg-text/20 hover:bg-text/30 text-text border-text disabled:bg-highlight-med disabled:text-muted disabled:border-muted data-selected:border-accent data-selected:bg-accent/20 data-selected:text-accent grid
+    h-8 min-w-8 items-center justify-center
+    border-2 px-0.5 disabled:cursor-not-allowed"
     use:melt={$nextButton}
   >
     <MdiChevronRight class="size-6" />

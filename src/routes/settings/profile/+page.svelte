@@ -12,7 +12,7 @@
   <meta property="og:title" content="个人资料设置" />
 </svelte:head>
 
-<form id="profile" method="post" class="flex flex-col gap-y-m">
+<form id="profile" method="post" class="gap-y-m flex flex-col">
   <Input field="name" label="名称" type="text" value={user.name} required />
   <InputTextArea field="aboutMe" label="介绍" value={user.aboutMe} />
   <Button variant="primary" type="submit">更新</Button>

@@ -21,7 +21,7 @@
 <form action="?/bookmark" method="POST" use:enhance>
   <input type="hidden" name="action" value={$form.action} />
   <input type="hidden" name="articleId" value={$form.articleId} />
-  <Action element="button" disabled={processing} {processing} type="submit" class="flex gap-x-1 items-center py-1 px-2">
+  <Action element="button" disabled={processing} {processing} type="submit" class="flex items-center gap-x-1 px-2 py-1">
     {#if user?.isBookmarked}<MdiBookmark />{:else}<MdiBookmarkOutline />{/if}
     <span
       >{#if user?.isBookmarked}已收藏{:else}收藏{/if}</span

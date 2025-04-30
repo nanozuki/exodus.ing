@@ -21,13 +21,13 @@
   }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-y-xs w-full">
+<div class="gap-y-xs flex w-full flex-col">
   <label class="font-semibold" for={field}>{label}</label>
   {#if description}<small class="text-subtle">{description}</small>{/if}
   {#if error}<small class="text-error">{error}</small>{/if}
   {#if errors}<small class="text-error">{errors}</small>{/if}
   <textarea
-    class="p-1 bg-surface border-2 border-accent-alt h-[5em] focus-visible:border-accent focus-visible:outline-none"
+    class="bg-surface border-accent-alt focus-visible:border-accent h-[5em] border-2 p-1 focus-visible:outline-hidden"
     name={field}
     bind:value
     {...rest}
