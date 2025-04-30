@@ -80,6 +80,7 @@ NODE_VERSION = "22.14.0"
 
 [env.production.vars]
 EXODUSING_HOST = "https://exodus.ing"
+NODE_VERSION = "22.14.0"
 
 # [[env.production.kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
