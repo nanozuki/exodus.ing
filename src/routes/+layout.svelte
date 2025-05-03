@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
   <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Noto+Sans+SC:wght@100..900&family=Noto+Serif+SC:wght@200..900&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Noto+Sans+SC:wght@100..900&family=Noto+Serif+SC:wght@200..900&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
     rel="stylesheet"
   />
 </svelte:head>
@@ -27,8 +27,8 @@
 <div class="max-w-article mx-page-horizontal gap-y-l flex min-h-svh flex-col sm:mx-auto">
   <header class="py-xs flex flex-row items-center justify-between">
     <a href="/" class="gap-x-xs flex flex-row items-center">
-      {#if navigating.to}<Loading />{:else}<Logo --size="var(--space-l)" />{/if}
-      <p class="font-serif text-2xl font-bold">EXODUS</p>
+      {#if navigating.to}<Loading />{:else}<Logo --size="var(--spacing-xl)" />{/if}
+      <p id="site-name" class="font-title text-4xl font-bold">EXODUS</p>
     </a>
     {#if user}
       <UserBadge name={user.name} username={user.username} />
@@ -69,5 +69,8 @@
   }
   :global(h5) {
     font-size: var(--text-lg);
+  }
+  #site-name {
+    translate: 0 2.5%;
   }
 </style>
