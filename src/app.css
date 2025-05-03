@@ -76,6 +76,7 @@
   --font-sans: IBM Plex Sans, Noto Sans SC, sans-serif;
   --font-serif: IBM Plex Serif, Noto Serif SC, serif;
   --font-mono: IBM Plex Mono, Noto Mono, monospace;
+  --font-title: Sofia Sans Extra Condensed, sans-serif;
 
   --text-*: initial;
   --text-sm: 0.875rem; /* 14px */
