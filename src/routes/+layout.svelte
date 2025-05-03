@@ -27,7 +27,11 @@
 <div class="max-w-article mx-page-horizontal gap-y-l flex min-h-svh flex-col sm:mx-auto">
   <header class="py-xs flex flex-row items-center justify-between">
     <a href="/" class="gap-x-xs flex flex-row items-center">
-      {#if navigating.to}<Loading />{:else}<Logo --size="var(--spacing-xl)" />{/if}
+      {#if navigating.type}
+        <Loading --size="var(--spacing-xl)" />
+      {:else}
+        <Logo --size="var(--spacing-xl)" />
+      {/if}
       <p id="site-name" class="font-title text-4xl font-bold">EXODUS</p>
     </a>
     {#if user}
