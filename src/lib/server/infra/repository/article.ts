@@ -4,6 +4,7 @@ import type {
   ArticleEditorData,
   ArticleInput,
   ArticleListItem,
+  ArticleFeedsItem,
   ArticlePatch,
   ArticleRepository,
 } from '$lib/domain/entities/article';
@@ -159,6 +160,27 @@ export class D1ArticleRepository implements ArticleRepository {
         count,
         items: (articles as ArticleItemResult[]).map(convertReplyTo),
       };
+    });
+  }
+
+  async listFeeds(last: number): Promise<ArticleFeedsItem[]> {
+    return await wrap('article.listFeeds', async () => {
+      const articles = await this.db
+        .select({
+          id: tArticle.id,
+          createdAt: tArticle.createdAt,
+          updatedAt: tArticle.updatedAt,
+          title: tArticle.title,
+          authorName: tUser.name,
+          authorUsername: tUser.username,
+          contentType: tArticle.contentType,
+          content: tArticle.content,
+        })
+        .from(tArticle)
+        .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+        .orderBy(desc(tArticle.updatedAt))
+        .limit(last);
+      return articles;
     });
   }
 

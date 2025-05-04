@@ -11,6 +11,7 @@ import { ArticleListService } from './article_list';
 import { AuthService } from './auth';
 import { BookmarkService } from './bookmark';
 import { CommentService } from './comment';
+import { FeedsService } from './feeds';
 import { InviteCodeService } from './invite_code';
 import { NameResolverService } from './name_resolver';
 import { UserService } from './user';
@@ -22,6 +23,7 @@ export interface Services {
   auth: AuthService;
   bookmark: BookmarkService;
   comment: CommentService;
+  feeds: FeedsService;
   inviteCode: InviteCodeService;
   user: UserService;
   userDomain: UserDomainService;
@@ -49,6 +51,7 @@ export function buildServices(repositories: Repositories, adapters: Adapters) {
     auth: () => new AuthService(adapters.auth),
     bookmark: () => new BookmarkService(repositories.bookmark),
     comment: () => new CommentService(repositories.comment),
+    feeds: () => new FeedsService(repositories.article),
     inviteCode: () => new InviteCodeService(repositories.inviteCode),
     user: () => new UserService(repositories.user),
     userDomain: () => new UserDomainService(repositories.userDomain),
