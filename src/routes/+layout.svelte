@@ -27,12 +27,11 @@
 <div class="max-w-article mx-page-horizontal gap-y-l flex min-h-svh flex-col sm:mx-auto">
   <header class="py-xs flex flex-row items-center justify-between">
     <a href="/" class="gap-x-xs flex flex-row items-center">
-      {#if navigating.type}
-        <Loading --size="var(--spacing-xl)" />
-      {:else}
-        <Logo --size="var(--spacing-xl)" />
-      {/if}
+      <Logo --size="var(--spacing-xl)" />
       <p id="site-name" class="font-title text-4xl font-bold">EXODUS</p>
+      {#if true}
+        <Loading --size="calc(var(--spacing) * 6)" />
+      {/if}
     </a>
     {#if user}
       <UserBadge name={user.name} username={user.username} />

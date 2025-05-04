@@ -6,7 +6,7 @@
     height: var(--size, var(--spacing-l));
     border-radius: 50%;
     border: calc(var(--size, var(--spacing-l)) / 8) solid transparent;
-    border-top-color: var(--primary-fg);
+    border-top-color: var(--color-warn);
     animation: spin 1s ease infinite;
   }
 
