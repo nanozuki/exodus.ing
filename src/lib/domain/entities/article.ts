@@ -54,6 +54,17 @@ export interface ArticleListItem {
   commentCount: number;
 }
 
+export interface ArticleFeedsItem {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  authorName: string;
+  authorUsername: string;
+  contentType: ArticleContentType;
+  content: string;
+}
+
 export interface ArticleEditorData {
   article?: { title: string; content: string };
   replyTo?: ArticleCard;
@@ -68,6 +79,7 @@ export interface ArticleRepository {
   getById(articleId: string): Promise<Article>;
   getArticleEditorData(req: GetArticleEditorDataRequest): Promise<ArticleEditorData>;
   list(page: Pagination): Promise<Paginated<ArticleListItem>>;
+  listFeeds(last: number): Promise<ArticleFeedsItem[]>;
   listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
   listReplies(articleId: string): Promise<ArticleCard[]>;
   listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
