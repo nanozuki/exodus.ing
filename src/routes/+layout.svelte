@@ -56,6 +56,9 @@
     overflow-y: scroll;
     scrollbar-color: var(--color-border) var(--color-surface);
   }
+  :global(*) {
+    text-autospace: normal;
+  }
   :global(*:focus-visible) {
     outline: 0.125rem solid var(--color-focus-visible);
   }
