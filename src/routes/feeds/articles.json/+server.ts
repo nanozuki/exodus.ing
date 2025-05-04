@@ -3,5 +3,5 @@ import { json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals }) => {
   const feed = await locals.feedsPage.getFeeds();
-  return json(feed);
+  return json(feed, { headers: { 'Content-Type': 'application/feed+json' } });
 };

@@ -6,7 +6,7 @@ const feed = {
   version: 'https://jsonfeed.org/version/1.1',
   title: 'Exodus 文章',
   home_page_url: 'https://exodus.ing/',
-  feed_url: 'https://exodus.ing/a/feed.json',
+  feed_url: 'https://exodus.ing/feeds/articles.json',
   icon: 'https://exodus.ing/icon.svg',
   language: 'zh-CN',
   items: [] as FeedItem[],
