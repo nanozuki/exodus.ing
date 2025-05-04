@@ -29,7 +29,7 @@
     <a href="/" class="gap-x-xs flex flex-row items-center">
       <Logo --size="var(--spacing-xl)" />
       <p id="site-name" class="font-title text-4xl font-bold">EXODUS</p>
-      {#if true}
+      {#if navigating.type}
         <Loading --size="calc(var(--spacing) * 6)" />
       {/if}
     </a>
