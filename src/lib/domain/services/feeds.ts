@@ -28,6 +28,7 @@ interface FeedItem {
   summary?: string;
   date_published: string; // RFC 3339 format
   date_modified?: string; // RFC 3339 format
+  author?: Author; // for compatibility
   authors?: Author[];
 }
 
@@ -40,6 +41,10 @@ async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
     content_html,
     date_published: formatRFC3339(article.createdAt),
     date_modified: formatRFC3339(article.updatedAt),
+    author: {
+      name: article.authorName,
+      url: `https://exodus.ing/u/${article.authorUsername}`,
+    },
     authors: [
       {
         name: article.authorName,
