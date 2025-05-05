@@ -1,7 +1,11 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import { json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals }) => {
   const feed = await locals.feedsPage.getFeeds();
-  return json(feed, { headers: { 'Content-Type': 'application/feed+json' } });
+  return Response.json(feed, {
+    headers: {
+      'Content-Type': 'application/feed+json',
+      'Cache-Control': 'public, max-age=7200',
+    },
+  });
 };
