@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
   const tab: PageTab = url.searchParams.get('tab') === 'bookmarks' ? 'bookmarks' : 'articles';
   const page: number = url.searchParams.get('page') ? parseInt(url.searchParams.get('page')!) : 1;
   const loggedInUser = locals.auth().loggedInUser;
-  let user = await locals.user().getUserByKey(username);
+  const user = await locals.user().getUserByKey(username);
   const aboutMe = await compileMarkdown(user.aboutMe);
   const articles = await locals.articleList().listByUserId(user.id, page);
   const bookmarks: Paginated<ArticleListItem> =

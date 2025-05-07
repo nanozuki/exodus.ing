@@ -6,7 +6,7 @@
   import { superForm } from 'sveltekit-superforms/client';
 
   const { data }: { data: PageData } = $props();
-  const { user, article, isBookmarked } = $derived(data);
+  const { article, isBookmarked } = $derived(data);
   let processing = $state(false);
   const { form, enhance } = superForm(data.bookmarkForm, {
     onSubmit: () => {
