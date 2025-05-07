@@ -1,10 +1,15 @@
 import type { User } from '$lib/domain/entities/user';
 import type { AuthPort, State, StateInput } from '$lib/domain/ports';
 import { AppError } from '$lib/errors';
-import type { GitHubUser } from './user';
+import type { InviteCodeService } from './invite_code';
+import type { UserService } from './user';
 
 export class AuthService {
-  constructor(private readonly auth: AuthPort) {}
+  constructor(
+    private readonly auth: AuthPort,
+    private readonly user: UserService,
+    private readonly inviteCode: InviteCodeService,
+  ) {}
 
   requireLoggedInUser(context?: string): User {
     const user = this.auth.loggedInUser;
@@ -39,13 +44,28 @@ export class AuthService {
     return await this.auth.createGithubAuthUrl(state);
   }
 
-  async handleGithubCallback(code: string, state: string): Promise<GitHubUser> {
-    const storedState = await this.auth.getState(state);
-    if (state !== storedState.state) {
+  async handleGithubCallback(code: string, stateVal: string): Promise<State> {
+    const state = await this.auth.getState(stateVal);
+    if (stateVal !== state.state) {
       return AppError.OAuthValidationError('invalid state').throw();
     }
+    const ghUser = await this.auth.validateGithubCode(code);
+    let user = await this.user.findUserByGitHubId(ghUser.id);
 
-    const gitHubUser = await this.auth.validateGithubCode(code);
-    return gitHubUser;
+    if (user) {
+      // exsiting user
+      await this.auth.setSession(user.id);
+      return state;
+    }
+    // new user
+    if (!state.inviteCode) {
+      return AppError.InviteCodeMissed().throw();
+    }
+    if (!(await this.inviteCode.validateInviteCode(state.inviteCode))) {
+      return AppError.InvalidInviteCode().throw();
+    }
+    user = await this.user.createUserByGitHub(ghUser);
+    await this.auth.setSession(user.id);
+    return state;
   }
 }

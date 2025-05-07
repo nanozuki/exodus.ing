@@ -15,19 +15,19 @@ export const actions = {
     }
     const nextInput = data.get('next');
     const next = typeof nextInput === 'string' && nextInput.length > 0 ? nextInput : undefined;
-    const valid = await locals.authPage.validateInviteCode(inviteCode);
+    const valid = await locals.inviteCode.validateInviteCode(inviteCode);
     if (!valid) {
       return fail(400, { error: { inviteCode: '邀请码无效' } });
     }
 
-    const authUrl = await locals.authPage.registerByGithub({ inviteCode, next });
+    const authUrl = await locals.auth.authByGithub({ inviteCode, next });
     redirect(302, authUrl.toString());
   },
   login: async ({ locals, request }) => {
     const data = await request.formData();
     const nextInput = data.get('next');
     const next = typeof nextInput === 'string' && nextInput.length > 0 ? nextInput : undefined;
-    const authUrl = await locals.authPage.loginByGithub({ next });
+    const authUrl = await locals.auth.authByGithub({ next });
     redirect(302, authUrl.toString());
   },
 } satisfies Actions;

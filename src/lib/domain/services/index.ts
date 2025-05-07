@@ -13,7 +13,6 @@ import { BookmarkService } from './bookmark';
 import { CommentService } from './comment';
 import { FeedsService } from './feeds';
 import { InviteCodeService } from './invite_code';
-import { NameResolverService } from './name_resolver';
 import { UserService } from './user';
 import { UserDomainService } from './user_domain';
 
@@ -27,7 +26,6 @@ export interface Services {
   inviteCode: InviteCodeService;
   user: UserService;
   userDomain: UserDomainService;
-  nameResolver: NameResolverService;
 }
 
 export interface Adapters {
@@ -45,16 +43,18 @@ export interface Repositories {
 }
 
 export function buildServices(repositories: Repositories, adapters: Adapters) {
+  const user = new UserService(repositories.user);
+  const inviteCode = new InviteCodeService(repositories.inviteCode);
+  const auth = new AuthService(adapters.auth, user, inviteCode);
   return createLazyProxy<Services>({
-    article: () => new ArticleService(repositories.article),
+    article: () => new ArticleService(repositories.article, auth),
     articleList: () => new ArticleListService(repositories.article),
-    auth: () => new AuthService(adapters.auth),
+    auth: () => auth,
     bookmark: () => new BookmarkService(repositories.bookmark),
     comment: () => new CommentService(repositories.comment),
     feeds: () => new FeedsService(repositories.article),
-    inviteCode: () => new InviteCodeService(repositories.inviteCode),
-    user: () => new UserService(repositories.user),
-    userDomain: () => new UserDomainService(repositories.userDomain),
-    nameResolver: () => new NameResolverService(adapters.nameResolver),
+    inviteCode: () => inviteCode,
+    user: () => user,
+    userDomain: () => new UserDomainService(repositories.userDomain, adapters.nameResolver),
   });
 }

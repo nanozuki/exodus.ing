@@ -2,8 +2,8 @@ import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
-  locals.layouts.requireLoggedInUser('load article editor');
-  const data = await locals.articleEditPage.getArticleContent({
+  locals.auth.requireLoggedInUser('load article editor');
+  const data = await locals.article.getArticleEditorData({
     articleId: params.articleId === 'new' ? 'new' : params.articleId,
     replyTo: url.searchParams.get('replyTo') || undefined,
   });
@@ -42,12 +42,12 @@ export const actions = {
 
     // New Article
     if (params.articleId === 'new') {
-      const articleId = await locals.articleEditPage.createByMarkdown(content, replyTo);
+      const articleId = await locals.article.createByMarkdown(content, replyTo);
       redirect(301, `/a/${articleId}`);
     }
 
     // Update Article
-    await locals.articleEditPage.updateByMarkdown(params.articleId, content);
+    await locals.article.updateByMarkdown(params.articleId, content);
     redirect(301, `/a/${params.articleId}`);
   },
 } satisfies Actions;
