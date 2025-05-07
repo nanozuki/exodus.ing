@@ -1,6 +1,9 @@
 import type { UserDomain, UserDomainRepository } from '$lib/domain/entities/user_domain';
 import { generateIdFromEntropySize } from 'lucia';
-import type { NameResolver } from '../ports';
+
+export interface NameResolver {
+  resolveTxt(domain: string): Promise<string[]>;
+}
 
 export class UserDomainService {
   constructor(

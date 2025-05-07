@@ -1,8 +1,44 @@
 import type { User } from '$lib/domain/entities/user';
-import type { AuthPort, State, StateInput } from '$lib/domain/ports';
 import { AppError } from '$lib/errors';
 import type { InviteCodeService } from './invite_code';
-import type { UserService } from './user';
+import type { UserService, GitHubUser } from './user';
+
+export interface Cookie {
+  name: string;
+  value: string;
+  attributes: {
+    secure?: boolean;
+    path: string;
+    domain?: string;
+    sameSite?: 'lax' | 'strict' | 'none';
+    httpOnly?: boolean;
+    maxAge?: number;
+    expires?: Date;
+  };
+}
+
+export interface State {
+  state: string;
+  inviteCode?: string;
+  next?: string;
+}
+
+export interface StateInput {
+  inviteCode?: string;
+  next?: string;
+}
+
+export interface AuthPort {
+  get loggedInUser(): User | null;
+
+  loadSession(): Promise<void>;
+  setSession(userId: string): Promise<void>;
+  getState(state: string): Promise<State>;
+  createAndSetState(input: StateInput): Promise<string>;
+
+  createGithubAuthUrl(state: string): Promise<URL>;
+  validateGithubCode(code: string): Promise<GitHubUser>;
+}
 
 export class AuthService {
   constructor(

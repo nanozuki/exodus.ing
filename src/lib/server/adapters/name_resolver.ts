@@ -1,4 +1,4 @@
-import type { NameResolver } from '$lib/domain/ports';
+import type { NameResolver } from '$lib/domain/services/user_domain';
 
 // getTxtRecords by cloudflare DoH Dns API, like these curl command:
 // curl --http2 --header "accept: application/dns-json" "https://1.1.1.1/dns-query?name=<domain>&type=TXT"
