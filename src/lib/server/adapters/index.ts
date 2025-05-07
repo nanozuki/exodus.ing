@@ -1,13 +1,13 @@
-import type { Adapters } from '$lib/domain/services';
-import { createLazyProxy } from '$lib/lazy';
+import type { AdapterSet } from '$lib/domain/services';
 import type { RequestEvent } from '@sveltejs/kit';
-import type { AppD1Database } from '../repository/schema';
+import type { AppD1Database } from '$lib/server/repositories/schema';
 import { LuciaAuthService } from './lucia';
 import { nameResolver } from './name_resolver';
+import { once } from '$lib/once';
 
-export function buildAdapters(event: RequestEvent, db: AppD1Database) {
-  return createLazyProxy<Adapters>({
-    auth: () => new LuciaAuthService(event, db),
-    nameResolver: () => nameResolver,
-  });
+export function createAdapterSet(event: RequestEvent, db: AppD1Database): AdapterSet {
+  return {
+    auth: once(() => new LuciaAuthService(event, db)),
+    nameResolver: once(() => nameResolver),
+  };
 }

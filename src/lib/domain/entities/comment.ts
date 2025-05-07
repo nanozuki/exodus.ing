@@ -11,6 +11,8 @@ export interface Comment {
   content: string;
 }
 
+export type CommentView = Comment & { replyTo?: Comment };
+
 export interface CommentInput {
   articleId: string;
   userId: string;

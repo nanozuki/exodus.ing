@@ -3,7 +3,7 @@ import type { Actions } from './$types';
 
 export const actions = {
   default: async ({ locals, request }) => {
-    const user = locals.auth.requireLoggedInUser('update username');
+    const user = locals.auth().requireLoggedInUser('update username');
     const data = await request.formData();
     const username = data.get('username');
     if (typeof username !== 'string') {
@@ -19,7 +19,7 @@ export const actions = {
     }
 
     try {
-      await locals.user.updateUsername(user.id, username);
+      await locals.user().updateUsername(user.id, username);
     } catch (e) {
       if (e instanceof Error) {
         return {

@@ -1,4 +1,4 @@
-import { Services } from '$lib/domain/services';
+import { ServiceSet } from '$lib/domain/services';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -10,7 +10,7 @@ declare global {
       context?: string;
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface Locals extends Services {
+    interface Locals extends ServiceSet {
       // Import example:
       // user: import('$lib/server/auth').SessionValidationResult['user'];
       // session: import('$lib/server/auth').SessionValidationResult['session'];

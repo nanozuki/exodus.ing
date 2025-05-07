@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } from '$env/static/private';
-import type { AuthPort, State, StateInput } from '$lib/domain/services/auth';
+import type { AuthAdapter, State, StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser, type AppD1Database, type UserModel } from '$lib/server/repositories/schema';
@@ -44,7 +44,7 @@ export const StateSchema = z.object({
   next: z.string().optional(),
 });
 
-export class LuciaAuthService implements AuthPort {
+export class LuciaAuthService implements AuthAdapter {
   private lucia: ReturnType<typeof getLucia>;
   private github: GitHub;
   private cookies: Cookies;

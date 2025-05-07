@@ -28,7 +28,7 @@ export interface StateInput {
   next?: string;
 }
 
-export interface AuthPort {
+export interface AuthAdapter {
   get loggedInUser(): User | null;
 
   loadSession(): Promise<void>;
@@ -42,7 +42,7 @@ export interface AuthPort {
 
 export class AuthService {
   constructor(
-    private readonly auth: AuthPort,
+    private readonly auth: AuthAdapter,
     private readonly user: UserService,
     private readonly inviteCode: InviteCodeService,
   ) {}
