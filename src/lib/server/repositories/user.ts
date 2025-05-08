@@ -1,32 +1,25 @@
 import type { User, UserPatch, UserRepository } from '$lib/domain/entities/user';
-import { AppError } from '$lib/errors';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { tUser, type AppD1Database } from './schema';
 import { newNanoId, wrap } from './utils';
 
 export class D1UserRepository implements UserRepository {
   constructor(private db: AppD1Database) {}
 
-  async getById(userId: string): Promise<User> {
-    return await wrap('user.getById', async () => {
-      const users = await this.db.select().from(tUser).where(eq(tUser.id, userId));
-      if (users.length === 0) {
-        return AppError.UserNotFound(userId).throw();
-      }
-      return users[0];
+  async getUserByKey(key: string): Promise<User | null> {
+    return await wrap('user.findByUsernameOrId', async () => {
+      const id = key.length === 16 ? key.slice(0, 6) : key;
+      const users = await this.db
+        .select()
+        .from(tUser)
+        .where(or(eq(tUser.username, key), eq(tUser.id, id)));
+      return users.length !== 0 ? users[0] : null;
     });
   }
 
   async findByGitHubId(githubId: number): Promise<User | null> {
     return await wrap('user.findByGitHubId', async () => {
       const users = await this.db.select().from(tUser).where(eq(tUser.githubId, githubId));
-      return users.length !== 0 ? users[0] : null;
-    });
-  }
-
-  async findByUsername(username: string): Promise<User | null> {
-    return await wrap('user.findByUsername', async () => {
-      const users = await this.db.select().from(tUser).where(eq(tUser.username, username));
       return users.length !== 0 ? users[0] : null;
     });
   }

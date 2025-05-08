@@ -6,7 +6,7 @@
   import { superForm } from 'sveltekit-superforms/client';
 
   const { data }: { data: PageData } = $props();
-  const { user, article } = $derived(data);
+  const { article, isBookmarked } = $derived(data);
   let processing = $state(false);
   const { form, enhance } = superForm(data.bookmarkForm, {
     onSubmit: () => {
@@ -22,9 +22,9 @@
   <input type="hidden" name="action" value={$form.action} />
   <input type="hidden" name="articleId" value={$form.articleId} />
   <Action element="button" disabled={processing} {processing} type="submit" class="flex items-center gap-x-1 px-2 py-1">
-    {#if user?.isBookmarked}<MdiBookmark />{:else}<MdiBookmarkOutline />{/if}
+    {#if isBookmarked}<MdiBookmark />{:else}<MdiBookmarkOutline />{/if}
     <span
-      >{#if user?.isBookmarked}已收藏{:else}收藏{/if}</span
+      >{#if isBookmarked}已收藏{:else}收藏{/if}</span
     >
     <span
       >{#if article.bookmarkCount > 0}{article.bookmarkCount}{/if}</span

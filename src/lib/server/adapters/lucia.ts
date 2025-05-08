@@ -1,15 +1,14 @@
 import { dev } from '$app/environment';
 import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } from '$env/static/private';
-import { type AuthPort, type State, type StateInput } from '$lib/domain/ports';
+import type { AuthAdapter, State, StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
-import { tSession, tUser } from '$lib/server/infra/repository/schema';
+import { tSession, tUser, type AppD1Database, type UserModel } from '$lib/server/repositories/schema';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
 import { z } from 'zod';
-import type { AppD1Database, UserModel } from '../repository/schema';
 
 declare module 'lucia' {
   interface Register {
@@ -45,7 +44,7 @@ export const StateSchema = z.object({
   next: z.string().optional(),
 });
 
-export class LuciaAuthService implements AuthPort {
+export class LuciaAuthService implements AuthAdapter {
   private lucia: ReturnType<typeof getLucia>;
   private github: GitHub;
   private cookies: Cookies;

@@ -54,11 +54,13 @@ async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
   };
 }
 
+const FEED_ARTICLE_LIMIT = 30;
+
 export class FeedsService {
   constructor(private repository: ArticleRepository) {}
 
-  async getArticlesFeed(last: number): Promise<Feed> {
-    const articles = await this.repository.listFeeds(last);
+  async getArticlesFeed(): Promise<Feed> {
+    const articles = await this.repository.listFeeds(FEED_ARTICLE_LIMIT);
     const items: FeedItem[] = await Promise.all(articles.map((article) => convertToFeedItem(article)));
     return { ...feed, items };
   }

@@ -17,6 +17,6 @@
   };
 </script>
 
-<a {...rest} class={twMerge(colorClass[variant], 'w-full border-2 px-4 py-1 font-semibold', classProp)}>
+<a {...rest} class={twMerge(colorClass[variant], 'w-full border-2 px-4 py-1 font-semibold ' + classProp)}>
   {@render children()}
 </a>

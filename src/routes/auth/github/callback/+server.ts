@@ -10,7 +10,7 @@ export async function GET({ locals, url }: RequestEvent): Promise<Response> {
   }
 
   try {
-    const state = await locals.authPage.handleGithubCallback(code, stateId);
+    const state = await locals.auth().handleGithubCallback(code, stateId);
     return new Response(null, {
       status: 302,
       headers: {

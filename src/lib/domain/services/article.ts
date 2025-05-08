@@ -6,9 +6,14 @@ import type {
   GetArticleEditorDataRequest,
 } from '$lib/domain/entities/article';
 import { compileArticle, throwResultError } from '$lib/markdown';
+import type { AuthService } from './auth';
+import { AppError } from '$lib/errors';
 
 export class ArticleService {
-  constructor(private repository: ArticleRepository) {}
+  constructor(
+    private repository: ArticleRepository,
+    private readonly auth: AuthService,
+  ) {}
 
   async getById(articleId: string): Promise<Article> {
     return await this.repository.getById(articleId);
@@ -18,13 +23,14 @@ export class ArticleService {
     return await this.repository.getArticleEditorData(req);
   }
 
-  async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
+  async createByMarkdown(content: string, replyTo?: string): Promise<string> {
+    const user = this.auth.requireLoggedInUser('edit article');
     const result = await compileArticle(content);
     if (!result.ok) {
       return throwResultError(result.errors);
     }
     return await this.repository.create({
-      userId,
+      userId: user.id,
       content,
       title: result.title,
       contentType: 'markdown',
@@ -33,6 +39,11 @@ export class ArticleService {
   }
 
   async updateByMarkdown(articleId: string, content: string): Promise<void> {
+    const user = this.auth.requireLoggedInUser('edit article');
+    const article = await this.repository.getById(articleId);
+    if (article.authorId !== user.id) {
+      return AppError.Forbidden('article editor').throw();
+    }
     const result = await compileArticle(content);
     if (!result.ok) {
       return throwResultError(result.errors);

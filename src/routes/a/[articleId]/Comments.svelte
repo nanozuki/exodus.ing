@@ -6,10 +6,10 @@
   import MdiReply from '~icons/mdi/reply';
   import MdiTextBoxEditOutline from '~icons/mdi/text-box-edit-outline';
   import UserBadge from '$lib/component/UserBadge.svelte';
-  import type { CommentView } from '$lib/server/interfaces/pages/article_page';
   import type { PageData } from './$types';
   import { format } from 'date-fns';
   import { superForm } from 'sveltekit-superforms/client';
+  import type { CommentView } from '$lib/domain/entities/comment';
 
   let { data }: { data: PageData } = $props();
   let { article, comments, user } = $derived(data);
