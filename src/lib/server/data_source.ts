@@ -17,7 +17,10 @@ async function getPlatform(event: RequestEvent): Promise<App.Platform> {
 }
 
 export async function getD1Database(event: RequestEvent): Promise<AppD1Database> {
+  const start = Date.now();
   const platform = await getPlatform(event);
   const db = drizzle(platform.env.EXODUSING_DB, { schema, logger: true });
+  const duration = Date.now() - start;
+  console.log(`[CONNECT-DATABASE] connected D1 database in ${duration}ms`);
   return db;
 }

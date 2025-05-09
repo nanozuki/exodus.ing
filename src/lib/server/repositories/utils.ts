@@ -3,7 +3,11 @@ import { customAlphabet } from 'nanoid';
 
 export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> {
   try {
-    return await fn();
+    const start = Date.now();
+    const result = await fn();
+    const duration = Date.now() - start;
+    console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms`);
+    return result;
   } catch (error) {
     if (error instanceof AppError) {
       throw error;

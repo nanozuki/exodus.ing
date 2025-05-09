@@ -5,6 +5,7 @@ import { createRepositorySet } from '$lib/server/repositories';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
+  const start = Date.now();
   const db = await getD1Database(event);
 
   const repositories = createRepositorySet(db);
@@ -13,5 +14,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   await locals.auth().loadSession();
 
   event.locals = locals;
-  return resolve(event);
+  const response = resolve(event);
+  const duration = Date.now() - start;
+  console.log(`[REQUEST] ${event.url.pathname} executed in ${duration}ms`);
+  return response;
 };
