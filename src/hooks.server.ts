@@ -1,12 +1,12 @@
 import { buildServices } from '$lib/domain/services';
 import { createAdapterSet } from '$lib/server/adapters';
-import { getD1Database } from '$lib/server/data_source';
+import { getDatabase } from '$lib/server/data_source';
 import { createRepositorySet } from '$lib/server/repositories';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
   const start = Date.now();
-  const db = await getD1Database(event);
+  const db = await getDatabase();
 
   const repositories = createRepositorySet(db);
   const adapters = createAdapterSet(event, db);

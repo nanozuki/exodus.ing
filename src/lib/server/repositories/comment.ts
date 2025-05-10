@@ -2,11 +2,11 @@ import type { Comment, CommentInput, CommentPatch, CommentRepository } from '$li
 import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import { AppError } from '$lib/errors';
 import { eq } from 'drizzle-orm/sql';
-import { tComment, tUser, type AppD1Database } from './schema';
+import { tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
 export class D1CommentRepository implements CommentRepository {
-  constructor(private db: AppD1Database) {}
+  constructor(private db: AppDatabase) {}
 
   private modelQuery() {
     return this.db

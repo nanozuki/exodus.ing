@@ -6,11 +6,11 @@ import type {
 } from '$lib/domain/entities/user_domain';
 import { AppError } from '$lib/errors';
 import { and, eq } from 'drizzle-orm/sql';
-import { tUserDomain, type AppD1Database } from './schema';
+import { tUserDomain, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
 export class D1UserDomainRepository implements UserDomainRepository {
-  constructor(private db: AppD1Database) {}
+  constructor(private db: AppDatabase) {}
 
   async listByUserId(userId: string): Promise<UserDomain[]> {
     return await wrap('userDomain.listByUserId', async () => {

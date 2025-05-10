@@ -3,7 +3,7 @@ import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } from '$e
 import type { AuthAdapter, State, StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
-import { tSession, tUser, type AppD1Database, type UserModel } from '$lib/server/repositories/schema';
+import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
@@ -17,7 +17,7 @@ declare module 'lucia' {
   }
 }
 
-function getLucia(db: AppD1Database) {
+function getLucia(db: AppDatabase) {
   const authAdapter = new DrizzleSQLiteAdapter(db, tSession, tUser);
   const lucia = new Lucia(authAdapter, {
     sessionCookie: {
@@ -50,13 +50,13 @@ export class LuciaAuthService implements AuthAdapter {
   private cookies: Cookies;
   private _loggedInUser: User | null = null;
 
-  constructor(event: RequestEvent, db: AppD1Database) {
+  constructor(event: RequestEvent, db: AppDatabase) {
     this.lucia = getLucia(db);
     this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, `${EXODUSING_HOST}/auth/github/callback`);
     this.cookies = event.cookies;
   }
 
-  static async Load(event: RequestEvent, db: AppD1Database): Promise<LuciaAuthService> {
+  static async Load(event: RequestEvent, db: AppDatabase): Promise<LuciaAuthService> {
     const auth = new LuciaAuthService(event, db);
     await auth.loadSession();
     return auth;

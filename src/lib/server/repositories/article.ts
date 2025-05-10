@@ -13,7 +13,7 @@ import type { Paginated, Pagination } from '$lib/domain/values/page';
 import { AppError } from '$lib/errors';
 import { aliasedTable } from 'drizzle-orm';
 import { and, desc, eq, like, ne, sql } from 'drizzle-orm/sql';
-import { tArticle, tBookmark, tComment, tUser, type AppD1Database } from './schema';
+import { tArticle, tBookmark, tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
 type ReplyToModel = ArticleCard | { id: null; title: null; authorId: null; authorUsername: null; authorName: null };
@@ -25,7 +25,7 @@ function convertReplyTo<T extends { replyTo: ReplyToModel }>(item: T): Omit<T, '
 }
 
 export class D1ArticleRepository implements ArticleRepository {
-  constructor(private db: AppD1Database) {}
+  constructor(private db: AppDatabase) {}
 
   private modelQuery() {
     const p = aliasedTable(tArticle, 'parent');
