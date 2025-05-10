@@ -28,3 +28,6 @@ vite.config.ts.timestamp-*
 # IDE & Editors
 .idea/
 .vscode/
+
+# Database
+*.sqlite
