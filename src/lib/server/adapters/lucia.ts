@@ -1,5 +1,5 @@
 import { dev } from '$app/environment';
-import { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import type { AuthAdapter, State, StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
@@ -9,6 +9,11 @@ import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
 import { z } from 'zod';
+
+const { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } = env;
+if (!EXODUSING_GITHUB_ID || !EXODUSING_GITHUB_SECRET || !EXODUSING_HOST) {
+  throw new Error('GITHUB_ID, GITHUB_SECRET, or HOST is not set');
+}
 
 declare module 'lucia' {
   interface Register {
