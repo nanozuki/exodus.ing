@@ -5,7 +5,7 @@ import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
-import type { Cookies, RequestEvent } from '@sveltejs/kit';
+import type { Cookies } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
 import { z } from 'zod';
@@ -52,58 +52,38 @@ export const StateSchema = z.object({
 export class LuciaAuthService implements AuthAdapter {
   private lucia: ReturnType<typeof getLucia>;
   private github: GitHub;
-  private cookies: Cookies;
-  private _loggedInUser: User | null = null;
 
-  constructor(event: RequestEvent, db: AppDatabase) {
+  constructor(db: AppDatabase) {
     this.lucia = getLucia(db);
     this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, `${EXODUSING_HOST}/auth/github/callback`);
-    this.cookies = event.cookies;
   }
 
-  static async Load(event: RequestEvent, db: AppDatabase): Promise<LuciaAuthService> {
-    const auth = new LuciaAuthService(event, db);
-    await auth.loadSession();
-    return auth;
-  }
-
-  requireLoggedInUser(): User {
-    if (!this._loggedInUser) {
-      return AppError.Unauthorized().throw();
-    }
-    return this._loggedInUser;
-  }
-
-  get loggedInUser(): User | null {
-    return this._loggedInUser;
-  }
-
-  async loadSession(): Promise<void> {
-    const sessionId = this.cookies.get(this.lucia.sessionCookieName);
+  async loadSession(cookies: Cookies): Promise<User | null> {
+    const sessionId = cookies.get(this.lucia.sessionCookieName);
     if (!sessionId) {
-      return;
+      return null;
     }
     await this.lucia.deleteExpiredSessions();
     const { session, user } = await this.lucia.validateSession(sessionId);
-    this._loggedInUser = user;
     if (session && session.fresh) {
       const { name, value, attributes } = this.lucia.createSessionCookie(session.id);
-      this.cookies.set(name, value, { ...attributes, path: '/' });
+      cookies.set(name, value, { ...attributes, path: '/' });
     }
     if (!session) {
       const { name, value, attributes } = this.lucia.createBlankSessionCookie();
-      this.cookies.set(name, value, { ...attributes, path: '/' });
+      cookies.set(name, value, { ...attributes, path: '/' });
     }
+    return user;
   }
 
-  async setSession(userId: string): Promise<void> {
+  async setSession(cookies: Cookies, userId: string): Promise<void> {
     const session = await this.lucia.createSession(userId, {});
     const { name, value, attributes } = this.lucia.createSessionCookie(session.id);
-    this.cookies.set(name, value, { ...attributes, path: '/' });
+    cookies.set(name, value, { ...attributes, path: '/' });
   }
 
-  async getState(): Promise<State> {
-    const stateCookie = this.cookies.get('github_oauth_state');
+  async getAuthState(cookies: Cookies): Promise<State> {
+    const stateCookie = cookies.get('github_oauth_state');
     if (!stateCookie) {
       return AppError.OAuthValidationError('state cookie not found').throw();
     }
@@ -114,29 +94,26 @@ export class LuciaAuthService implements AuthAdapter {
     return stateResult.data;
   }
 
-  async createAndSetState({ inviteCode, next }: StateInput): Promise<string> {
+  async createGithubAuthUrl(cookies: Cookies, input: StateInput): Promise<URL> {
+    const { inviteCode, next } = input;
     const state = {
       state: generateState(),
       inviteCode,
       next,
     };
     const stateJson = JSON.stringify(state);
-    this.cookies.set('github_oauth_state', stateJson, {
+    cookies.set('github_oauth_state', stateJson, {
       path: '/',
       secure: import.meta.env.PROD,
       httpOnly: true,
       maxAge: 60 * 10,
       sameSite: 'lax',
     });
-    return state.state;
-  }
-
-  async createGithubAuthUrl(state: string): Promise<URL> {
-    const authUrl = this.github.createAuthorizationURL(state, []);
+    const authUrl = this.github.createAuthorizationURL(state.state, []);
     return authUrl;
   }
 
-  async validateGithubCode(code: string): Promise<GitHubUser> {
+  async getGitHubUserByCode(code: string): Promise<GitHubUser> {
     try {
       const tokens = await this.github.validateAuthorizationCode(code);
       console.log('tokens', tokens);

@@ -1,20 +1,21 @@
 import { AppError } from '$lib/errors';
+import { services } from '$lib/server/registry';
 import { type RequestEvent } from '@sveltejs/kit';
 
-export async function GET({ locals, url }: RequestEvent): Promise<Response> {
+export async function GET({ url, cookies }: RequestEvent): Promise<Response> {
   const code = url.searchParams.get('code');
-  const stateId = url.searchParams.get('state');
-  console.log('code', code, 'stateId', stateId);
-  if (!code || !stateId) {
+  const state = url.searchParams.get('state');
+  console.log('code', code, 'stateId', state);
+  if (!code || !state) {
     return AppError.OAuthValidationError('code or state is empty').throw();
   }
 
   try {
-    const state = await locals.auth().handleGithubCallback(code, stateId);
+    const stateObj = await services.auth.handleGithubCallback(cookies, code, state);
     return new Response(null, {
       status: 302,
       headers: {
-        Location: state.next?.startsWith('/') ? state.next : '/',
+        Location: stateObj.next?.startsWith('/') ? stateObj.next : '/',
       },
     });
   } catch (e) {

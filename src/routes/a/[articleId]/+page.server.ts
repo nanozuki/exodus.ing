@@ -4,6 +4,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import type { PageServerLoad } from './$types';
 import { compileArticle, throwResultError } from '$lib/markdown';
+import { services } from '$lib/server/registry';
 
 const commentSchema = z.object({
   action: z.literal('new').or(z.literal('edit')),
@@ -18,13 +19,13 @@ const bookmarkSchema = z.object({
 });
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  const user = locals.auth().loggedInUser;
+  const user = locals.loggedInUser;
   const articleId = params.articleId!;
   const [article, isBookmarked, comments, replies] = await Promise.all([
-    locals.article().getById(articleId),
-    user ? locals.bookmark().isBookmarked(articleId, user.id) : false,
-    locals.comment().listByArticle(articleId),
-    locals.article().listReplies(articleId),
+    services.article.getById(articleId),
+    user ? services.bookmark.isBookmarked(articleId, user.id) : false,
+    services.comment.listByArticle(articleId),
+    services.article.listReplies(articleId),
   ]);
   const commentForm = await superValidate(zod(commentSchema));
   const bookmarkForm = await superValidate(zod(bookmarkSchema), {
@@ -53,10 +54,10 @@ export const actions = {
     if (!commentForm.valid) {
       return fail(400, { commentForm });
     }
-    const user = locals.auth().requireLoggedInUser();
+    const user = locals.requireLoggedInUser('add or edit comment');
     const { action } = commentForm.data;
     if (action === 'new') {
-      const commentId = await locals.comment().create({
+      const commentId = await services.comment.create({
         articleId: params.articleId!,
         userId: user.id,
         content: commentForm.data.content,
@@ -66,7 +67,7 @@ export const actions = {
     }
     if (action === 'edit') {
       const commentId = commentForm.data.commentId!;
-      await locals.comment().update({
+      await services.comment.update({
         userId: user.id,
         commentId,
         content: commentForm.data.content,
@@ -79,13 +80,13 @@ export const actions = {
     if (!bookmarkForm.valid) {
       return fail(400, { bookmarkForm });
     }
-    const user = locals.auth().requireLoggedInUser();
+    const user = locals.requireLoggedInUser('add or delete bookmark');
     const { action, articleId } = bookmarkForm.data;
     if (action === 'add') {
-      await locals.bookmark().addBookmark(articleId, user.id);
+      await services.bookmark.addBookmark(articleId, user.id);
     }
     if (action === 'remove') {
-      await locals.bookmark().removeBookmark(articleId, user.id);
+      await services.bookmark.removeBookmark(articleId, user.id);
     }
   },
 } satisfies Actions;

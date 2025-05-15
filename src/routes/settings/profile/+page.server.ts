@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
+import { services } from '$lib/server/registry';
 
 export const actions = {
   default: async ({ locals, request }) => {
@@ -12,8 +13,8 @@ export const actions = {
     if (typeof aboutMe !== 'string') {
       return fail(400, { error: { aboutMe: '介绍必须是字符串' } });
     }
-    const user = locals.auth().requireLoggedInUser('update profile');
-    await locals.user().updateProfile(user.id, name, aboutMe);
+    const user = locals.requireLoggedInUser('update profile');
+    await services.user.updateProfile(user.id, name, aboutMe);
     redirect(303, '/settings/profile');
   },
 } satisfies Actions;

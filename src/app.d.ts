@@ -1,4 +1,4 @@
-import { ServiceSet } from '$lib/domain/services';
+import type { User } from '$lib/domain/entities/user';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -9,19 +9,16 @@ declare global {
       message: string;
       context?: string;
     }
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface Locals extends ServiceSet {
+    interface Locals {
+      loggedInUser: User | null;
+      requireLoggedInUser: (context: string) => User;
       // Import example:
       // user: import('$lib/server/auth').SessionValidationResult['user'];
       // session: import('$lib/server/auth').SessionValidationResult['session'];
     }
     // interface PageData {}
     // interface PageState {}
-    interface Platform {
-      env: {
-        EXODUSING_DB: D1Database;
-      };
-    }
+    // interface Platform {}
   }
 }
 
