@@ -30,4 +30,4 @@ vite.config.ts.timestamp-*
 .vscode/
 
 # Database
-*.sqlite
+# *.sqlite

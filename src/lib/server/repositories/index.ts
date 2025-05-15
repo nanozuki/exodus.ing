@@ -4,11 +4,11 @@ import { D1ArticleRepository } from './article';
 import { D1BookmarkRepository } from './bookmark';
 import { D1CommentRepository } from './comment';
 import { D1InviteCodeRepository } from './invite_code';
-import type { AppD1Database } from './schema';
+import type { AppDatabase } from './schema';
 import { D1UserRepository } from './user';
 import { D1UserDomainRepository } from './user_domain';
 
-export function createRepositorySet(db: AppD1Database): RepositorySet {
+export function createRepositorySet(db: AppDatabase): RepositorySet {
   return {
     article: once(() => new D1ArticleRepository(db)),
     bookmark: once(() => new D1BookmarkRepository(db)),

@@ -1,10 +1,10 @@
 import type { Bookmark, BookmarkRepository } from '$lib/domain/entities/bookmark';
 import { and, eq } from 'drizzle-orm/sql';
-import { tBookmark, type AppD1Database } from './schema';
+import { tBookmark, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
 export class D1BookmarkRepository implements BookmarkRepository {
-  constructor(private db: AppD1Database) {}
+  constructor(private db: AppDatabase) {}
 
   async listByUserId(userId: string): Promise<Bookmark[]> {
     return await wrap('bookmark.listByUserId', () =>

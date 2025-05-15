@@ -1,10 +1,10 @@
 import type { User, UserPatch, UserRepository } from '$lib/domain/entities/user';
 import { eq, or } from 'drizzle-orm';
-import { tUser, type AppD1Database } from './schema';
+import { tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
 export class D1UserRepository implements UserRepository {
-  constructor(private db: AppD1Database) {}
+  constructor(private db: AppDatabase) {}
 
   async getUserByKey(key: string): Promise<User | null> {
     return await wrap('user.findByUsernameOrId', async () => {
