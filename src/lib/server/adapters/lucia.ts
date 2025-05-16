@@ -44,9 +44,12 @@ export const StateSchema = z.object({
   next: z.string().optional(),
 });
 
+const SESSION_CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+
 export class LuciaAuthService implements AuthAdapter {
   private lucia: ReturnType<typeof getLucia>;
   private github: GitHub;
+  private clearedAt: number;
 
   constructor(db: AppDatabase) {
     this.lucia = getLucia(db);
@@ -55,6 +58,7 @@ export class LuciaAuthService implements AuthAdapter {
       throw new Error('GITHUB_ID, GITHUB_SECRET, or HOST is not set');
     }
     this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, `${EXODUSING_HOST}/auth/github/callback`);
+    this.clearedAt = Date.now() - SESSION_CLEANUP_INTERVAL;
   }
 
   async loadSession(cookies: Cookies): Promise<User | null> {
@@ -62,7 +66,10 @@ export class LuciaAuthService implements AuthAdapter {
     if (!sessionId) {
       return null;
     }
-    await this.lucia.deleteExpiredSessions();
+    if (Date.now() - this.clearedAt > SESSION_CLEANUP_INTERVAL) {
+      this.clearedAt = Date.now();
+      await this.lucia.deleteExpiredSessions();
+    }
     const { session, user } = await this.lucia.validateSession(sessionId);
     if (session && session.fresh) {
       const { name, value, attributes } = this.lucia.createSessionCookie(session.id);
