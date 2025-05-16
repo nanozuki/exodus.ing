@@ -10,11 +10,10 @@ import { D1InviteCodeRepository } from './invite_code';
 import { D1UserRepository } from './user';
 import { D1UserDomainRepository } from './user_domain';
 
-if (!env.EXODUSING_DATABASE) {
-  throw new Error('DATABASE_URL is not set');
-}
-
 export async function getDatabase(): Promise<AppDatabase> {
+  if (!env.EXODUSING_DATABASE) {
+    throw new Error('DATABASE_URL is not set');
+  }
   const start = Date.now();
   const client = createClient({ url: env.EXODUSING_DATABASE });
   const db = drizzle(client, { schema, logger: true });

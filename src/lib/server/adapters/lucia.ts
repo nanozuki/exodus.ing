@@ -10,11 +10,6 @@ import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
 import { z } from 'zod';
 
-const { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } = env;
-if (!EXODUSING_GITHUB_ID || !EXODUSING_GITHUB_SECRET || !EXODUSING_HOST) {
-  throw new Error('GITHUB_ID, GITHUB_SECRET, or HOST is not set');
-}
-
 declare module 'lucia' {
   interface Register {
     Lucia: ReturnType<typeof getLucia>;
@@ -55,6 +50,10 @@ export class LuciaAuthService implements AuthAdapter {
 
   constructor(db: AppDatabase) {
     this.lucia = getLucia(db);
+    const { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } = env;
+    if (!EXODUSING_GITHUB_ID || !EXODUSING_GITHUB_SECRET || !EXODUSING_HOST) {
+      throw new Error('GITHUB_ID, GITHUB_SECRET, or HOST is not set');
+    }
     this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, `${EXODUSING_HOST}/auth/github/callback`);
   }
 

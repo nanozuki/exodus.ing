@@ -1,6 +1,6 @@
 import { AppError } from '$lib/errors';
-import { services } from '$lib/server/registry';
-import type { Handle } from '@sveltejs/kit';
+import { buildServices, services } from '$lib/server/registry';
+import type { Handle, ServerInit } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
   const start = Date.now();
@@ -18,4 +18,10 @@ export const handle: Handle = async ({ event, resolve }) => {
   const duration = Date.now() - start;
   console.log(`[REQUEST] ${event.url.pathname} executed in ${duration}ms`);
   return response;
+};
+
+export const init: ServerInit = async () => {
+  if (!services) {
+    await buildServices();
+  }
 };
