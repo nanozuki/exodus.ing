@@ -3,7 +3,7 @@ import { eq, or } from 'drizzle-orm';
 import { tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
-export class D1UserRepository implements UserRepository {
+export class SqliteUserRepository implements UserRepository {
   constructor(private db: AppDatabase) {}
 
   async getUserByKey(key: string): Promise<User | null> {

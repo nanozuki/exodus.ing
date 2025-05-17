@@ -30,9 +30,6 @@ Migration commands:
 - apply in local: `pnpm run migration:local`
 - apply in prod: `pnpm run migration:prod`
 
-Local database is locate in
-`.wrangler/state/v3/d1/miniflare-D1DatabaseObject/<hash>.sqlite`.
-
 ### Build
 
 Build in local first to check error:
@@ -44,6 +41,6 @@ pnpm run build
 ## Stack
 
 - Svelte and SvelteKit
-- Cloudflare Page, D1
+- Sqlite
 - Drizzle ORM
 - Remark, Rehype ecosystem

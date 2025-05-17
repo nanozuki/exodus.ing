@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm/sql';
 import { tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
-export class D1CommentRepository implements CommentRepository {
+export class SqliteCommentRepository implements CommentRepository {
   constructor(private db: AppDatabase) {}
 
   private modelQuery() {

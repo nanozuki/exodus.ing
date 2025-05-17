@@ -21,7 +21,12 @@ export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> 
 
 const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
 const nanoid = customAlphabet(alphabet, 6);
+const code = customAlphabet(alphabet, 16);
 
 export function newNanoId(): string {
   return nanoid();
+}
+
+export function newCode(): string {
+  return code();
 }
