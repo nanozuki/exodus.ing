@@ -4,6 +4,7 @@ import type { CommentRepository } from '$lib/domain/entities/comment';
 import type { InviteCodeRepository } from '$lib/domain/entities/invite_code';
 import type { UserRepository } from '$lib/domain/entities/user';
 import type { UserDomainRepository } from '$lib/domain/entities/user_domain';
+import type { RoleRepository } from '../entities/role';
 import { ArticleService } from './article';
 import { ArticleListService } from './article_list';
 import { AuthService, type AuthAdapter } from './auth';
@@ -36,13 +37,14 @@ export interface RepositorySet {
   bookmark: BookmarkRepository;
   comment: CommentRepository;
   inviteCode: InviteCodeRepository;
+  role: RoleRepository;
   user: UserRepository;
   userDomain: UserDomainRepository;
 }
 
 export function createServiceSet(repositories: RepositorySet, adapters: AdapterSet): ServiceSet {
   const user = new UserService(repositories.user);
-  const inviteCode = new InviteCodeService(repositories.inviteCode);
+  const inviteCode = new InviteCodeService(repositories.inviteCode, repositories.role);
   return {
     article: new ArticleService(repositories.article),
     articleList: new ArticleListService(repositories.article),

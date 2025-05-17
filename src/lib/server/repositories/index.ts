@@ -9,6 +9,7 @@ import { SqliteCommentRepository } from './comment';
 import { SqliteInviteCodeRepository } from './invite_code';
 import { SqliteUserRepository } from './user';
 import { SqliteUserDomainRepository } from './user_domain';
+import { SqliteRoleRepository } from './role';
 
 export async function getDatabase(): Promise<AppDatabase> {
   if (!env.EXODUSING_DATABASE) {
@@ -28,6 +29,7 @@ export async function createRepositorySet(db: AppDatabase): Promise<RepositorySe
     bookmark: new SqliteBookmarkRepository(db),
     comment: new SqliteCommentRepository(db),
     inviteCode: new SqliteInviteCodeRepository(db),
+    role: new SqliteRoleRepository(db),
     user: new SqliteUserRepository(db),
     userDomain: new SqliteUserDomainRepository(db),
   };
