@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { services } from '$lib/server/registry';
+import { consoleDefaultRoute } from '../routes';
 
 export const actions = {
   default: async ({ locals, request }) => {
@@ -15,6 +16,6 @@ export const actions = {
     }
     const user = locals.requireLoggedInUser('update profile');
     await services.user.updateProfile(user.id, name, aboutMe);
-    redirect(303, '/settings/profile');
+    redirect(303, consoleDefaultRoute.route);
   },
 } satisfies Actions;

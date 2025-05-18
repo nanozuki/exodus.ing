@@ -47,22 +47,15 @@ export class AuthService {
       return AppError.OAuthValidationError('invalid state').throw();
     }
     const ghUser = await this.auth.getGitHubUserByCode(code);
-    let user = await this.user.findUserByGitHubId(ghUser.id);
+    const user = await this.user.findUserByGitHubId(ghUser.id);
 
     if (user) {
       // exsiting user
       await this.auth.setSession(cookies, user.id);
       return storedState;
     }
-    // new user
-    if (!storedState.inviteCode) {
-      return AppError.InviteCodeMissed().throw();
-    }
-    if (!(await this.inviteCode.validateInviteCode(storedState.inviteCode))) {
-      return AppError.InvalidInviteCode().throw();
-    }
-    user = await this.user.createUserByGitHub(ghUser);
-    await this.auth.setSession(cookies, user.id);
+    // new user, TODO: no need invite code for now
+    AppError.InternalServerError('user not found').throw();
     return storedState;
   }
 }

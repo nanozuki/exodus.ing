@@ -16,10 +16,11 @@ export const actions = {
     }
     const nextInput = data.get('next');
     const next = typeof nextInput === 'string' && nextInput.length > 0 ? nextInput : undefined;
-    const valid = await services.inviteCode.validateInviteCode(inviteCode);
-    if (!valid) {
-      return fail(400, { error: { inviteCode: '邀请码无效' } });
-    }
+    // TODO: do not need invite code for now
+    // const valid = await services.inviteCode.validateInviteCode(inviteCode);
+    // if (!valid) {
+    //   return fail(400, { error: { inviteCode: '邀请码无效' } });
+    // }
 
     const authUrl = await services.auth.authByGithub(cookies, { inviteCode, next });
     redirect(302, authUrl.toString());
