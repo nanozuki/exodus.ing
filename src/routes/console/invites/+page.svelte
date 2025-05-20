@@ -4,6 +4,8 @@
   import type { InviteCode } from '$lib/domain/entities/invite_code';
   import { Role } from '$lib/domain/entities/role';
   import { format } from 'date-fns';
+  import DeleteIcon from '~icons/material-symbols-light/delete-outline';
+  import CopyIcon from '~icons/material-symbols-light/content-copy-outline-rounded';
 
   const inviter = { name: 'Nanozuki', username: 'Nanozuki' };
   const invitee = $state([
@@ -29,12 +31,16 @@
     inviteCodes.push({
       id: ++lastId,
       code,
-      validFrom: new Date(),
-      validTo: new Date(Date.now() + 30 * 86400 * 1000),
       inviterId: 'Nanozuki',
       roleKey: Role.ArticleAuthor,
       usedAt: null,
     });
+  }
+  function deleteInviteCode(code: string) {
+    const index = inviteCodes.findIndex((inviteCode) => inviteCode.code === code);
+    if (index !== -1) {
+      inviteCodes.splice(index, 1);
+    }
   }
 </script>
 
@@ -57,10 +63,15 @@
 <div class="gap-y-s flex flex-col">
   <h5 class="font-semibold">邀请码</h5>
   {#if inviteCodes.length > 0}
-    <div class="grid-table gap-x-xs gap-y-2xs grid">
-      {#each inviteCodes as { code, validTo }}
+    <div class="grid-codes gap-x-xs gap-y-xs grid">
+      {#each inviteCodes as { code }}
         <p class="text-accent font-mono">{code}</p>
-        <p class="text-subtle">{format(new Date(validTo), 'yyyy-MM-dd HH:mm')} 到期</p>
+        <div class="bg-text/20 hover:bg-text/30 p-1">
+          <CopyIcon class="size-6" />
+        </div>
+        <button onclick={() => deleteInviteCode(code)} class="bg-error/20 hover:bg-error/30 p-1">
+          <DeleteIcon class="size-6" />
+        </button>
       {/each}
     </div>
   {:else}
@@ -75,7 +86,7 @@
 {#if invitee.length > 0}
   <div>
     <h5 class="font-semibold">已邀请作者</h5>
-    <div class="grid-table gap-x-xs gap-y-2xs grid">
+    <div class="grid-invitees gap-x-xs gap-y-2xs grid">
       {#each invitee as { name, username, invitedAt }}
         <UserBadge {name} {username} />
         {format(new Date(invitedAt), 'yyyy-MM-dd HH:mm')}
@@ -85,7 +96,10 @@
 {/if}
 
 <style>
-  .grid-table {
+  .grid-codes {
+    grid-template-columns: repeat(3, max-content);
+  }
+  .grid-invitees {
     grid-template-columns: repeat(2, max-content);
   }
 </style>

@@ -1,17 +1,15 @@
 export interface InviteCode {
   id: number;
   code: string;
-  validFrom: Date;
-  validTo: Date;
   inviterId: string;
   roleKey: string;
   usedAt: Date | null;
 }
 
-export type InviteCodeCard = Pick<InviteCode, 'code' | 'validTo' | 'roleKey'>;
+export type InviteCodeCard = Pick<InviteCode, 'code' | 'roleKey'>;
 
-export function isInviteCodeValid(inviteCode: InviteCode, at: Date): boolean {
-  return inviteCode.validFrom <= at && at < inviteCode.validTo;
+export function isInviteCodeValid(inviteCode: InviteCode): boolean {
+  return inviteCode.usedAt === null;
 }
 
 interface InviteQuotaInput {
@@ -28,8 +26,6 @@ export function inviteCodeQuota(input: InviteQuotaInput): number {
 export interface InviteCodeInput {
   inviterId: string;
   roleKey: string;
-  validFrom: number;
-  validTo: number;
 }
 
 export interface InviteCodeRepository {
@@ -37,4 +33,5 @@ export interface InviteCodeRepository {
   findByCode(code: string): Promise<InviteCode | null>;
   useCode(code: string): Promise<void>;
   getUserUnusedCodes(userId: string): Promise<InviteCodeCard[]>;
+  getUserInviteQuota(userId: string, algo: InviteQuotaAlgorithm): Promise<number>;
 }

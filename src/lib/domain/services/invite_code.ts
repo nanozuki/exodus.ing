@@ -12,6 +12,7 @@ import type { Role, RoleRepository } from '../entities/role';
 const INVITE_CODE_EXPIRATION = 30 * 86400 * 1000; // 30 days
 
 export interface UserInvitationData {
+  quota: number;
   relations: UserRelations;
   unusedCodes: InviteCodeCard[];
 }
@@ -34,10 +35,6 @@ export class InviteCodeService {
     if (!inviteCode) {
       return AppError.InviteCodeMissed('Invite code not found').throw();
     }
-    const now = new Date();
-    if (inviteCode.validFrom > now || inviteCode.validTo < now) {
-      return AppError.InvalidInviteCode('Invite code is expired').throw();
-    }
     if (inviteCode.usedAt) {
       return AppError.InvalidInviteCode('Invite code is already used').throw();
     }
@@ -47,10 +44,11 @@ export class InviteCodeService {
   }
 
   async getUserRelations(userId: string): Promise<UserInvitationData> {
-    const [relations, inviteCodes] = await Promise.all([
+    const [relations, unusedCodes, quota] = await Promise.all([
       this.roleRepo.getRelations(userId),
       this.inviteCodeRepo.getUserUnusedCodes(userId),
+      this.inviteCodeRepo.getUserInviteQuota(userId, inviteCodeQuota),
     ]);
-    return { relations, unusedCodes: inviteCodes };
+    return { relations, unusedCodes, quota };
   }
 }

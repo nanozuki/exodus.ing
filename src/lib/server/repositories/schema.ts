@@ -26,8 +26,6 @@ export const tInviteCode = sqliteTable(
   {
     id: integer('id').primaryKey(),
     code: text('code').notNull().unique(),
-    validFrom: integer('valid_from', { mode: 'timestamp_ms' }).notNull(),
-    validTo: integer('valid_to', { mode: 'timestamp_ms' }).notNull(),
     roleKey: text('role_key').notNull(),
     inviterId: text('inviter_id').notNull(),
     usedAt: integer('used_at', { mode: 'timestamp_ms' }),

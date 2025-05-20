@@ -5,7 +5,7 @@ import type {
   InviteCodeRepository,
   InviteQuotaAlgorithm,
 } from '$lib/domain/entities/invite_code';
-import { and, eq, isNotNull, isNull, gt } from 'drizzle-orm/sql';
+import { and, eq, isNull } from 'drizzle-orm/sql';
 import { tArticle, tInviteCode, type AppDatabase } from './schema';
 import { newCode, wrap } from './utils';
 import { AppError } from '$lib/errors';
@@ -14,15 +14,14 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
   constructor(private db: AppDatabase) {}
 
   async create(input: InviteCodeInput, algo: InviteQuotaAlgorithm): Promise<InviteCode> {
-    const { inviterId, roleKey, validFrom, validTo } = input;
+    const { inviterId, roleKey } = input;
     return await wrap('inviteCode.create', async () => {
       return await this.db.transaction(
         async (tx) => {
           const articleCount = await tx.$count(tArticle, eq(tArticle.userId, inviterId));
-          // used or not-expired codes
           const validCodeCount = await tx.$count(
             tInviteCode,
-            and(isNotNull(tInviteCode.usedAt), gt(tInviteCode.validTo, new Date())),
+            and(eq(tInviteCode.inviterId, inviterId), isNull(tInviteCode.usedAt)),
           );
           const quota = algo({ articleCount, validCodeCount });
           if (quota <= 0) {
@@ -32,8 +31,6 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
           const code = newCode();
           const inviteCode = {
             code,
-            validFrom: new Date(validFrom),
-            validTo: new Date(validTo),
             inviterId,
             roleKey,
             usedAt: null,
@@ -66,12 +63,22 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
 
   async getUserUnusedCodes(userId: string): Promise<InviteCodeCard[]> {
     return await wrap('inviteCode.getUserUnusedCodes', async () => {
-      // Not used and not expired
       const codes = await this.db
         .select()
         .from(tInviteCode)
-        .where(and(eq(tInviteCode.inviterId, userId), isNull(tInviteCode.usedAt), gt(tInviteCode.validTo, new Date())));
-      return codes.map(({ code, validTo, roleKey }) => ({ code, validTo, roleKey }));
+        .where(and(eq(tInviteCode.inviterId, userId), isNull(tInviteCode.usedAt)));
+      return codes.map(({ code, roleKey }) => ({ code, roleKey }));
+    });
+  }
+
+  async getUserInviteQuota(userId: string, algo: InviteQuotaAlgorithm): Promise<number> {
+    return await wrap('inviteCode.getUserInviteQuota', async () => {
+      const articleCount = await this.db.$count(tArticle, eq(tArticle.userId, userId));
+      const validCodeCount = await this.db.$count(
+        tInviteCode,
+        and(eq(tInviteCode.inviterId, userId), isNull(tInviteCode.usedAt)),
+      );
+      return algo({ articleCount, validCodeCount });
     });
   }
 }
