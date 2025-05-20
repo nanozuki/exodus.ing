@@ -43,12 +43,16 @@ export class InviteCodeService {
     // TODO: maybe update loggedInUser's role in memory
   }
 
-  async getUserRelations(userId: string): Promise<UserInvitationData> {
+  async getUserInvitationData(loggedInUser: User): Promise<UserInvitationData> {
     const [relations, unusedCodes, quota] = await Promise.all([
-      this.roleRepo.getRelations(userId),
-      this.inviteCodeRepo.getUserUnusedCodes(userId),
-      this.inviteCodeRepo.getUserInviteQuota(userId, inviteCodeQuota),
+      this.roleRepo.getRelations(loggedInUser.id),
+      this.inviteCodeRepo.getUserUnusedCodes(loggedInUser.id),
+      this.inviteCodeRepo.getUserInviteQuota(loggedInUser.id, inviteCodeQuota),
     ]);
     return { relations, unusedCodes, quota };
+  }
+
+  async deleteInviteCode(loggedInUser: User, code: string): Promise<void> {
+    await this.inviteCodeRepo.delete(loggedInUser.id, code);
   }
 }

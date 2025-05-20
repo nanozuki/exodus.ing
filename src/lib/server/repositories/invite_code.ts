@@ -81,4 +81,10 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
       return algo({ articleCount, validCodeCount });
     });
   }
+
+  async delete(userId: string, code: string): Promise<void> {
+    return await wrap('inviteCode.delete', async () => {
+      await this.db.delete(tInviteCode).where(and(eq(tInviteCode.inviterId, userId), eq(tInviteCode.code, code)));
+    });
+  }
 }
