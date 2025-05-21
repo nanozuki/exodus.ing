@@ -1,1 +1,0 @@
-ALTER TABLE `bookmark` ADD `created_at` integer NOT NULL;
