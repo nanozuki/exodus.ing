@@ -1,53 +1,20 @@
 <script lang="ts">
   import Button from '$lib/component/Button.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
-  import type { InviteCode } from '$lib/domain/entities/invite_code';
-  import { Role } from '$lib/domain/entities/role';
   import { format } from 'date-fns';
   import DeleteIcon from '~icons/material-symbols-light/delete-outline';
   import CopyIcon from '~icons/material-symbols-light/content-copy-outline-rounded';
 
-  const inviter = { name: 'Nanozuki', username: 'Nanozuki' };
-  const invitee = $state([
-    {
-      name: 'Yakuky',
-      username: 'Yakuky',
-      invitedAt: Date.now() - 300 * 86400 * 1000,
-    },
-  ]);
-  const inviteCodes: InviteCode[] = $state([]);
-  const articleCount = 10;
-  let inviteQuota = $derived.by(() => {
-    const quota = articleCount - invitee.length - inviteCodes.length;
-    if (quota < 0) {
-      return 0;
-    }
-    return quota;
-  });
-
-  let lastId = 0;
-  function createInviteCode() {
-    const code = Math.random().toString(36).slice(2, 18);
-    inviteCodes.push({
-      id: ++lastId,
-      code,
-      inviterId: 'Nanozuki',
-      roleKey: Role.ArticleAuthor,
-      usedAt: null,
-    });
-  }
-  function deleteInviteCode(code: string) {
-    const index = inviteCodes.findIndex((inviteCode) => inviteCode.code === code);
-    if (index !== -1) {
-      inviteCodes.splice(index, 1);
-    }
-  }
+  const { data } = $props();
+  const { quota, relations, unusedCodes } = $derived(data);
+  const { invitees, inviter } = $derived(relations);
+  let copied = $state('');
 </script>
 
 <p>
   每发表一篇文章可以邀请 1 位作者，
-  {#if inviteQuota > 0}
-    你还可以邀请 {inviteQuota} 位作者。
+  {#if quota > 0}
+    你还可以邀请 {quota} 位作者。
   {:else}
     继续发表文章增加名额。
   {/if}
@@ -62,32 +29,46 @@
 
 <div class="gap-y-s flex flex-col">
   <h5 class="font-semibold">邀请码</h5>
-  {#if inviteCodes.length > 0}
-    <div class="grid-codes gap-x-xs gap-y-xs grid">
-      {#each inviteCodes as { code }}
+  {#if unusedCodes.length > 0}
+    <div class="grid-codes gap-x-xs gap-y-xs grid items-center">
+      {#each unusedCodes as { code }}
         <p class="text-accent font-mono">{code}</p>
-        <div class="bg-text/20 hover:bg-text/30 p-1">
+        <form action="?/delete" method="POST">
+          <input type="hidden" name="code" value={code} />
+          <button type="submit" class="text-error bg-error/20 hover:bg-error/30 block p-1">
+            <DeleteIcon class="size-6" />
+          </button>
+        </form>
+        <button
+          class="bg-text/20 hover:bg-text/30 block p-1"
+          onclick={async () => {
+            await navigator.clipboard.writeText(code);
+            copied = code;
+          }}
+        >
           <CopyIcon class="size-6" />
-        </div>
-        <button onclick={() => deleteInviteCode(code)} class="bg-error/20 hover:bg-error/30 p-1">
-          <DeleteIcon class="size-6" />
         </button>
+        <p class="text-subtle">
+          {#if copied === code}已复制！{/if}
+        </p>
       {/each}
     </div>
   {:else}
     <p class="text-subtle">暂无邀请码</p>
   {/if}
 
-  {#if inviteQuota > 0}
-    <Button onclick={createInviteCode}>创建邀请码({inviteQuota})</Button>
+  {#if quota > 0}
+    <form action="?/create" method="POST">
+      <Button type="submit">创建邀请码({quota})</Button>
+    </form>
   {/if}
 </div>
 
-{#if invitee.length > 0}
+{#if invitees.length > 0}
   <div>
     <h5 class="font-semibold">已邀请作者</h5>
     <div class="grid-invitees gap-x-xs gap-y-2xs grid">
-      {#each invitee as { name, username, invitedAt }}
+      {#each invitees as { name, username, invitedAt }}
         <UserBadge {name} {username} />
         {format(new Date(invitedAt), 'yyyy-MM-dd HH:mm')}
       {/each}
@@ -97,7 +78,7 @@
 
 <style>
   .grid-codes {
-    grid-template-columns: repeat(3, max-content);
+    grid-template-columns: repeat(4, max-content);
   }
   .grid-invitees {
     grid-template-columns: repeat(2, max-content);

@@ -35,7 +35,7 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
             roleKey,
             usedAt: null,
           };
-          const ids = await this.db.insert(tInviteCode).values(inviteCode).returning({ id: tInviteCode.id });
+          const ids = await tx.insert(tInviteCode).values(inviteCode).returning({ id: tInviteCode.id });
           return { ...inviteCode, id: ids[0].id };
         },
         { behavior: 'immediate' },
