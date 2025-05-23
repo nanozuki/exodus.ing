@@ -1,18 +1,13 @@
-import { rolePermissions, type Permission, type Role, type RoleRepository } from '$lib/domain/entities/role';
+import { type Role, type RoleRepository } from '$lib/domain/entities/role';
 
-export type RoleService = ReturnType<typeof roleService>;
-export function roleService(roleRepository: RoleRepository) {
-  async function specifyRoleByOther(userId: string, role: Role, otherId: string) {
-    return roleRepository.specifyRoleByOther(userId, role, otherId);
+export class RoleService {
+  constructor(private roleRepo: RoleRepository) {}
+
+  async specifyRoleByOther(userId: string, role: Role, otherId: string) {
+    return this.roleRepo.specifyRoleByOther(userId, role, otherId);
   }
 
-  async function hasPermission(userId: string, permission: Permission) {
-    const roles = await roleRepository.getUserRoles(userId);
-    return roles.some((role) => rolePermissions[role].includes(permission));
+  async getUserRoles(userId: string) {
+    return this.roleRepo.getUserRoles(userId);
   }
-
-  return {
-    specifyRoleByOther,
-    hasPermission,
-  };
 }

@@ -22,19 +22,13 @@ export class UserService {
   }
 
   async createUserByGitHub(gitHubUser: GitHubUser): Promise<User> {
-    const userId = await this.user.generateId();
-    const now = new Date();
     const user = {
-      id: userId,
-      createdAt: now,
-      updatedAt: now,
       username: gitHubUser.username,
       githubId: gitHubUser.id,
       name: gitHubUser.username,
       aboutMe: '',
     };
-    await this.user.create(user);
-    return user;
+    return await this.user.create(user);
   }
 
   async updateUsername(userId: string, username: string): Promise<void> {

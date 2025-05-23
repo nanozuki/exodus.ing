@@ -12,6 +12,7 @@ import { BookmarkService } from './bookmark';
 import { CommentService } from './comment';
 import { FeedsService } from './feeds';
 import { InviteCodeService } from './invite_code';
+import { RoleService } from './role';
 import { UserService } from './user';
 import { UserDomainService, type NameResolver } from './user_domain';
 
@@ -23,6 +24,7 @@ export type ServiceSet = {
   comment: CommentService;
   feeds: FeedsService;
   inviteCode: InviteCodeService;
+  role: RoleService;
   user: UserService;
   userDomain: UserDomainService;
 };
@@ -53,6 +55,7 @@ export function createServiceSet(repositories: RepositorySet, adapters: AdapterS
     comment: new CommentService(repositories.comment),
     feeds: new FeedsService(repositories.article),
     inviteCode,
+    role: new RoleService(repositories.role),
     user,
     userDomain: new UserDomainService(repositories.userDomain, adapters.nameResolver),
   };

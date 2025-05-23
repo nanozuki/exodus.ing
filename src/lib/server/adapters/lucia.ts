@@ -27,7 +27,8 @@ function getLucia(db: AppDatabase) {
     },
     // convert user attributes to session attributes, finally stored in locals.
     getUserAttributes: (user) => {
-      return user;
+      const { id, username, githubId, name, aboutMe } = user;
+      return { id, username, githubId, name, aboutMe };
     },
   });
   return lucia;

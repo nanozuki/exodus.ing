@@ -1,17 +1,24 @@
-import type { User, UserPatch, UserRepository } from '$lib/domain/entities/user';
-import { eq, or } from 'drizzle-orm';
-import { tUser, type AppDatabase } from './schema';
+import type { User, UserInput, UserPatch, UserRepository } from '$lib/domain/entities/user';
+import { eq, or, sql } from 'drizzle-orm';
+import { tUser, tUserRole, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
 export class SqliteUserRepository implements UserRepository {
   constructor(private db: AppDatabase) {}
 
   async getUserByKey(key: string): Promise<User | null> {
-    return await wrap('user.findByUsernameOrId', async () => {
+    return await wrap('user.getUserByKey', async () => {
       const id = key.length === 16 ? key.slice(0, 6) : key;
       const users = await this.db
-        .select()
+        .select({
+          id: tUser.id,
+          username: tUser.username,
+          githubId: tUser.githubId,
+          name: tUser.name,
+          aboutMe: tUser.aboutMe,
+        })
         .from(tUser)
+        .leftJoin(tUserRole, eq(tUser.id, tUserRole.userId))
         .where(or(eq(tUser.username, key), eq(tUser.id, id)));
       return users.length !== 0 ? users[0] : null;
     });
@@ -19,12 +26,22 @@ export class SqliteUserRepository implements UserRepository {
 
   async findByGitHubId(githubId: number): Promise<User | null> {
     return await wrap('user.findByGitHubId', async () => {
-      const users = await this.db.select().from(tUser).where(eq(tUser.githubId, githubId));
+      const users = await this.db
+        .select({
+          id: tUser.id,
+          username: tUser.username,
+          githubId: tUser.githubId,
+          name: tUser.name,
+          aboutMe: tUser.aboutMe,
+          roles: sql<string>`json_group_array(${tUserRole.roleKey})`,
+        })
+        .from(tUser)
+        .where(eq(tUser.githubId, githubId));
       return users.length !== 0 ? users[0] : null;
     });
   }
 
-  async generateId(): Promise<string> {
+  private async generateId(): Promise<string> {
     return await wrap('user.generateId', async () => {
       let id = newNanoId();
       const count = () => this.db.$count(tUser, eq(tUser.id, id));
@@ -35,8 +52,22 @@ export class SqliteUserRepository implements UserRepository {
     });
   }
 
-  async create(user: User): Promise<void> {
-    await wrap('user.create', () => this.db.insert(tUser).values(user));
+  async create(input: UserInput): Promise<User> {
+    const id = await this.generateId();
+    const now = new Date();
+    const user = {
+      id,
+      createdAt: now,
+      updatedAt: now,
+      username: input.username,
+      githubId: input.githubId,
+      name: input.name,
+      aboutMe: input.aboutMe,
+    };
+    return await wrap('user.create', async () => {
+      await this.db.insert(tUser).values(user);
+      return { ...user, roles: [] };
+    });
   }
 
   async update(userId: string, patch: Partial<UserPatch>): Promise<void> {
