@@ -3,9 +3,11 @@ import { services } from '$lib/server/registry';
 import { z } from 'zod';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   const user = locals.requireLoggedInUser('invite code');
-  return await services.inviteCode.getUserInvitationData(user);
+  const welcome = url.searchParams.get('welcome') === 'true';
+  const data = await services.inviteCode.getUserInvitationData(user);
+  return { ...data, welcome };
 };
 
 const deleteFormScheme = z.object({

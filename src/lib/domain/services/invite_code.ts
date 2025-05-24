@@ -6,14 +6,15 @@ import {
 } from '$lib/domain/entities/invite_code';
 import { AppError } from '$lib/errors';
 import type { User } from '$lib/domain/entities/user';
-import type { UserRelations } from '$lib/domain/entities/role';
+import type { Relation } from '$lib/domain/entities/role';
 import type { Role, RoleRepository } from '../entities/role';
 
 const INVITE_CODE_EXPIRATION = 30 * 86400 * 1000; // 30 days
 
 export interface UserInvitationData {
   quota: number;
-  relations: UserRelations;
+  inviter: Relation | undefined;
+  invitees: Relation[];
   unusedCodes: InviteCodeCard[];
 }
 
@@ -40,16 +41,16 @@ export class InviteCodeService {
     }
     await this.inviteCodeRepo.useCode(code);
     await this.roleRepo.specifyRoleByOther(loggedInUser.id, inviteCode.roleKey as Role, inviteCode.inviterId);
-    // TODO: maybe update loggedInUser's role in memory
   }
 
   async getUserInvitationData(loggedInUser: User): Promise<UserInvitationData> {
-    const [relations, unusedCodes, quota] = await Promise.all([
-      this.roleRepo.getRelations(loggedInUser.id),
+    const [inviter, invitees, unusedCodes, quota] = await Promise.all([
+      this.roleRepo.getInviter(loggedInUser.id),
+      this.roleRepo.getInvitees(loggedInUser.id),
       this.inviteCodeRepo.getUserUnusedCodes(loggedInUser.id),
       this.inviteCodeRepo.getUserInviteQuota(loggedInUser.id, inviteCodeQuota),
     ]);
-    return { relations, unusedCodes, quota };
+    return { inviter, invitees, unusedCodes, quota };
   }
 
   async deleteInviteCode(loggedInUser: User, code: string): Promise<void> {

@@ -28,5 +28,6 @@ export interface UserRelations {
 export interface RoleRepository {
   specifyRoleByOther(userId: string, role: Role, otherId: string): Promise<void>;
   getUserRoles(userId: string): Promise<Role[]>;
-  getRelations(userId: string): Promise<UserRelations>;
+  getInviter(userId: string): Promise<Relation | undefined>;
+  getInvitees(userId: string): Promise<Relation[]>;
 }

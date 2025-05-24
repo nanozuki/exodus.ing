@@ -1,31 +1,33 @@
 <script lang="ts">
+  import Action from '$lib/component/Action.svelte';
   import Button from '$lib/component/Button.svelte';
+  import CopyIcon from '~icons/material-symbols-light/content-copy-outline-rounded';
+  import DeleteIcon from '~icons/material-symbols-light/delete-outline';
   import UserBadge from '$lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
-  import DeleteIcon from '~icons/material-symbols-light/delete-outline';
-  import CopyIcon from '~icons/material-symbols-light/content-copy-outline-rounded';
 
   const { data } = $props();
-  const { quota, relations, unusedCodes } = $derived(data);
-  const { invitees, inviter } = $derived(relations);
+  const { invitees, inviter, quota, unusedCodes, welcome } = $derived(data);
   let copied = $state('');
 </script>
 
 <p>
+  {#if inviter}
+    {#if welcome}恭喜！邀请码验证通过！{/if}你受 <UserBadge {...inviter} /> 邀请成为作者。
+  {:else}
+    您是尊贵的原始用户。
+  {/if}
   每发表一篇文章可以邀请 1 位作者，
   {#if quota > 0}
-    你还可以邀请 {quota} 位作者。
+    目前还可以再创建 {quota} 个邀请码。
   {:else}
     继续发表文章增加名额。
   {/if}
 </p>
-<p>
-  {#if inviter}
-    你受 <UserBadge {...inviter} /> 邀请成为作者。
-  {:else}
-    您是尊贵的原始用户。
-  {/if}
-</p>
+
+<div class="flex">
+  <Action element="a" href="/a/new/edit">发表新文章</Action>
+</div>
 
 <div class="gap-y-s flex flex-col">
   <h5 class="font-semibold">邀请码</h5>

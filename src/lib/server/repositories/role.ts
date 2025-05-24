@@ -1,4 +1,4 @@
-import type { Role, RoleRepository, UserRelations } from '$lib/domain/entities/role';
+import type { Relation, Role, RoleRepository, UserRelations } from '$lib/domain/entities/role';
 import { and, desc, eq, or } from 'drizzle-orm';
 import { tUser, tUserRole, type AppDatabase } from './schema';
 import { wrap } from './utils';
@@ -31,31 +31,34 @@ export class SqliteRoleRepository implements RoleRepository {
     });
   }
 
-  async getRelations(userId: string): Promise<UserRelations> {
-    return wrap('role.getRelations', async () => {
-      const relations = await this.db
+  async getInviter(userId: string): Promise<Relation | undefined> {
+    return wrap('role.getInviter', async () => {
+      const inviters = await this.db
         .select({
-          userId: tUserRole.userId,
+          username: tUser.username,
+          name: tUser.name,
+          invitedAt: tUserRole.invitedAt,
+        })
+        .from(tUserRole)
+        .innerJoin(tUser, eq(tUserRole.inviterId, tUser.id))
+        .where(eq(tUserRole.userId, userId));
+      return inviters.length > 0 ? inviters[0] : undefined;
+    });
+  }
+
+  async getInvitees(userId: string): Promise<Relation[]> {
+    return wrap('role.getInvitees', async () => {
+      const invitees = await this.db
+        .select({
           username: tUser.username,
           name: tUser.name,
           invitedAt: tUserRole.invitedAt,
         })
         .from(tUserRole)
         .innerJoin(tUser, eq(tUserRole.userId, tUser.id))
-        .where(or(eq(tUserRole.userId, userId), eq(tUserRole.inviterId, userId)))
+        .where(eq(tUserRole.inviterId, userId))
         .orderBy(desc(tUserRole.invitedAt));
-      const result: UserRelations = {
-        inviter: undefined,
-        invitees: [],
-      };
-      for (const relation of relations) {
-        if (relation.userId === userId) {
-          result.inviter = relation;
-        } else {
-          result.invitees.push(relation);
-        }
-      }
-      return result;
+      return invitees;
     });
   }
 }
