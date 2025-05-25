@@ -14,13 +14,14 @@ export function isInviteCodeValid(inviteCode: InviteCode): boolean {
 
 interface InviteQuotaInput {
   articleCount: number;
-  validCodeCount: number; // unused and used codes, expect expired codes
+  validCodeCount: number;
+  invitedCount: number;
 }
 
 // Use this pattern to define logic in domain, but ensure atomicity in the repository
 export type InviteQuotaAlgorithm = (input: InviteQuotaInput) => number;
 export function inviteCodeQuota(input: InviteQuotaInput): number {
-  return input.articleCount - input.validCodeCount;
+  return Math.max(input.articleCount - input.validCodeCount - input.invitedCount, 0);
 }
 
 export interface InviteCodeInput {

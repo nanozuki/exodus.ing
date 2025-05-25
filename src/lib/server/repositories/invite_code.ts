@@ -6,7 +6,7 @@ import type {
   InviteQuotaAlgorithm,
 } from '$lib/domain/entities/invite_code';
 import { and, eq, isNull } from 'drizzle-orm/sql';
-import { tArticle, tInviteCode, type AppDatabase } from './schema';
+import { tArticle, tInviteCode, tUserRole, type AppDatabase } from './schema';
 import { newCode, wrap } from './utils';
 import { AppError } from '$lib/errors';
 
@@ -23,7 +23,8 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
             tInviteCode,
             and(eq(tInviteCode.inviterId, inviterId), isNull(tInviteCode.usedAt)),
           );
-          const quota = algo({ articleCount, validCodeCount });
+          const invitedCount = await tx.$count(tUserRole, eq(tUserRole.inviterId, inviterId));
+          const quota = algo({ articleCount, validCodeCount, invitedCount });
           if (quota <= 0) {
             return AppError.Forbidden('Invite code quota is exhausted').throw();
           }
@@ -78,7 +79,8 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
         tInviteCode,
         and(eq(tInviteCode.inviterId, userId), isNull(tInviteCode.usedAt)),
       );
-      return algo({ articleCount, validCodeCount });
+      const invitedCount = await this.db.$count(tUserRole, eq(tUserRole.inviterId, userId));
+      return algo({ articleCount, validCodeCount, invitedCount });
     });
   }
 
