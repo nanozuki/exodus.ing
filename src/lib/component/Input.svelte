@@ -14,12 +14,14 @@
 
 <div class="gap-y-xs flex w-full flex-col">
   <label class="font-semibold" for={field}>{label}</label>
-  {#if description}<small class="text-subtle">{description}</small>{/if}
-  {#if error}<small class="text-error">{error}</small>{/if}
-  <input
-    class="bg-surface border-accent-alt focus-visible:border-accent border-2 p-1 leading-6 focus-visible:outline-hidden"
-    name={field}
-    bind:value
-    {...rest}
-  />
+  <div class="gap-y-2xs flex w-full flex-col">
+    <input
+      class="bg-surface border-accent-alt focus-visible:border-accent border-2 p-1 leading-6 focus-visible:outline-hidden"
+      name={field}
+      bind:value
+      {...rest}
+    />
+    {#if description}<small class="text-subtle">{description}</small>{/if}
+    {#if error}<small class="text-error">{error}</small>{/if}
+  </div>
 </div>

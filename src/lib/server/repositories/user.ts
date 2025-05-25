@@ -1,12 +1,12 @@
 import type { User, UserInput, UserPatch, UserRepository } from '$lib/domain/entities/user';
-import { eq, or, sql } from 'drizzle-orm';
-import { tUser, tUserRole, type AppDatabase } from './schema';
+import { eq, or } from 'drizzle-orm';
+import { tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
 export class SqliteUserRepository implements UserRepository {
   constructor(private db: AppDatabase) {}
 
-  async getUserByKey(key: string): Promise<User | null> {
+  async findByKey(key: string): Promise<User | null> {
     return await wrap('user.getUserByKey', async () => {
       const id = key.length === 16 ? key.slice(0, 6) : key;
       const users = await this.db
@@ -18,8 +18,23 @@ export class SqliteUserRepository implements UserRepository {
           aboutMe: tUser.aboutMe,
         })
         .from(tUser)
-        .leftJoin(tUserRole, eq(tUser.id, tUserRole.userId))
         .where(or(eq(tUser.username, key), eq(tUser.id, id)));
+      return users.length !== 0 ? users[0] : null;
+    });
+  }
+
+  async findByName(name: string): Promise<User | null> {
+    return await wrap('user.findUserByName', async () => {
+      const users = await this.db
+        .select({
+          id: tUser.id,
+          username: tUser.username,
+          githubId: tUser.githubId,
+          name: tUser.name,
+          aboutMe: tUser.aboutMe,
+        })
+        .from(tUser)
+        .where(eq(tUser.name, name));
       return users.length !== 0 ? users[0] : null;
     });
   }
@@ -33,7 +48,6 @@ export class SqliteUserRepository implements UserRepository {
           githubId: tUser.githubId,
           name: tUser.name,
           aboutMe: tUser.aboutMe,
-          roles: sql<string>`json_group_array(${tUserRole.roleKey})`,
         })
         .from(tUser)
         .where(eq(tUser.githubId, githubId));

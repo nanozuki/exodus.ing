@@ -102,12 +102,8 @@ export class LuciaAuthService implements AuthAdapter {
   }
 
   async createGithubAuthUrl(cookies: Cookies, input: StateInput): Promise<URL> {
-    const { inviteCode, next } = input;
-    const state = {
-      state: generateState(),
-      inviteCode,
-      next,
-    };
+    const { next, signUp } = input;
+    const state = { state: generateState(), next, signUp };
     const stateJson = JSON.stringify(state);
     cookies.set('github_oauth_state', stateJson, {
       path: '/',

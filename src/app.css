@@ -89,17 +89,11 @@
 
   --leading-single: 1;
 
-  --breakpoint-*: initial;
-  --breakpoint-sm: 43rem;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-
   --container-article: 40rem;
-
   --spacing-page-vertical: 1rem;
   --spacing-page-horizontal: 1.5rem;
+  --breakpoint-page: 43rem;
+
   --spacing-2xs: 0.25rem; /* 4px */
   --spacing-xs: 0.5rem; /* 8px */
   --spacing-s: 0.75rem; /* 12px */

@@ -1,18 +1,17 @@
-import type { User } from '$lib/domain/entities/user';
-import { AppError } from '$lib/errors';
-import type { InviteCodeService } from './invite_code';
-import type { UserService, GitHubUser } from './user';
 import type { Cookies } from '@sveltejs/kit';
+import type { GitHubUser } from '$lib/domain/services/user';
+import type { User, UserRepository } from '$lib/domain/entities/user';
+import { AppError } from '$lib/errors';
 
 export interface State {
   state: string;
-  inviteCode?: string;
   next?: string;
+  signUp?: { username?: string; name?: string };
 }
 
 export interface StateInput {
-  inviteCode?: string;
   next?: string;
+  signUp?: { username?: string; name?: string };
 }
 
 export interface AuthAdapter {
@@ -28,8 +27,7 @@ export interface AuthAdapter {
 export class AuthService {
   constructor(
     private readonly auth: AuthAdapter,
-    private readonly user: UserService,
-    private readonly inviteCode: InviteCodeService,
+    private readonly user: UserRepository,
   ) {}
 
   async loadSession(cookies: Cookies): Promise<User | null> {
@@ -37,7 +35,22 @@ export class AuthService {
   }
 
   async authByGithub(cookies: Cookies, input: StateInput): Promise<URL> {
-    return await this.auth.createGithubAuthUrl(cookies, input);
+    const username = input.signUp?.username;
+    const name = input.signUp?.name || username;
+    if (username) {
+      const user = await this.user.findByKey(username);
+      if (user) {
+        return AppError.UsernameAlreadyExist(username).throw();
+      }
+    }
+    if (name) {
+      const user = await this.user.findByName(name);
+      if (user) {
+        return AppError.NameAlreadyExist(name).throw();
+      }
+    }
+    const authUrl = await this.auth.createGithubAuthUrl(cookies, input);
+    return authUrl;
   }
 
   async handleGithubCallback(cookies: Cookies, code: string, state: string): Promise<State> {
@@ -47,7 +60,7 @@ export class AuthService {
       return AppError.OAuthValidationError('invalid state').throw();
     }
     const ghUser = await this.auth.getGitHubUserByCode(code);
-    const user = await this.user.findUserByGitHubId(ghUser.id);
+    const user = await this.user.findByGitHubId(ghUser.id);
 
     if (user) {
       // exsiting user

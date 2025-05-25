@@ -45,18 +45,16 @@ export interface RepositorySet {
 }
 
 export function createServiceSet(repositories: RepositorySet, adapters: AdapterSet): ServiceSet {
-  const user = new UserService(repositories.user);
-  const inviteCode = new InviteCodeService(repositories.inviteCode, repositories.role);
   return {
     article: new ArticleService(repositories.article),
     articleList: new ArticleListService(repositories.article),
-    auth: new AuthService(adapters.auth, user, inviteCode),
+    auth: new AuthService(adapters.auth, repositories.user),
     bookmark: new BookmarkService(repositories.bookmark),
     comment: new CommentService(repositories.comment),
     feeds: new FeedsService(repositories.article),
-    inviteCode,
+    inviteCode: new InviteCodeService(repositories.inviteCode, repositories.role),
     role: new RoleService(repositories.role),
-    user,
+    user: new UserService(repositories.user),
     userDomain: new UserDomainService(repositories.userDomain, adapters.nameResolver),
   };
 }

@@ -24,7 +24,7 @@
   />
 </svelte:head>
 
-<div class="max-w-article mx-page-horizontal gap-y-l flex min-h-svh flex-col sm:mx-auto">
+<div class="max-w-article mx-page-horizontal gap-y-l page:mx-auto flex min-h-svh flex-col">
   <header class="py-xs flex flex-row items-center justify-between">
     <a href="/" class="gap-x-xs flex flex-row items-center">
       <Logo --size="var(--spacing-xl)" />

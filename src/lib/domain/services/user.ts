@@ -10,7 +10,7 @@ export class UserService {
   constructor(private user: UserRepository) {}
 
   async getUserByKey(key: string): Promise<User> {
-    const user = await this.user.getUserByKey(key);
+    const user = await this.user.findByKey(key);
     if (!user) {
       return AppError.UserNotFound(key).throw();
     }

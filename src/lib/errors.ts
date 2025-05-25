@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, type HttpError } from '@sveltejs/kit';
 
 export class AppError implements App.Error {
   private constructor(
@@ -9,10 +9,19 @@ export class AppError implements App.Error {
   ) {}
 
   static catch(e: unknown): AppError {
+    if (
+      e instanceof Object &&
+      'status' in e &&
+      typeof e.status === 'number' &&
+      'body' in e &&
+      typeof e.body === 'object'
+    ) {
+      const err = e as HttpError;
+      return new AppError(err.status, err.body.key, err.body.message, err.body.context);
+    }
     if (e instanceof AppError) {
       return e;
     }
-    console.error(e);
     return AppError.InternalServerError();
   }
 
@@ -31,6 +40,14 @@ export class AppError implements App.Error {
 
   static InviteCodeMissed(context?: string): AppError {
     return new AppError(400, 'INVITE_CODE_MISSED', '邀请码不能为空', context);
+  }
+
+  static UsernameAlreadyExist(username: string): AppError {
+    return new AppError(400, 'USER_ALREADY_EXIST', `用户名 ${username} 已存在`, username);
+  }
+
+  static NameAlreadyExist(name: string): AppError {
+    return new AppError(400, 'NAME_ALREADY_EXIST', `昵称 ${name} 已存在`, name);
   }
 
   // for invisible form
