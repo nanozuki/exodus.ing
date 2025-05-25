@@ -2,12 +2,20 @@ import type { Cookies } from '@sveltejs/kit';
 import type { GitHubUser } from '$lib/domain/services/user';
 import type { User, UserRepository } from '$lib/domain/entities/user';
 import { AppError } from '$lib/errors';
+import { z } from 'zod';
 
-export interface State {
-  state: string;
-  next?: string;
-  signUp?: { username?: string; name?: string };
-}
+export const StateSchema = z.object({
+  state: z.string(),
+  next: z.string().optional(),
+  signUp: z
+    .object({
+      username: z.string().optional(),
+      name: z.string().optional(),
+    })
+    .optional(),
+});
+
+export type State = z.infer<typeof StateSchema>;
 
 export interface StateInput {
   next?: string;
@@ -54,7 +62,6 @@ export class AuthService {
   }
 
   async handleGithubCallback(cookies: Cookies, code: string, state: string): Promise<State> {
-    // TODO: covert to (cookies, code, state) => Promise<{GitHubUser, next}>
     const storedState = await this.auth.getAuthState(cookies);
     if (state !== storedState.state) {
       return AppError.OAuthValidationError('invalid state').throw();
@@ -67,8 +74,15 @@ export class AuthService {
       await this.auth.setSession(cookies, user.id);
       return storedState;
     }
-    // new user, TODO: no need invite code for now
-    AppError.InternalServerError('user not found').throw();
+
+    // new user, create user
+    const newUser = await this.user.create({
+      username: storedState.signUp?.username || ghUser.username,
+      name: storedState.signUp?.name || ghUser.username,
+      githubId: ghUser.id,
+      aboutMe: '',
+    });
+    await this.auth.setSession(cookies, newUser.id);
     return storedState;
   }
 }

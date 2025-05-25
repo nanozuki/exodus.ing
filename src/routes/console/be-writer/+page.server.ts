@@ -13,7 +13,6 @@ export const actions = {
   default: async ({ locals, request }) => {
     const user = locals.requireLoggedInUser('accept invite code');
     const data = await request.formData();
-    console.log('accept invite code', data);
     const form = acceptFormScheme.safeParse({ inviteCode: data.get('inviteCode') });
     if (!form.success) {
       return fail(400, {

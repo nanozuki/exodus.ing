@@ -7,7 +7,7 @@ export const tUser = sqliteTable('user', {
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
   username: text('username').notNull().unique(),
   githubId: integer('github_id').unique(),
-  name: text('name').notNull(),
+  name: text('name').notNull().unique(),
   aboutMe: text('about_me').notNull(),
 });
 

@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
-import type { AuthAdapter, State, StateInput } from '$lib/domain/services/auth';
+import { StateSchema, type AuthAdapter, type State, type StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
@@ -8,7 +8,6 @@ import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
-import { z } from 'zod';
 
 declare module 'lucia' {
   interface Register {
@@ -38,12 +37,6 @@ interface GithubCodeResponse {
   id: number;
   login: string;
 }
-
-export const StateSchema = z.object({
-  state: z.string(),
-  inviteCode: z.string().optional(),
-  next: z.string().optional(),
-});
 
 const SESSION_CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -119,7 +112,6 @@ export class LuciaAuthService implements AuthAdapter {
   async getGitHubUserByCode(code: string): Promise<GitHubUser> {
     try {
       const tokens = await this.github.validateAuthorizationCode(code);
-      console.log('tokens', tokens);
       const githubUserResponse = await fetch('https://api.github.com/user', {
         headers: {
           Authorization: `Bearer ${tokens.accessToken()}`,

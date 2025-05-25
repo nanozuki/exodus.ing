@@ -6,6 +6,11 @@ export interface GitHubUser {
   username: string;
 }
 
+export interface CreateUserOptions {
+  username?: string;
+  name?: string;
+}
+
 export class UserService {
   constructor(private user: UserRepository) {}
 
@@ -19,16 +24,6 @@ export class UserService {
 
   async findUserByGitHubId(id: number): Promise<User | null> {
     return await this.user.findByGitHubId(id);
-  }
-
-  async createUserByGitHub(gitHubUser: GitHubUser): Promise<User> {
-    const user = {
-      username: gitHubUser.username,
-      githubId: gitHubUser.id,
-      name: gitHubUser.username,
-      aboutMe: '',
-    };
-    return await this.user.create(user);
   }
 
   async updateUsername(userId: string, username: string): Promise<void> {
