@@ -10,7 +10,7 @@ export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> 
     return result;
   } catch (error) {
     if (error instanceof AppError) {
-      throw error;
+      return error.throw();
     } else if (error instanceof Error) {
       return AppError.DatabaseError(`${method} failed: ${error.message}`).throw();
     } else {

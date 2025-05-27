@@ -94,4 +94,8 @@ export class AppError implements App.Error {
   static DatabaseError(context?: string): AppError {
     return new AppError(500, 'DATABASE_ERROR', '数据库错误', context);
   }
+
+  static DNSQueryFailed(status: number): AppError {
+    return new AppError(500, 'DNS_QUERY_FAILED', `DNS 查询失败，状态码：${status}`);
+  }
 }

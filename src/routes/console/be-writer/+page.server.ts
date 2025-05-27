@@ -23,7 +23,7 @@ export const actions = {
     const { inviteCode } = form.data;
 
     try {
-      await services.inviteCode.acceptInviteCode(user, inviteCode);
+      await services.inviteCode.acceptInviteCode(user.id, inviteCode);
     } catch (e) {
       const error = AppError.catch(e);
       return fail(error.code, {

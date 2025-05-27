@@ -5,7 +5,6 @@ import {
   type InviteCodeRepository,
 } from '$lib/domain/entities/invite_code';
 import { AppError } from '$lib/errors';
-import type { User } from '$lib/domain/entities/user';
 import type { Relation } from '$lib/domain/entities/role';
 import type { Role, RoleRepository } from '../entities/role';
 
@@ -31,7 +30,7 @@ export class InviteCodeService {
     return await this.inviteCodeRepo.create(input, inviteCodeQuota);
   }
 
-  async acceptInviteCode(loggedInUser: User, code: string): Promise<void> {
+  async acceptInviteCode(userId: string, code: string): Promise<void> {
     const inviteCode = await this.inviteCodeRepo.findByCode(code);
     if (!inviteCode) {
       return AppError.InviteCodeMissed('Invite code not found').throw();
@@ -40,20 +39,20 @@ export class InviteCodeService {
       return AppError.InvalidInviteCode('Invite code is already used').throw();
     }
     await this.inviteCodeRepo.useCode(code);
-    await this.roleRepo.specifyRoleByOther(loggedInUser.id, inviteCode.roleKey as Role, inviteCode.inviterId);
+    await this.roleRepo.specifyRoleByOther(userId, inviteCode.roleKey as Role, inviteCode.inviterId);
   }
 
-  async getUserInvitationData(loggedInUser: User): Promise<UserInvitationData> {
+  async getUserInvitationData(userId: string): Promise<UserInvitationData> {
     const [inviter, invitees, unusedCodes, quota] = await Promise.all([
-      this.roleRepo.getInviter(loggedInUser.id),
-      this.roleRepo.getInvitees(loggedInUser.id),
-      this.inviteCodeRepo.getUserUnusedCodes(loggedInUser.id),
-      this.inviteCodeRepo.getUserInviteQuota(loggedInUser.id, inviteCodeQuota),
+      this.roleRepo.getInviter(userId),
+      this.roleRepo.getInvitees(userId),
+      this.inviteCodeRepo.getUserUnusedCodes(userId),
+      this.inviteCodeRepo.getUserInviteQuota(userId, inviteCodeQuota),
     ]);
     return { inviter, invitees, unusedCodes, quota };
   }
 
-  async deleteInviteCode(loggedInUser: User, code: string): Promise<void> {
-    await this.inviteCodeRepo.delete(loggedInUser.id, code);
+  async deleteInviteCode(userId: string, code: string): Promise<void> {
+    await this.inviteCodeRepo.delete(userId, code);
   }
 }

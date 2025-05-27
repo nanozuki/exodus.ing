@@ -19,14 +19,13 @@ export class ArticleService {
     return await this.repository.getArticleEditorData(req);
   }
 
-  async createByMarkdown(locals: App.Locals, content: string, replyTo?: string): Promise<string> {
-    const user = locals.requireLoggedInUser('edit article');
+  async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
     const result = await compileArticle(content);
     if (!result.ok) {
       return throwResultError(result.errors);
     }
     return await this.repository.create({
-      userId: user.id,
+      userId,
       content,
       title: result.title,
       contentType: 'markdown',
@@ -34,10 +33,9 @@ export class ArticleService {
     });
   }
 
-  async updateByMarkdown(locals: App.Locals, articleId: string, content: string): Promise<void> {
-    const user = locals.requireLoggedInUser('edit article');
+  async updateByMarkdown(userId: string, articleId: string, content: string): Promise<void> {
     const article = await this.repository.getById(articleId);
-    if (article.authorId !== user.id) {
+    if (article.authorId !== userId) {
       return AppError.Forbidden('article editor').throw();
     }
     const result = await compileArticle(content);

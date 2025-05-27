@@ -12,11 +12,8 @@ import { SqliteUserDomainRepository } from './user_domain';
 import { SqliteRoleRepository } from './role';
 
 export async function getDatabase(): Promise<AppDatabase> {
-  if (!env.EXODUSING_DATABASE) {
-    throw new Error('DATABASE_URL is not set');
-  }
   const start = Date.now();
-  const client = createClient({ url: env.EXODUSING_DATABASE });
+  const client = createClient({ url: env.EXODUSING_DATABASE! });
   const db = drizzle(client, { schema, logger: true });
   const duration = Date.now() - start;
   console.log(`[CONNECT-DATABASE] connected sqlite in ${duration}ms`);

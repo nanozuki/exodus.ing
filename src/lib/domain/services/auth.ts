@@ -22,6 +22,7 @@ export interface StateInput {
   signUp?: { username?: string; name?: string };
 }
 
+// TODO: move the Cookies out of the domain layer
 export interface AuthAdapter {
   // Session/State operations
   loadSession(cookies: Cookies): Promise<User | null>;

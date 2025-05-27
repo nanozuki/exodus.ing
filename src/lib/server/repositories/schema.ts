@@ -99,8 +99,8 @@ export const tUserRole = sqliteTable(
   {
     userId: text('user_id').notNull(),
     roleKey: text('role_key').notNull(),
-    inviterId: text('inviter_id').notNull(),
     invitedAt: integer('invited_at', { mode: 'timestamp_ms' }).notNull(),
+    inviterId: text('inviter_id'),
   },
   (table) => [
     primaryKey({ columns: [table.userId, table.roleKey] }),
