@@ -1,5 +1,5 @@
-import type { Relation, Role, RoleRepository, UserRelations } from '$lib/domain/entities/role';
-import { and, desc, eq, or } from 'drizzle-orm';
+import type { Relation, Role, RoleRepository } from '$lib/domain/entities/role';
+import { and, desc, eq } from 'drizzle-orm';
 import { tUser, tUserRole, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
