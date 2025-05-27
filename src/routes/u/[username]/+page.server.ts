@@ -5,6 +5,8 @@ import { hasPermission, Permission } from '$lib/domain/entities/role';
 import type { ArticleListItem } from '$lib/domain/entities/article';
 import type { Paginated } from '$lib/domain/values/page';
 import type { CommentListItem } from '$lib/domain/entities/comment';
+import type { User } from '$lib/domain/entities/user';
+import { AppError } from '$lib/errors';
 
 type Tab = 'articles' | 'comments';
 function parseTab(isWriter: boolean, tab: string | null): Tab {
@@ -20,9 +22,16 @@ type ListData = {
   | { tab: 'comments'; comments: Paginated<CommentListItem> }
 );
 
+async function getUser(param: string): Promise<User> {
+  const user = param.startsWith('@')
+    ? await services.user.findUserByUsername(param.slice(1))
+    : await services.user.findUserById(param);
+  return user ? user : AppError.UserNotFound(param).throw();
+}
+
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   const username = params.username;
-  const user = await services.user.getUserByKey(username);
+  const user = await getUser(username);
   const roles = await services.role.getUserRoles(user.id);
   const isWriter = hasPermission(roles, Permission.CreateArticle);
 

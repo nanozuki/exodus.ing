@@ -43,12 +43,12 @@ async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
     date_modified: formatRFC3339(article.updatedAt),
     author: {
       name: article.authorName,
-      url: `https://exodus.ing/u/${article.authorUsername}`,
+      url: `https://exodus.ing/u/@${article.authorUsername}`,
     },
     authors: [
       {
         name: article.authorName,
-        url: `https://exodus.ing/u/${article.authorUsername}`,
+        url: `https://exodus.ing/u/@${article.authorUsername}`,
       },
     ],
   };

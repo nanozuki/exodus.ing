@@ -1,5 +1,4 @@
 import type { User, UserRepository } from '$lib/domain/entities/user';
-import { AppError } from '$lib/errors';
 
 export interface GitHubUser {
   id: number;
@@ -14,12 +13,12 @@ export interface CreateUserOptions {
 export class UserService {
   constructor(private user: UserRepository) {}
 
-  async getUserByKey(key: string): Promise<User> {
-    const user = await this.user.findByKey(key);
-    if (!user) {
-      return AppError.UserNotFound(key).throw();
-    }
-    return user;
+  async findUserById(id: string): Promise<User | null> {
+    return await this.user.findById(id);
+  }
+
+  async findUserByUsername(username: string): Promise<User | null> {
+    return await this.user.findByUsername(username);
   }
 
   async findUserByGitHubId(id: number): Promise<User | null> {

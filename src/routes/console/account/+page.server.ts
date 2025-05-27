@@ -33,6 +33,6 @@ export const actions = {
         error: JSON.stringify(e),
       };
     }
-    redirect(301, `/u/${username}`);
+    redirect(301, `/u/@${username}`);
   },
 } satisfies Actions;

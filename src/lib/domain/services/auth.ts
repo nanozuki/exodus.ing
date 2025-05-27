@@ -47,7 +47,10 @@ export class AuthService {
     const username = input.signUp?.username;
     const name = input.signUp?.name || username;
     if (username) {
-      const user = await this.user.findByKey(username);
+      if (username.startsWith('@')) {
+        return AppError.UsernameCannotStartWithAt(username).throw();
+      }
+      const user = await this.user.findByUsername(username);
       if (user) {
         return AppError.UsernameAlreadyExist(username).throw();
       }
@@ -83,6 +86,9 @@ export class AuthService {
       githubId: ghUser.id,
       aboutMe: '',
     });
+    if (newUser.username.startsWith('@')) {
+      return AppError.UsernameCannotStartWithAt(newUser.username).throw();
+    }
     await this.auth.setSession(cookies, newUser.id);
     return storedState;
   }

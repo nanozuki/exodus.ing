@@ -20,7 +20,8 @@ export interface UserPatch {
 }
 
 export interface UserRepository {
-  findByKey(key: string): Promise<User | null>;
+  findById(username: string): Promise<User | null>;
+  findByUsername(username: string): Promise<User | null>;
   findByName(name: string): Promise<User | null>;
   findByGitHubId(githubId: number): Promise<User | null>;
 

@@ -41,7 +41,7 @@
         <a class="hover:text-primary mr-2 font-serif text-2xl font-bold" href={`/a/${article.id}`}>
           {reply.title}
         </a>
-        <a class="text-accent hover:text-accent-alt font-semibold" href={`/u/${article.authorUsername}`}>
+        <a class="text-accent hover:text-accent-alt font-semibold" href={`/u/@${article.authorUsername}`}>
           {reply.authorName}
         </a>
       </p>
