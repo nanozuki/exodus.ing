@@ -46,6 +46,10 @@ export class AppError implements App.Error {
     return new AppError(400, 'USER_ALREADY_EXIST', `用户名 ${username} 已存在`, username);
   }
 
+  static UsernameCannotStartWithAt(username: string): AppError {
+    return new AppError(400, 'USERNAME_CANNOT_START_WITH_AT', `用户名不能以 @ 开头`, username);
+  }
+
   static NameAlreadyExist(name: string): AppError {
     return new AppError(400, 'NAME_ALREADY_EXIST', `昵称 ${name} 已存在`, name);
   }

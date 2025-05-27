@@ -1,4 +1,11 @@
-import type { Comment, CommentInput, CommentRepository, CommentView } from '$lib/domain/entities/comment';
+import type {
+  Comment,
+  CommentInput,
+  CommentListItem,
+  CommentRepository,
+  CommentView,
+} from '$lib/domain/entities/comment';
+import type { Paginated } from '$lib/domain/values/page';
 import { AppError } from '$lib/errors';
 
 function commentViews(comments: Comment[]): CommentView[] {
@@ -18,12 +25,18 @@ function commentViews(comments: Comment[]): CommentView[] {
   return views;
 }
 
+export const COMMENT_PAGE_SIZE = 10;
+
 export class CommentService {
   constructor(private repository: CommentRepository) {}
 
   async listByArticle(articleId: string): Promise<CommentView[]> {
     const comments = await this.repository.listByArticle(articleId);
     return commentViews(comments);
+  }
+
+  async listByUser(userId: string, pageNumber: number): Promise<Paginated<CommentListItem>> {
+    return await this.repository.listByUser(userId, { pageNumber, pageSize: COMMENT_PAGE_SIZE });
   }
 
   async create(comment: CommentInput): Promise<string> {
