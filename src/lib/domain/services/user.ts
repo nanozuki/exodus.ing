@@ -1,40 +1,28 @@
 import type { User, UserRepository } from '$lib/domain/entities/user';
-import { AppError } from '$lib/errors';
 
 export interface GitHubUser {
   id: number;
   username: string;
 }
 
+export interface CreateUserOptions {
+  username?: string;
+  name?: string;
+}
+
 export class UserService {
   constructor(private user: UserRepository) {}
 
-  async getUserByKey(key: string): Promise<User> {
-    const user = await this.user.getUserByKey(key);
-    if (!user) {
-      return AppError.UserNotFound(key).throw();
-    }
-    return user;
+  async findUserById(id: string): Promise<User | null> {
+    return await this.user.findById(id);
+  }
+
+  async findUserByUsername(username: string): Promise<User | null> {
+    return await this.user.findByUsername(username);
   }
 
   async findUserByGitHubId(id: number): Promise<User | null> {
     return await this.user.findByGitHubId(id);
-  }
-
-  async createUserByGitHub(gitHubUser: GitHubUser): Promise<User> {
-    const userId = await this.user.generateId();
-    const now = new Date();
-    const user = {
-      id: userId,
-      createdAt: now,
-      updatedAt: now,
-      username: gitHubUser.username,
-      githubId: gitHubUser.id,
-      name: gitHubUser.username,
-      aboutMe: '',
-    };
-    await this.user.create(user);
-    return user;
   }
 
   async updateUsername(userId: string, username: string): Promise<void> {

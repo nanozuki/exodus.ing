@@ -18,11 +18,12 @@
     "test": "npm run test:unit -- --run && npm run test:e2e",
     "test:e2e": "playwright test",
     "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate",
+    "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
+    "@iconify-json/material-symbols-light": "^1.2.21",
     "@iconify-json/mdi": "^1.2.3",
     "@melt-ui/pp": "^0.3.2",
     "@melt-ui/svelte": "^0.86.6",
@@ -36,7 +37,7 @@
     "@types/eslint": "^9.6.1",
     "@types/mdast": "^4.0.4",
     "@types/node": "^22",
-    "drizzle-kit": "^0.31.0",
+    "drizzle-kit": "^0.31.1",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-svelte": "^3.5.1",

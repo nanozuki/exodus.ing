@@ -1,11 +1,18 @@
-import type { Comment, CommentInput, CommentPatch, CommentRepository } from '$lib/domain/entities/comment';
+import type {
+  Comment,
+  CommentInput,
+  CommentListItem,
+  CommentPatch,
+  CommentRepository,
+} from '$lib/domain/entities/comment';
 import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import { AppError } from '$lib/errors';
-import { eq } from 'drizzle-orm/sql';
-import { tComment, tUser, type AppDatabase } from './schema';
+import { desc, eq } from 'drizzle-orm/sql';
+import { tArticle, tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
+import type { Paginated, Pagination } from '$lib/domain/values/page';
 
-export class D1CommentRepository implements CommentRepository {
+export class SqliteCommentRepository implements CommentRepository {
   constructor(private db: AppDatabase) {}
 
   private modelQuery() {
@@ -31,6 +38,48 @@ export class D1CommentRepository implements CommentRepository {
     return await wrap('comment.listByArticleId', async () => {
       const comments = await this.modelQuery().where(eq(tComment.articleId, articleId)).orderBy(tComment.createdAt);
       return comments.map(decodePathField);
+    });
+  }
+
+  async listByUser(userId: string, page: Pagination): Promise<Paginated<CommentListItem>> {
+    return await wrap('comment.listByUser', async () => {
+      const count = await this.db.$count(tComment, eq(tComment.userId, userId));
+      const datas = await this.db
+        .select({
+          article: {
+            id: tArticle.id,
+            title: tArticle.title,
+            authorId: tUser.id,
+            authorUsername: tUser.username,
+            authorName: tUser.name,
+          },
+          comment: {
+            id: tComment.id,
+            updatedAt: tComment.updatedAt,
+            content: tComment.content,
+          },
+        })
+        .from(tComment)
+        .innerJoin(tArticle, eq(tArticle.id, tComment.articleId))
+        .innerJoin(tUser, eq(tUser.id, tArticle.userId))
+        .where(eq(tComment.userId, userId))
+        .orderBy(desc(tComment.updatedAt))
+        .limit(page.pageSize)
+        .offset(page.pageSize * (page.pageNumber - 1));
+      const items: CommentListItem[] = [];
+      for (const data of datas) {
+        const item = items.find((item) => item.article.id === data.article.id);
+        if (item) {
+          item.comments.push(data.comment);
+        } else {
+          items.push({ article: data.article, comments: [data.comment] });
+        }
+      }
+      return {
+        pageNumber: page.pageNumber,
+        count,
+        items,
+      };
     });
   }
 
@@ -80,6 +129,14 @@ export class D1CommentRepository implements CommentRepository {
   }
 
   async update(commentId: string, patch: Partial<CommentPatch>): Promise<void> {
-    await wrap('comment.update', () => this.db.update(tComment).set(patch).where(eq(tComment.id, commentId)));
+    await wrap('comment.update', () =>
+      this.db
+        .update(tComment)
+        .set({
+          content: patch.content,
+          updatedAt: new Date(),
+        })
+        .where(eq(tComment.id, commentId)),
+    );
   }
 }

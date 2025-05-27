@@ -10,29 +10,24 @@ export const rolePermissions: Record<Role, Permission[]> = {
   [Role.ArticleAuthor]: [Permission.CreateArticle],
 };
 
-export interface RoleRepository<C> {
-  specifyRoleByOther(ctx: C, userId: string, role: Role, otherId: string): Promise<void>;
-  getUserRoles(ctx: C, userId: string): Promise<Role[]>;
+export function hasPermission(roles: Role[], permission: Permission) {
+  return roles.some((role) => rolePermissions[role].includes(permission));
 }
 
-export interface RoleDeps<C> {
-  roleRepository: RoleRepository<C>;
+export interface Relation {
+  username: string;
+  name: string;
+  invitedAt: Date;
 }
 
-export function roleService<C>(deps: RoleDeps<C>) {
-  const { roleRepository } = deps;
+export interface UserRelations {
+  inviter: Relation | undefined;
+  invitees: Relation[];
+}
 
-  async function specifyRoleByOther(ctx: C, userId: string, role: Role, otherId: string) {
-    return roleRepository.specifyRoleByOther(ctx, userId, role, otherId);
-  }
-
-  async function hasPermission(ctx: C, userId: string, permission: Permission) {
-    const roles = await roleRepository.getUserRoles(ctx, userId);
-    return roles.some((role) => rolePermissions[role].includes(permission));
-  }
-
-  return {
-    specifyRoleByOther,
-    hasPermission,
-  };
+export interface RoleRepository {
+  specifyRoleByOther(userId: string, role: Role, otherId: string): Promise<void>;
+  getUserRoles(userId: string): Promise<Role[]>;
+  getInviter(userId: string): Promise<Relation | undefined>;
+  getInvitees(userId: string): Promise<Relation[]>;
 }

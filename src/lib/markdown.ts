@@ -29,7 +29,7 @@ export function throwResultError(errors: ArticleCompileErrors): never {
   const error = Object.keys(errors)
     .map((key) => ArticleCompileErrorMessage[key as keyof ArticleCompileErrors])
     .join(', ');
-  throw AppError.InvalidMarkdownError(error).throw();
+  return AppError.InvalidMarkdownError(error).throw();
 }
 
 interface FileData {

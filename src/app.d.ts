@@ -1,6 +1,7 @@
+import type { Permission } from '$lib/domain/entities/role';
 import type { User } from '$lib/domain/entities/user';
 
-// See https://kit.svelte.dev/docs/types#app
+// See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
   namespace App {
@@ -12,9 +13,8 @@ declare global {
     interface Locals {
       loggedInUser: User | null;
       requireLoggedInUser: (context: string) => User;
-      // Import example:
-      // user: import('$lib/server/auth').SessionValidationResult['user'];
-      // session: import('$lib/server/auth').SessionValidationResult['session'];
+      hasPermission: (p: Permission) => Promise<boolean>;
+      requirePermission: (p: Permission, context: string) => Promise<User>;
     }
     // interface PageData {}
     // interface PageState {}

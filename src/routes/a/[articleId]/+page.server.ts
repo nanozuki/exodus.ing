@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { PageServerLoad } from './$types';
 import { compileArticle, throwResultError } from '$lib/markdown';
 import { services } from '$lib/server/registry';
+import { Permission } from '$lib/domain/entities/role';
 
 const commentSchema = z.object({
   action: z.literal('new').or(z.literal('edit')),
@@ -21,11 +22,12 @@ const bookmarkSchema = z.object({
 export const load: PageServerLoad = async ({ locals, params }) => {
   const user = locals.loggedInUser;
   const articleId = params.articleId!;
-  const [article, isBookmarked, comments, replies] = await Promise.all([
+  const [article, isBookmarked, comments, replies, canReply] = await Promise.all([
     services.article.getById(articleId),
     user ? services.bookmark.isBookmarked(articleId, user.id) : false,
     services.comment.listByArticle(articleId),
     services.article.listReplies(articleId),
+    locals.hasPermission(Permission.CreateArticle),
   ]);
   const commentForm = await superValidate(zod(commentSchema));
   const bookmarkForm = await superValidate(zod(bookmarkSchema), {
@@ -45,6 +47,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     replies,
     commentForm,
     bookmarkForm,
+    canReply,
   };
 };
 

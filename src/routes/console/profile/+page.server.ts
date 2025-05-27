@@ -15,6 +15,6 @@ export const actions = {
     }
     const user = locals.requireLoggedInUser('update profile');
     await services.user.updateProfile(user.id, name, aboutMe);
-    redirect(303, '/settings/profile');
+    redirect(303, '/console/profile'); // reload the page
   },
 } satisfies Actions;

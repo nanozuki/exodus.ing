@@ -1,4 +1,5 @@
 import type { NameResolver } from '$lib/domain/services/user_domain';
+import { AppError } from '$lib/errors';
 
 // getTxtRecords by cloudflare DoH Dns API, like these curl command:
 // curl --http2 --header "accept: application/dns-json" "https://1.1.1.1/dns-query?name=<domain>&type=TXT"
@@ -31,7 +32,7 @@ async function resolveTxt(domain: string): Promise<string[]> {
   });
   const json = (await response.json()) as Response;
   if (json.Status !== 0) {
-    throw new Error(`Dns query failed: ${json.Status}`);
+    return AppError.DNSQueryFailed(json.Status).throw();
   }
   return json.Answer?.map((record) => record.data) ?? [];
 }

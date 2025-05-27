@@ -1,20 +1,28 @@
-import type { User } from '$lib/domain/entities/user';
-import { AppError } from '$lib/errors';
-import type { InviteCodeService } from './invite_code';
-import type { UserService, GitHubUser } from './user';
 import type { Cookies } from '@sveltejs/kit';
+import type { GitHubUser } from '$lib/domain/services/user';
+import type { User, UserRepository } from '$lib/domain/entities/user';
+import { AppError } from '$lib/errors';
+import { z } from 'zod';
 
-export interface State {
-  state: string;
-  inviteCode?: string;
-  next?: string;
-}
+export const StateSchema = z.object({
+  state: z.string(),
+  next: z.string().optional(),
+  signUp: z
+    .object({
+      username: z.string().optional(),
+      name: z.string().optional(),
+    })
+    .optional(),
+});
+
+export type State = z.infer<typeof StateSchema>;
 
 export interface StateInput {
-  inviteCode?: string;
   next?: string;
+  signUp?: { username?: string; name?: string };
 }
 
+// TODO: move the Cookies out of the domain layer
 export interface AuthAdapter {
   // Session/State operations
   loadSession(cookies: Cookies): Promise<User | null>;
@@ -28,8 +36,7 @@ export interface AuthAdapter {
 export class AuthService {
   constructor(
     private readonly auth: AuthAdapter,
-    private readonly user: UserService,
-    private readonly inviteCode: InviteCodeService,
+    private readonly user: UserRepository,
   ) {}
 
   async loadSession(cookies: Cookies): Promise<User | null> {
@@ -37,32 +44,52 @@ export class AuthService {
   }
 
   async authByGithub(cookies: Cookies, input: StateInput): Promise<URL> {
-    return await this.auth.createGithubAuthUrl(cookies, input);
+    const username = input.signUp?.username;
+    const name = input.signUp?.name || username;
+    if (username) {
+      if (username.startsWith('@')) {
+        return AppError.UsernameCannotStartWithAt(username).throw();
+      }
+      const user = await this.user.findByUsername(username);
+      if (user) {
+        return AppError.UsernameAlreadyExist(username).throw();
+      }
+    }
+    if (name) {
+      const user = await this.user.findByName(name);
+      if (user) {
+        return AppError.NameAlreadyExist(name).throw();
+      }
+    }
+    const authUrl = await this.auth.createGithubAuthUrl(cookies, input);
+    return authUrl;
   }
 
   async handleGithubCallback(cookies: Cookies, code: string, state: string): Promise<State> {
-    // TODO: covert to (cookies, code, state) => Promise<{GitHubUser, next}>
     const storedState = await this.auth.getAuthState(cookies);
     if (state !== storedState.state) {
       return AppError.OAuthValidationError('invalid state').throw();
     }
     const ghUser = await this.auth.getGitHubUserByCode(code);
-    let user = await this.user.findUserByGitHubId(ghUser.id);
+    const user = await this.user.findByGitHubId(ghUser.id);
 
     if (user) {
       // exsiting user
       await this.auth.setSession(cookies, user.id);
       return storedState;
     }
-    // new user
-    if (!storedState.inviteCode) {
-      return AppError.InviteCodeMissed().throw();
+
+    // new user, create user
+    const newUser = await this.user.create({
+      username: storedState.signUp?.username || ghUser.username,
+      name: storedState.signUp?.name || ghUser.username,
+      githubId: ghUser.id,
+      aboutMe: '',
+    });
+    if (newUser.username.startsWith('@')) {
+      return AppError.UsernameCannotStartWithAt(newUser.username).throw();
     }
-    if (!(await this.inviteCode.validateInviteCode(storedState.inviteCode))) {
-      return AppError.InvalidInviteCode().throw();
-    }
-    user = await this.user.createUserByGitHub(ghUser);
-    await this.auth.setSession(cookies, user.id);
+    await this.auth.setSession(cookies, newUser.id);
     return storedState;
   }
 }

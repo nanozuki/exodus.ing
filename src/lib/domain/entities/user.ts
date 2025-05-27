@@ -1,7 +1,12 @@
 export interface User {
   id: string;
-  createdAt: Date;
-  updatedAt: Date;
+  username: string;
+  githubId: number | null;
+  name: string;
+  aboutMe: string;
+}
+
+export interface UserInput {
   username: string;
   githubId: number | null;
   name: string;
@@ -15,10 +20,11 @@ export interface UserPatch {
 }
 
 export interface UserRepository {
+  findById(username: string): Promise<User | null>;
+  findByUsername(username: string): Promise<User | null>;
+  findByName(name: string): Promise<User | null>;
   findByGitHubId(githubId: number): Promise<User | null>;
-  getUserByKey(key: string): Promise<User | null>;
 
-  generateId(): Promise<string>;
-  create(user: User): Promise<void>;
+  create(user: UserInput): Promise<User>;
   update(userId: string, patch: Partial<UserPatch>): Promise<void>;
 }

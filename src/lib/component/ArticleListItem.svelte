@@ -23,7 +23,7 @@
   {#if article.replyTo}
     <p class="text-subtle bg-accent-alt/10 px-2xs w-fit">
       <MdiReply style="display: inline; vertical-align: text-top;" />
-      <a class="text-accent hover:text-accent-alt inline" href={`/u/${article.replyTo.authorUsername}`}>
+      <a class="text-accent hover:text-accent-alt inline" href={`/u/@${article.replyTo.authorUsername}`}>
         {article.replyTo.authorName}
       </a>
       的

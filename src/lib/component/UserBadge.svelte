@@ -6,6 +6,6 @@
   const { name, username }: UserBadgeProps = $props();
 </script>
 
-<a class="text-accent hover:text-accent-alt font-medium" href={`/u/${username}`}>
+<a class="text-accent hover:text-accent-alt font-medium" href={`/u/@${username}`}>
   {name}
 </a>

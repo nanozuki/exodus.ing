@@ -5,7 +5,6 @@ import { type RequestEvent } from '@sveltejs/kit';
 export async function GET({ url, cookies }: RequestEvent): Promise<Response> {
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
-  console.log('code', code, 'stateId', state);
   if (!code || !state) {
     return AppError.OAuthValidationError('code or state is empty').throw();
   }

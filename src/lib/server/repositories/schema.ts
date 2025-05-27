@@ -1,5 +1,5 @@
 import type { LibSQLDatabase } from 'drizzle-orm/libsql';
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 
 export const tUser = sqliteTable('user', {
   id: text('id').notNull().primaryKey(),
@@ -7,7 +7,7 @@ export const tUser = sqliteTable('user', {
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
   username: text('username').notNull().unique(),
   githubId: integer('github_id').unique(),
-  name: text('name').notNull(),
+  name: text('name').notNull().unique(),
   aboutMe: text('about_me').notNull(),
 });
 
@@ -21,12 +21,17 @@ export const tSession = sqliteTable(
   (table) => [index('session_user_id_idx').on(table.userId), index('expires_at_idx').on(table.expiresAt)],
 );
 
-export const tInviteCode = sqliteTable('invite_code', {
-  id: integer('id').primaryKey(),
-  code: text('code').notNull().unique(),
-  validFrom: integer('valid_from', { mode: 'timestamp_ms' }).notNull(),
-  validTo: integer('valid_to', { mode: 'timestamp_ms' }).notNull(),
-});
+export const tInviteCode = sqliteTable(
+  'invite_code',
+  {
+    id: integer('id').primaryKey(),
+    code: text('code').notNull().unique(),
+    roleKey: text('role_key').notNull(),
+    inviterId: text('inviter_id').notNull(),
+    usedAt: integer('used_at', { mode: 'timestamp_ms' }),
+  },
+  (table) => [index('invite_code_inviter_id_idx').on(table.inviterId)],
+);
 
 export type ArticleContentType = 'markdown' | 'external_link';
 
@@ -89,6 +94,20 @@ export const tBookmark = sqliteTable(
   (table) => [index('bookmark_user_id_idx').on(table.userId), index('bookmark_article_id_idx').on(table.articleId)],
 );
 
+export const tUserRole = sqliteTable(
+  'user_role',
+  {
+    userId: text('user_id').notNull(),
+    roleKey: text('role_key').notNull(),
+    invitedAt: integer('invited_at', { mode: 'timestamp_ms' }).notNull(),
+    inviterId: text('inviter_id'),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.roleKey] }),
+    index('user_role_inviter_id_idx').on(table.inviterId),
+  ],
+);
+
 export const schema = {
   tArticle,
   tBookmark,
@@ -106,5 +125,6 @@ export type InviteCodeModel = typeof tInviteCode.$inferSelect;
 export type SessionModel = typeof tSession.$inferSelect;
 export type UserDomainModel = typeof tUserDomain.$inferSelect;
 export type UserModel = typeof tUser.$inferSelect;
+export type UserRoleModel = typeof tUserRole.$inferSelect;
 
 export type AppDatabase = LibSQLDatabase<typeof schema>;

@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
-import type { AuthAdapter, State, StateInput } from '$lib/domain/services/auth';
+import { StateSchema, type AuthAdapter, type State, type StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
@@ -8,7 +8,6 @@ import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
-import { z } from 'zod';
 
 declare module 'lucia' {
   interface Register {
@@ -27,7 +26,8 @@ function getLucia(db: AppDatabase) {
     },
     // convert user attributes to session attributes, finally stored in locals.
     getUserAttributes: (user) => {
-      return user;
+      const { id, username, githubId, name, aboutMe } = user;
+      return { id, username, githubId, name, aboutMe };
     },
   });
   return lucia;
@@ -38,23 +38,18 @@ interface GithubCodeResponse {
   login: string;
 }
 
-export const StateSchema = z.object({
-  state: z.string(),
-  inviteCode: z.string().optional(),
-  next: z.string().optional(),
-});
+const SESSION_CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 export class LuciaAuthService implements AuthAdapter {
   private lucia: ReturnType<typeof getLucia>;
   private github: GitHub;
+  private clearedAt: number;
 
   constructor(db: AppDatabase) {
     this.lucia = getLucia(db);
     const { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } = env;
-    if (!EXODUSING_GITHUB_ID || !EXODUSING_GITHUB_SECRET || !EXODUSING_HOST) {
-      throw new Error('GITHUB_ID, GITHUB_SECRET, or HOST is not set');
-    }
-    this.github = new GitHub(EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, `${EXODUSING_HOST}/auth/github/callback`);
+    this.github = new GitHub(EXODUSING_GITHUB_ID!, EXODUSING_GITHUB_SECRET!, `${EXODUSING_HOST!}/auth/github/callback`);
+    this.clearedAt = Date.now() - SESSION_CLEANUP_INTERVAL;
   }
 
   async loadSession(cookies: Cookies): Promise<User | null> {
@@ -62,7 +57,10 @@ export class LuciaAuthService implements AuthAdapter {
     if (!sessionId) {
       return null;
     }
-    await this.lucia.deleteExpiredSessions();
+    if (Date.now() - this.clearedAt > SESSION_CLEANUP_INTERVAL) {
+      this.clearedAt = Date.now();
+      await this.lucia.deleteExpiredSessions();
+    }
     const { session, user } = await this.lucia.validateSession(sessionId);
     if (session && session.fresh) {
       const { name, value, attributes } = this.lucia.createSessionCookie(session.id);
@@ -94,12 +92,8 @@ export class LuciaAuthService implements AuthAdapter {
   }
 
   async createGithubAuthUrl(cookies: Cookies, input: StateInput): Promise<URL> {
-    const { inviteCode, next } = input;
-    const state = {
-      state: generateState(),
-      inviteCode,
-      next,
-    };
+    const { next, signUp } = input;
+    const state = { state: generateState(), next, signUp };
     const stateJson = JSON.stringify(state);
     cookies.set('github_oauth_state', stateJson, {
       path: '/',
@@ -115,7 +109,6 @@ export class LuciaAuthService implements AuthAdapter {
   async getGitHubUserByCode(code: string): Promise<GitHubUser> {
     try {
       const tokens = await this.github.validateAuthorizationCode(code);
-      console.log('tokens', tokens);
       const githubUserResponse = await fetch('https://api.github.com/user', {
         headers: {
           Authorization: `Bearer ${tokens.accessToken()}`,

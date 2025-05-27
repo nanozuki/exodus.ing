@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm/sql';
 import { tBookmark, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
-export class D1BookmarkRepository implements BookmarkRepository {
+export class SqliteBookmarkRepository implements BookmarkRepository {
   constructor(private db: AppDatabase) {}
 
   async listByUserId(userId: string): Promise<Bookmark[]> {

@@ -50,7 +50,7 @@
         <p class="text-subtle bg-accent-alt/10 px-xs w-fit py-0.5">
           <MdiReply style="display: inline; vertical-align: text-top;" />
           此文回应了
-          <a class="text-accent hover:text-accent-alt inline" href={`/u/${article.replyTo.authorUsername}`}>
+          <a class="text-accent hover:text-accent-alt inline" href={`/u/@${article.replyTo.authorUsername}`}>
             {article.replyTo.authorName}
           </a>
           的

@@ -1,7 +1,7 @@
 <script lang="ts">
   import ArticleListItem from '$lib/component/ArticleListItem.svelte';
   import type { ArticleListItem as ArticleItem } from '$lib/domain/entities/article';
-  import ArticlePager from '$lib/component/ArticlePager.svelte';
+  import Pager from '$lib/component/Pager.svelte';
   import type { Paginated } from '$lib/domain/values/page';
   import { ARTICLE_PAGE_SIZE } from '$lib/domain/entities/article.js';
   import { twMerge } from 'tailwind-merge';
@@ -19,19 +19,11 @@
   });
 </script>
 
-<div id="article-list" class={twMerge('flex flex-col', outerClass)}>
+<div id="article-list" class={twMerge('gap-y-m flex flex-col', outerClass)}>
   {#if count > ARTICLE_PAGE_SIZE}
-    <ArticlePager
-      class="py-xs bg-base sticky top-0"
-      {count}
-      perPage={ARTICLE_PAGE_SIZE}
-      page={pageNumber}
-      pageLink={hashedLink}
-    />
-  {:else}
-    <div class="pt-xs"></div>
+    <Pager class="bg-base sticky top-0" {count} perPage={ARTICLE_PAGE_SIZE} page={pageNumber} pageLink={hashedLink} />
   {/if}
-  <div class="gap-y-l mt-m flex flex-col">
+  <div class="gap-y-l flex flex-col">
     {#each items as a (a.id)}
       <ArticleListItem article={a} />
     {/each}

@@ -24,7 +24,7 @@ function convertReplyTo<T extends { replyTo: ReplyToModel }>(item: T): Omit<T, '
   return { ...item, replyTo: item.replyTo.id ? item.replyTo : undefined };
 }
 
-export class D1ArticleRepository implements ArticleRepository {
+export class SqliteArticleRepository implements ArticleRepository {
   constructor(private db: AppDatabase) {}
 
   private modelQuery() {
