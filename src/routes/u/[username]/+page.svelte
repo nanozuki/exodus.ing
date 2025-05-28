@@ -8,12 +8,12 @@
   const { data } = $props();
   let { user, listData, isMyself, isWriter } = $derived(data);
   const badgeClass = 'w-fit flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
-  const pageLink = (page: number) => `?page=${page}`;
+  const pageLink = $derived((page: number) => `?tab=${listData.tab}&page=${page}#list-top`);
   const routes = $derived(
     listData.tabs.map((tab) => {
       return tab === 'articles'
-        ? { route: `?tab=${tab}`, title: '文章列表', current: listData.tab === 'articles' }
-        : { route: `?tab=${tab}`, title: '评论列表', current: listData.tab === 'comments' };
+        ? { route: `?tab=${tab}#list-top`, title: '文章列表', current: listData.tab === 'articles' }
+        : { route: `?tab=${tab}#list-top`, title: '评论列表', current: listData.tab === 'comments' };
     }),
   );
 </script>
@@ -45,7 +45,7 @@
   {/if}
 </article>
 
-<div class="gap-y-m flex flex-col">
+<div id="list-top" class="gap-y-m flex flex-col">
   <!-- Navigator -->
   {#if routes.length > 1}
     <nav class="gap-x-m flex">

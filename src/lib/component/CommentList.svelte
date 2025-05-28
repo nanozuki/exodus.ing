@@ -15,15 +15,9 @@
 
   let { comments, pageLink, class: outerClass }: Props = $props();
   let { pageNumber, count, items } = $derived(comments);
-  let hashedLink = $derived((page: number) => {
-    return pageLink(page) + '#comment-list';
-  });
 </script>
 
-<div id="comment-list" class={twMerge('gap-y-m flex flex-col', outerClass)}>
-  {#if count > COMMENT_PAGE_SIZE}
-    <Pager class="bg-base sticky top-0" {count} perPage={COMMENT_PAGE_SIZE} page={pageNumber} pageLink={hashedLink} />
-  {/if}
+<div class={twMerge('gap-y-m flex flex-col', outerClass)}>
   <ul class="gap-y-m flex flex-col">
     {#each items as item (item.article.id)}
       <li class="gap-y-xs flex flex-col">
@@ -37,4 +31,7 @@
       </li>
     {/each}
   </ul>
+  {#if count > COMMENT_PAGE_SIZE}
+    <Pager class="bg-base" {count} perPage={COMMENT_PAGE_SIZE} page={pageNumber} {pageLink} />
+  {/if}
 </div>

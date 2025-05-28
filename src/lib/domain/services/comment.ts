@@ -25,7 +25,7 @@ function commentViews(comments: Comment[]): CommentView[] {
   return views;
 }
 
-export const COMMENT_PAGE_SIZE = 10;
+export const COMMENT_PAGE_SIZE = 20;
 
 export class CommentService {
   constructor(private repository: CommentRepository) {}
