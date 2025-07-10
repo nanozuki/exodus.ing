@@ -17,7 +17,7 @@ export const actions = {
     if (!form.success) {
       return fail(400, {
         inviteCode: data.get('inviteCode')?.toString() || '',
-        error: form.error.errors[0].message,
+        error: form.error.message,
       });
     }
     const { inviteCode } = form.data;
