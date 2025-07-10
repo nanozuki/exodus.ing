@@ -16,5 +16,5 @@ db-run:
 	docker start exodus-ing-db
 db-stop:
 	docker stop exodus-ing-db
-db-cli
+db-cli:
 	pgcli $EXODUSING_DATABASE

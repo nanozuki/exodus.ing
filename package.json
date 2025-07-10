@@ -19,7 +19,8 @@
     "test:e2e": "playwright test",
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:export": "drizzle-kit export > src/lib/server/repositories/database.sql"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

@@ -10,7 +10,7 @@ I can help you run this command to start a PostgreSQL container for local develo
 
 This command starts a PostgreSQL server, sets a password, maps it to your local port 5432, and creates a volume (pgdata) to persist the data.
 
-## Step 2: Update Project Dependencies
+## Step 2: Update Project Dependencies: DONE
 
 You'll need to swap the SQLite database driver for the PostgreSQL one.
 I will run these commands to add the pg driver and remove the SQLite driver:
@@ -20,22 +20,22 @@ I will run these commands to add the pg driver and remove the SQLite driver:
  pnpm add -D @types/pg
 ```
 
-## Step 3: Update Drizzle Configuration (`drizzle.config.ts`)
+## Step 3: Update Drizzle Configuration (`drizzle.config.ts`): DONE
 
 Your drizzle.config.ts file is currently configured for SQLite. It needs to be updated to point to your new PostgreSQL database. This involves changing the driver and dbCredentials.
 
-## Step 4: Update Database Connection in the App
+## Step 4: Update Database Connection in the App: DONE
 
 The code that initializes the Drizzle client for your application (likely in src/lib/server/registry.ts or src/lib/server/adapters/lucia.ts) needs to be changed from using the SQLite driver to the new pg driver. This will involve using a PostgreSQL connection string, which is best stored in an environment variable
 (.env file).
 
 # Phase 2: Schema & Data Migration
 
-## Step 5: Adjust the Database Schema (`src/lib/server/repositories/schema.ts`)
+## Step 5: Adjust the Database Schema (`src/lib/server/repositories/schema.ts`): DONE
 
 PostgreSQL has slightly different data types than SQLite. You may need to update your schema definitions in src/lib/server/repositories/schema.ts. For example, you might switch from integer for primary keys to serial, or use timestamp with time zones. I'll need to inspect this file to be sure.
 
-## Step 6: Generate and Run the Initial PostgreSQL Migration
+## Step 6: Generate and Run the Initial PostgreSQL Migration: DONE
 
 With the configuration pointing to your new, empty PostgreSQL database, we'll use Drizzle Kit to generate a migration file that will create the entire schema.
 
