@@ -5,11 +5,13 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { hasPermission as rolesHasPermission, Role, type Permission } from '$lib/domain/entities/role';
 import { AppError } from '$lib/errors';
 import type { User } from '$lib/domain/entities/user';
+import { getConfig } from './config';
 
 export async function buildServices(): Promise<void> {
-  const db = await getDatabase();
+  const config = getConfig();
+  const db = await getDatabase(config);
   const repositories = await createRepositorySet(db);
-  const adapters = createAdapterSet(db);
+  const adapters = createAdapterSet(db, config);
   services = createServiceSet(repositories, adapters);
 }
 

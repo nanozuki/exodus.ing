@@ -1,6 +1,6 @@
 # Phase 1: Setup & Configuration
 
-## Step 1: Set up a PostgreSQL Server
+## Step 1: Set up a PostgreSQL Server: DONE
 
 You'll need a running PostgreSQL instance. The easiest way to get started, especially since you have a Dockerfile, is to use Docker.
 
@@ -15,8 +15,10 @@ This command starts a PostgreSQL server, sets a password, maps it to your local 
 You'll need to swap the SQLite database driver for the PostgreSQL one.
 I will run these commands to add the pg driver and remove the SQLite driver:
 
-1 pnpm add pg
-2 pnpm remove @libsql/client
+```bash
+ pnpm add pg
+ pnpm add -D @types/pg
+```
 
 ## Step 3: Update Drizzle Configuration (`drizzle.config.ts`)
 
@@ -48,7 +50,7 @@ This is often the most complex step. If you have important data in your SQLite f
 - Use a Tool: Tools like pgloader can automate migrating data from SQLite to PostgreSQL.
 - Write a Custom Script: I can help you write a script that reads from your SQLite database and inserts the data into your new PostgreSQL database.
 
-# Phase 3: Verification
+Phase 3: Verification
 
 ## Step 8: Update Dockerfile and Environment
 
@@ -57,3 +59,8 @@ Your Dockerfile might need adjustments if it was previously copying the SQLite d
 ## Step 9: Test Everything
 
 Run your project's tests (vitest) and manually test the application thoroughly to ensure all database operations (creating users, articles, comments, etc.) work correctly with PostgreSQL.
+
+## Step 10: Cleanup
+
+1. pnpm remove @libsql/client
+1. remove sqlite from direnv/flakes

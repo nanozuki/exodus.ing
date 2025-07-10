@@ -1,17 +1,21 @@
-import type { LibSQLDatabase } from 'drizzle-orm/libsql';
-import { index, integer, sqliteTable, text, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
+import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export const tUser = sqliteTable('user', {
+const timestamps = {
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+};
+
+export const tUser = pgTable('user', {
   id: text('id').notNull().primaryKey(),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+  ...timestamps,
   username: text('username').notNull().unique(),
   githubId: integer('github_id').unique(),
   name: text('name').notNull().unique(),
   aboutMe: text('about_me').notNull(),
 });
 
-export const tSession = sqliteTable(
+export const tSession = pgTable(
   'session',
   {
     id: text('id').notNull().primaryKey(),
@@ -21,26 +25,25 @@ export const tSession = sqliteTable(
   (table) => [index('session_user_id_idx').on(table.userId), index('expires_at_idx').on(table.expiresAt)],
 );
 
-export const tInviteCode = sqliteTable(
+export const tInviteCode = pgTable(
   'invite_code',
   {
-    id: integer('id').primaryKey(),
+    id: serial('id').primaryKey(),
     code: text('code').notNull().unique(),
     roleKey: text('role_key').notNull(),
     inviterId: text('inviter_id').notNull(),
-    usedAt: integer('used_at', { mode: 'timestamp_ms' }),
+    usedAt: timestamp('used_at'),
   },
   (table) => [index('invite_code_inviter_id_idx').on(table.inviterId)],
 );
 
 export type ArticleContentType = 'markdown' | 'external_link';
 
-export const tArticle = sqliteTable(
+export const tArticle = pgTable(
   'article',
   {
     id: text('id').notNull().primaryKey(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+    ...timestamps,
     userId: text('user_id').notNull(),
     title: text('title').notNull(),
     content: text('content').notNull(),
@@ -54,25 +57,24 @@ export const tArticle = sqliteTable(
   ],
 );
 
-export const tUserDomain = sqliteTable(
+export const tUserDomain = pgTable(
   'user_domain',
   {
-    id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+    id: serial('id').primaryKey(),
     userId: text('user_id').notNull(),
     domain: text('domain').notNull().unique(),
     verifyTxtRecord: text('verify_txt_record').notNull(),
-    verifiedAt: integer('verified_at', { mode: 'timestamp_ms' }),
+    verifiedAt: timestamp('verified_at'),
   },
   (table) => [index('user_domain_user_id_idx').on(table.userId)],
 );
 
-export const tComment = sqliteTable(
+export const tComment = pgTable(
   'comment',
   {
     id: text('id').notNull().primaryKey(),
     path: text('path').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+    ...timestamps,
     userId: text('user_id').notNull(),
     articleId: text('article_id').notNull(),
     content: text('content').notNull(),
@@ -84,22 +86,22 @@ export const tComment = sqliteTable(
   ],
 );
 
-export const tBookmark = sqliteTable(
+export const tBookmark = pgTable(
   'bookmark',
   {
     userId: text('user_id').notNull(),
     articleId: text('article_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+    createdAt: timestamps.createdAt,
   },
   (table) => [index('bookmark_user_id_idx').on(table.userId), index('bookmark_article_id_idx').on(table.articleId)],
 );
 
-export const tUserRole = sqliteTable(
+export const tUserRole = pgTable(
   'user_role',
   {
     userId: text('user_id').notNull(),
     roleKey: text('role_key').notNull(),
-    invitedAt: integer('invited_at', { mode: 'timestamp_ms' }).notNull(),
+    invitedAt: timestamp('invited_at').defaultNow().notNull(),
     inviterId: text('inviter_id'),
   },
   (table) => [
@@ -127,4 +129,4 @@ export type UserDomainModel = typeof tUserDomain.$inferSelect;
 export type UserModel = typeof tUser.$inferSelect;
 export type UserRoleModel = typeof tUserRole.$inferSelect;
 
-export type AppDatabase = LibSQLDatabase<typeof schema>;
+export type AppDatabase = NodePgDatabase<typeof schema>;

@@ -4,7 +4,7 @@ export default defineConfig({
   schema: './src/lib/server/repositories/schema.ts',
   out: './migrations',
   verbose: true,
-  dialect: 'sqlite',
+  dialect: 'postgresql',
   dbCredentials: { url: process.env.EXODUSING_DATABASE! },
   strict: true,
 });
