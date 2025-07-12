@@ -6,7 +6,9 @@ export class AppError implements App.Error {
     public key: string,
     public message: string,
     public context?: string,
-  ) {}
+  ) {
+    console.error(`AppError: ${key} - ${message}`, context ? `Context: ${context}` : '');
+  }
 
   static catch(e: unknown): AppError {
     if (
@@ -22,6 +24,7 @@ export class AppError implements App.Error {
     if (e instanceof AppError) {
       return e;
     }
+    console.error('Unknown error caught:', e);
     return AppError.InternalServerError();
   }
 
@@ -96,7 +99,7 @@ export class AppError implements App.Error {
   }
 
   static DatabaseError(context?: string): AppError {
-    return new AppError(500, 'DATABASE_ERROR', '数据库错误', context);
+    return new AppError(500, `DATABASE_ERROR`, '数据库错误', context);
   }
 
   static DNSQueryFailed(status: number): AppError {
@@ -104,6 +107,6 @@ export class AppError implements App.Error {
   }
 
   static MissingConfig(key: string): AppError {
-    return new AppError(500, `MISSING_CONFIG: ${key}`, `缺少配置项：${key}`);
+    return new AppError(500, 'MISSING_CONFIG', `缺少配置项：${key}`);
   }
 }

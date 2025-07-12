@@ -3,7 +3,7 @@ import { StateSchema, type AuthAdapter, type State, type StateInput } from '$lib
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
-import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
+import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
@@ -17,7 +17,7 @@ declare module 'lucia' {
 }
 
 function getLucia(db: AppDatabase) {
-  const authAdapter = new DrizzleSQLiteAdapter(db, tSession, tUser);
+  const authAdapter = new DrizzlePostgreSQLAdapter(db, tSession, tUser);
   const lucia = new Lucia(authAdapter, {
     sessionCookie: {
       attributes: {

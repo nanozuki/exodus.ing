@@ -3,7 +3,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { tUser, tUserRole, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
-export class SqliteRoleRepository implements RoleRepository {
+export class PgRoleRepository implements RoleRepository {
   constructor(private readonly db: AppDatabase) {}
 
   async specifyRoleByOther(userId: string, role: Role, inviterId: string): Promise<void> {

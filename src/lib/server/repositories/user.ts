@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
-export class SqliteUserRepository implements UserRepository {
+export class PgUserRepository implements UserRepository {
   constructor(private db: AppDatabase) {}
 
   async findById(id: string): Promise<User | null> {
@@ -65,6 +65,7 @@ export class SqliteUserRepository implements UserRepository {
         })
         .from(tUser)
         .where(eq(tUser.githubId, githubId));
+      console.log('findByGitHubId', githubId, users);
       return users.length !== 0 ? users[0] : null;
     });
   }

@@ -9,7 +9,7 @@ import { and, eq } from 'drizzle-orm/sql';
 import { tUserDomain, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
-export class SqliteUserDomainRepository implements UserDomainRepository {
+export class PgUserDomainRepository implements UserDomainRepository {
   constructor(private db: AppDatabase) {}
 
   async listByUserId(userId: string): Promise<UserDomain[]> {

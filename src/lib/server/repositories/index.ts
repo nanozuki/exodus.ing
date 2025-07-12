@@ -1,13 +1,13 @@
 import type { RepositorySet } from '$lib/domain/services';
 import { schema, type AppDatabase } from '$lib/server/repositories/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { SqliteArticleRepository } from './article';
-import { SqliteBookmarkRepository } from './bookmark';
-import { SqliteCommentRepository } from './comment';
-import { SqliteInviteCodeRepository } from './invite_code';
-import { SqliteUserRepository } from './user';
-import { SqliteUserDomainRepository } from './user_domain';
-import { SqliteRoleRepository } from './role';
+import { PgArticleRepository } from './article';
+import { PgBookmarkRepository } from './bookmark';
+import { PgCommentRepository } from './comment';
+import { PgInviteCodeRepository } from './invite_code';
+import { PgUserRepository } from './user';
+import { PgUserDomainRepository } from './user_domain';
+import { PgRoleRepository } from './role';
 import type { Config } from '$lib/server/config';
 
 export async function getDatabase(config: Config): Promise<AppDatabase> {
@@ -20,12 +20,12 @@ export async function getDatabase(config: Config): Promise<AppDatabase> {
 
 export async function createRepositorySet(db: AppDatabase): Promise<RepositorySet> {
   return {
-    article: new SqliteArticleRepository(db),
-    bookmark: new SqliteBookmarkRepository(db),
-    comment: new SqliteCommentRepository(db),
-    inviteCode: new SqliteInviteCodeRepository(db),
-    role: new SqliteRoleRepository(db),
-    user: new SqliteUserRepository(db),
-    userDomain: new SqliteUserDomainRepository(db),
+    article: new PgArticleRepository(db),
+    bookmark: new PgBookmarkRepository(db),
+    comment: new PgCommentRepository(db),
+    inviteCode: new PgInviteCodeRepository(db),
+    role: new PgRoleRepository(db),
+    user: new PgUserRepository(db),
+    userDomain: new PgUserDomainRepository(db),
   };
 }
