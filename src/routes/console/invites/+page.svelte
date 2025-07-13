@@ -15,7 +15,7 @@
   {#if inviter}
     {#if welcome}恭喜！邀请码验证通过！{/if}你受 <UserBadge {...inviter} /> 邀请成为作者。
   {:else}
-    您是尊贵的种子用户。
+    您通过站点直接邀请成为作者。
   {/if}
   每发表一篇文章可以邀请 1 位作者，
   {#if quota > 0}
