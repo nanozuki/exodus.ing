@@ -145,21 +145,16 @@ type Session struct {
 	UserID    string    `gorm:"not null;type:text"`
 	ExpiresAt time.Time `gorm:"not null;type:timestamp"`
 }
+
 type User struct {
-	ID        string    `gorm:"primaryKey;type:text"`
-	CreatedAt time.Time `gorm:"autoCreateTime;type:timestamp"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime;type:timestamp"`
-	Username  string    `gorm:"not null;type:text;unique"`
-	GithubID  int64     `gorm:"type:integer;unique"`
-	Name      string    `gorm:"not null;type:text;unique"`
-	AboutMe   string    `gorm:"not null;type:text"`
-}
-type UserDomain struct {
-	ID              int64     `gorm:"primaryKey;type:serial"`
-	UserID          string    `gorm:"not null;type:text"`
-	Domain          string    `gorm:"not null;type:text;unique"`
-	VerifyTxtRecord string    `gorm:"not null;type:text"`
-	VerifiedAt      time.Time `gorm:"type:timestamp"`
+	ID         string    `gorm:"primaryKey;type:text"`
+	CreatedAt  time.Time `gorm:"autoCreateTime;type:timestamp"`
+	UpdatedAt  time.Time `gorm:"autoUpdateTime;type:timestamp"`
+	Username   string    `gorm:"not null;type:text;unique"`
+	GithubID   int64     `gorm:"type:integer;unique"`
+	Name       string    `gorm:"not null;type:text;unique"`
+	AboutMe    string    `gorm:"not null;type:text"`
+	VerifyCode string    `gorm:"not null;type:text"`
 }
 
 type UserRole struct {

@@ -67,16 +67,6 @@ CREATE TABLE `user` (
 CREATE UNIQUE INDEX `user_username_unique` ON `user` (`username`);
 CREATE UNIQUE INDEX `user_github_id_unique` ON `user` (`github_id`);
 CREATE UNIQUE INDEX `user_name_unique` ON `user` (`name`);
-CREATE TABLE `user_domain` (
-	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`user_id` text NOT NULL,
-	`domain` text NOT NULL,
-	`verify_txt_record` text NOT NULL,
-	`verified_at` integer
-);
-
-CREATE UNIQUE INDEX `user_domain_domain_unique` ON `user_domain` (`domain`);
-CREATE INDEX `user_domain_user_id_idx` ON `user_domain` (`user_id`);
 CREATE TABLE `user_role` (
 	`user_id` text NOT NULL,
 	`role_key` text NOT NULL,
@@ -152,14 +142,6 @@ type User struct {
 	GithubID  int64  `gorm:"type:integer"`
 	Name      string `gorm:"not null;type:text"`
 	AboutMe   string `gorm:"not null;type:text"`
-}
-
-type UserDomain struct {
-	ID              int64  `gorm:"primaryKey;autoincrement;type:integer"`
-	UserID          string `gorm:"not null;type:text"`
-	Domain          string `gorm:"not null;type:text"`
-	VerifyTxtRecord string `gorm:"not null;type:text"`
-	VerifiedAt      int64  `gorm:"type:integer"`
 }
 
 type UserRole struct {

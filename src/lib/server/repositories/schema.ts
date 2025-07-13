@@ -13,6 +13,7 @@ export const tUser = pgTable('user', {
   githubId: integer('github_id').unique(),
   name: text('name').notNull().unique(),
   aboutMe: text('about_me').notNull(),
+  verifyCode: text('verify_code').notNull(),
 });
 
 export const tSession = pgTable(
@@ -55,18 +56,6 @@ export const tArticle = pgTable(
     index('article_user_id_idx').on(table.userId),
     index('article_path_idx').on(table.path),
   ],
-);
-
-export const tUserDomain = pgTable(
-  'user_domain',
-  {
-    id: serial('id').primaryKey(),
-    userId: text('user_id').notNull(),
-    domain: text('domain').notNull().unique(),
-    verifyTxtRecord: text('verify_txt_record').notNull(),
-    verifiedAt: timestamp('verified_at'),
-  },
-  (table) => [index('user_domain_user_id_idx').on(table.userId)],
 );
 
 export const tComment = pgTable(
@@ -117,7 +106,6 @@ export const schema = {
   tInviteCode,
   tSession,
   tUser,
-  tUserDomain,
 };
 
 export type ArticleModel = typeof tArticle.$inferSelect;
@@ -125,7 +113,6 @@ export type BookmarkModel = typeof tBookmark.$inferSelect;
 export type CommentModel = typeof tComment.$inferSelect;
 export type InviteCodeModel = typeof tInviteCode.$inferSelect;
 export type SessionModel = typeof tSession.$inferSelect;
-export type UserDomainModel = typeof tUserDomain.$inferSelect;
 export type UserModel = typeof tUser.$inferSelect;
 export type UserRoleModel = typeof tUserRole.$inferSelect;
 

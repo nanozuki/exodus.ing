@@ -6,7 +6,6 @@ import { PgBookmarkRepository } from './bookmark';
 import { PgCommentRepository } from './comment';
 import { PgInviteCodeRepository } from './invite_code';
 import { PgUserRepository } from './user';
-import { PgUserDomainRepository } from './user_domain';
 import { PgRoleRepository } from './role';
 import type { Config } from '$lib/server/config';
 
@@ -26,6 +25,5 @@ export async function createRepositorySet(db: AppDatabase): Promise<RepositorySe
     inviteCode: new PgInviteCodeRepository(db),
     role: new PgRoleRepository(db),
     user: new PgUserRepository(db),
-    userDomain: new PgUserDomainRepository(db),
   };
 }

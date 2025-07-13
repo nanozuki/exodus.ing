@@ -1,4 +1,3 @@
-import type { NameResolver } from '$lib/domain/services/user_domain';
 import { AppError } from '$lib/errors';
 
 // getTxtRecords by cloudflare DoH Dns API, like these curl command:
@@ -25,7 +24,7 @@ interface Response {
   Answer?: { name: string; type: number; TTL: number; data: string }[];
 }
 
-async function resolveTxt(domain: string): Promise<string[]> {
+export async function resolveTxt(domain: string): Promise<string[]> {
   const url = `https://1.1.1.1/dns-query?name=${domain}&type=TXT`;
   const response = await fetch(url, {
     headers: { accept: 'application/dns-json' },
@@ -36,7 +35,3 @@ async function resolveTxt(domain: string): Promise<string[]> {
   }
   return json.Answer?.map((record) => record.data) ?? [];
 }
-
-export const nameResolver: NameResolver = {
-  resolveTxt,
-};
