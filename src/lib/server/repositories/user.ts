@@ -65,7 +65,6 @@ export class PgUserRepository implements UserRepository {
         })
         .from(tUser)
         .where(eq(tUser.githubId, githubId));
-      console.log('findByGitHubId', githubId, users);
       return users.length !== 0 ? users[0] : null;
     });
   }
