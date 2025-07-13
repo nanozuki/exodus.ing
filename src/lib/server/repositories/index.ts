@@ -13,7 +13,7 @@ export async function getDatabase(config: Config): Promise<AppDatabase> {
   const start = Date.now();
   const db = drizzle(config.EXODUSING_DATABASE, { schema, logger: true });
   const duration = Date.now() - start;
-  console.log(`[CONNECT-DATABASE] connected sqlite in ${duration}ms`);
+  console.log(`[CONNECT-DATABASE] connected database in ${duration}ms`);
   return db;
 }
 

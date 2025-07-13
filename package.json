@@ -1,6 +1,6 @@
 {
   "name": "exodus.ing",
-  "version": "1.250710",
+  "version": "1.250713",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -64,7 +64,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@libsql/client": "^0.15.9",
     "@lucia-auth/adapter-drizzle": "^1.1.0",
     "arctic": "^3.7.0",
     "date-fns": "^4.1.0",

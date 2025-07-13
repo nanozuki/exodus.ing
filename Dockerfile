@@ -17,7 +17,6 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build
 
 FROM base AS runner
-RUN mkdir -p /app/database # for mount sqlite
 COPY --from=workspace /app/package.json /app/package.json
 COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app/build

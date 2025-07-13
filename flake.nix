@@ -12,25 +12,11 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             just
-            litecli
             nodePackages."@tailwindcss/language-server"
             nodePackages.nodejs
             nodePackages.pnpm
             nodePackages.svelte-language-server
             pgcli
-
-            # go
-            go
-            gofumpt
-            golangci-lint
-            gomodifytags
-            gopls
-            gotests
-            gotestsum
-            gotools
-            iferr
-            impl
-
           ];
           shellHook = ''
             export ESLINT_USE_FLAT_CONFIG="true"
