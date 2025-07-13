@@ -12,7 +12,7 @@ import { tArticle, tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
 
-export class SqliteCommentRepository implements CommentRepository {
+export class PgCommentRepository implements CommentRepository {
   constructor(private db: AppDatabase) {}
 
   private modelQuery() {

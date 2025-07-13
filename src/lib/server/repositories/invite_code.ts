@@ -10,7 +10,7 @@ import { tArticle, tInviteCode, tUserRole, type AppDatabase } from './schema';
 import { newCode, wrap } from './utils';
 import { AppError } from '$lib/errors';
 
-export class SqliteInviteCodeRepository implements InviteCodeRepository {
+export class PgInviteCodeRepository implements InviteCodeRepository {
   constructor(private db: AppDatabase) {}
 
   async create(input: InviteCodeInput, algo: InviteQuotaAlgorithm): Promise<InviteCode> {
@@ -39,7 +39,7 @@ export class SqliteInviteCodeRepository implements InviteCodeRepository {
           const ids = await tx.insert(tInviteCode).values(inviteCode).returning({ id: tInviteCode.id });
           return { ...inviteCode, id: ids[0].id };
         },
-        { behavior: 'immediate' },
+        { isolationLevel: 'serializable' },
       );
     });
   }

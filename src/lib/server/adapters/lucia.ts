@@ -1,13 +1,13 @@
 import { dev } from '$app/environment';
-import { env } from '$env/dynamic/private';
 import { StateSchema, type AuthAdapter, type State, type StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
 import { AppError } from '$lib/errors';
 import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
-import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
+import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
+import type { Config } from '$lib/server/config';
 
 declare module 'lucia' {
   interface Register {
@@ -17,7 +17,7 @@ declare module 'lucia' {
 }
 
 function getLucia(db: AppDatabase) {
-  const authAdapter = new DrizzleSQLiteAdapter(db, tSession, tUser);
+  const authAdapter = new DrizzlePostgreSQLAdapter(db, tSession, tUser);
   const lucia = new Lucia(authAdapter, {
     sessionCookie: {
       attributes: {
@@ -45,10 +45,13 @@ export class LuciaAuthService implements AuthAdapter {
   private github: GitHub;
   private clearedAt: number;
 
-  constructor(db: AppDatabase) {
+  constructor(db: AppDatabase, config: Config) {
     this.lucia = getLucia(db);
-    const { EXODUSING_GITHUB_ID, EXODUSING_GITHUB_SECRET, EXODUSING_HOST } = env;
-    this.github = new GitHub(EXODUSING_GITHUB_ID!, EXODUSING_GITHUB_SECRET!, `${EXODUSING_HOST!}/auth/github/callback`);
+    this.github = new GitHub(
+      config.EXODUSING_GITHUB_ID,
+      config.EXODUSING_GITHUB_SECRET,
+      `${config.EXODUSING_HOST}/auth/github/callback`,
+    );
     this.clearedAt = Date.now() - SESSION_CLEANUP_INTERVAL;
   }
 

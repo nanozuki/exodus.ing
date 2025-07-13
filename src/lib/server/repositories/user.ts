@@ -1,9 +1,9 @@
 import type { User, UserInput, UserPatch, UserRepository } from '$lib/domain/entities/user';
 import { eq } from 'drizzle-orm';
 import { tUser, type AppDatabase } from './schema';
-import { newNanoId, wrap } from './utils';
+import { newNanoId, newVerifyCode, wrap } from './utils';
 
-export class SqliteUserRepository implements UserRepository {
+export class PgUserRepository implements UserRepository {
   constructor(private db: AppDatabase) {}
 
   async findById(id: string): Promise<User | null> {
@@ -91,6 +91,7 @@ export class SqliteUserRepository implements UserRepository {
       githubId: input.githubId,
       name: input.name,
       aboutMe: input.aboutMe,
+      verifyCode: newVerifyCode(),
     };
     return await wrap('user.create', async () => {
       await this.db.insert(tUser).values(user);

@@ -11,12 +11,12 @@
       perSystem = { config, self', inputs', pkgs, system, ... }: {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            litecli
             just
+            nodePackages."@tailwindcss/language-server"
             nodePackages.nodejs
             nodePackages.pnpm
             nodePackages.svelte-language-server
-            nodePackages."@tailwindcss/language-server"
+            pgcli
           ];
           shellHook = ''
             export ESLINT_USE_FLAT_CONFIG="true"

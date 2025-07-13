@@ -1,6 +1,6 @@
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import type { PageServerLoad } from './$types';
 import { compileArticle, throwResultError } from '$lib/markdown';
@@ -29,8 +29,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     services.article.listReplies(articleId),
     locals.hasPermission(Permission.CreateArticle),
   ]);
-  const commentForm = await superValidate(zod(commentSchema));
-  const bookmarkForm = await superValidate(zod(bookmarkSchema), {
+  const commentForm = await superValidate(zod4(commentSchema));
+  const bookmarkForm = await superValidate(zod4(bookmarkSchema), {
     defaults: {
       action: isBookmarked ? 'remove' : 'add',
       articleId,
@@ -53,7 +53,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 export const actions = {
   comment: async ({ locals, request, params }) => {
-    const commentForm = await superValidate(request, zod(commentSchema));
+    const commentForm = await superValidate(request, zod4(commentSchema));
     if (!commentForm.valid) {
       return fail(400, { commentForm });
     }
@@ -79,7 +79,7 @@ export const actions = {
     }
   },
   bookmark: async ({ locals, request }) => {
-    const bookmarkForm = await superValidate(request, zod(bookmarkSchema));
+    const bookmarkForm = await superValidate(request, zod4(bookmarkSchema));
     if (!bookmarkForm.valid) {
       return fail(400, { bookmarkForm });
     }
