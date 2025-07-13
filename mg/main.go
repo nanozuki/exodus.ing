@@ -13,11 +13,11 @@ import (
 
 // migrate data from sqlite to postgres
 func main() {
-	sqliteDB, err := lite.OpenDB("../database.sqlite")
+	sqliteDB, err := lite.OpenDB("../production/database.sqlite")
 	if err != nil {
 		panic(err)
 	}
-	pgDB, err := pg.OpenDB("host=localhost user=postgres password=mysecretpassword dbname=postgres port=5432 sslmode=disable")
+	pgDB, err := pg.OpenDB("host=10.100.0.1 user=postgres password=yn_33@-Vc*uY8kP.wdGBgzTd dbname=exodus port=5432 sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
@@ -86,6 +86,9 @@ func migrateUser(sqliteDB, pgDB *gorm.DB) error {
 		}
 		pgUsers = append(pgUsers, pgUser)
 	}
+	if len(pgUsers) == 0 {
+		return nil
+	}
 	if err := pgDB.Create(&pgUsers).Error; err != nil {
 		return fmt.Errorf("failed to create pg users: %w", err)
 	}
@@ -107,6 +110,9 @@ func migrateUserRole(sqliteDB, pgDB *gorm.DB) error {
 		}
 		pgUserRoles = append(pgUserRoles, pgUserRole)
 	}
+	if len(pgUserRoles) == 0 {
+		return nil
+	}
 	if err := pgDB.Create(&pgUserRoles).Error; err != nil {
 		return fmt.Errorf("failed to create pg user roles: %w", err)
 	}
@@ -126,6 +132,9 @@ func migrateSession(sqliteDB, pgDB *gorm.DB) error {
 			ExpiresAt: time.Unix(liteSession.ExpiresAt, 0).UTC(),
 		}
 		pgSessions = append(pgSessions, pgSession)
+	}
+	if len(pgSessions) == 0 {
+		return nil
 	}
 	if err := pgDB.Create(&pgSessions).Error; err != nil {
 		return fmt.Errorf("failed to create pg sessions: %w", err)
@@ -147,6 +156,9 @@ func migrateInviteCode(sqliteDB, pgDB *gorm.DB) error {
 			UsedAt:    time.UnixMilli(liteInviteCode.UsedAt).UTC(),
 		}
 		pgInviteCodes = append(pgInviteCodes, pgInviteCode)
+	}
+	if len(pgInviteCodes) == 0 {
+		return nil
 	}
 	if err := pgDB.Create(&pgInviteCodes).Error; err != nil {
 		return fmt.Errorf("failed to create pg invite codes: %w", err)
@@ -173,6 +185,9 @@ func migrateArticle(sqliteDB, pgDB *gorm.DB) error {
 		}
 		pgArticles = append(pgArticles, pgArticle)
 	}
+	if len(pgArticles) == 0 {
+		return nil
+	}
 	if err := pgDB.Create(&pgArticles).Error; err != nil {
 		return fmt.Errorf("failed to create pg articles: %w", err)
 	}
@@ -192,6 +207,9 @@ func migrateBookmark(sqliteDB, pgDB *gorm.DB) error {
 			CreatedAt: time.UnixMilli(liteBookmark.CreatedAt).UTC(),
 		}
 		pgBookmarks = append(pgBookmarks, pgBookmark)
+	}
+	if len(pgBookmarks) == 0 {
+		return nil
 	}
 	if err := pgDB.Create(&pgBookmarks).Error; err != nil {
 		return fmt.Errorf("failed to create pg bookmarks: %w", err)
@@ -216,6 +234,9 @@ func migrateComment(sqliteDB, pgDB *gorm.DB) error {
 			Content:   liteComment.Content,
 		}
 		pgComments = append(pgComments, pgComment)
+	}
+	if len(pgComments) == 0 {
+		return nil
 	}
 	if err := pgDB.Create(&pgComments).Error; err != nil {
 		return fmt.Errorf("failed to create pg comments: %w", err)
