@@ -1,12 +1,12 @@
 import type {
   Article,
   ArticleCard,
-  ArticleEditorData,
   ArticleInput,
   ArticleListItem,
   ArticleFeedsItem,
   ArticlePatch,
   ArticleRepository,
+  ArticleContent,
 } from '$lib/domain/entities/article';
 import { decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
@@ -54,7 +54,8 @@ export class PgArticleRepository implements ArticleRepository {
       .from(tArticle)
       .leftJoin(tUser, eq(tArticle.userId, tUser.id))
       .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
-      .leftJoin(pu, eq(p.userId, pu.id));
+      .leftJoin(pu, eq(p.userId, pu.id))
+      .$dynamic();
   }
 
   private listItemQuery() {
@@ -97,7 +98,8 @@ export class PgArticleRepository implements ArticleRepository {
       .leftJoin(tUser, eq(tArticle.userId, tUser.id))
       .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
       .leftJoin(pu, eq(p.userId, pu.id))
-      .leftJoin(replies, eq(tArticle.id, replies.id));
+      .leftJoin(replies, eq(tArticle.id, replies.id))
+      .$dynamic();
   }
 
   private cardQuery() {
@@ -110,7 +112,8 @@ export class PgArticleRepository implements ArticleRepository {
         authorName: tUser.name,
       })
       .from(tArticle)
-      .innerJoin(tUser, eq(tArticle.userId, tUser.id));
+      .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+      .$dynamic();
   }
 
   async getById(articleId: string): Promise<Article> {
@@ -123,29 +126,32 @@ export class PgArticleRepository implements ArticleRepository {
     });
   }
 
-  async getArticleEditorData(req: { articleId?: string; replyTo?: string }): Promise<ArticleEditorData> {
-    const getArticle = async () => {
-      if (!req.articleId) {
-        return undefined;
-      }
+  async getContentById(articleId: string): Promise<ArticleContent> {
+    return await wrap('article.getContentById', async () => {
       const rows = await this.db
         .select({
+          id: tArticle.id,
           title: tArticle.title,
           content: tArticle.content,
+          contentType: tArticle.contentType,
         })
         .from(tArticle)
-        .where(eq(tArticle.id, req.articleId));
-      return rows.length > 0 ? rows[0] : undefined;
-    };
-    const getReplyTo = async () => {
-      if (!req.replyTo) {
-        return undefined;
+        .where(eq(tArticle.id, articleId));
+      if (rows.length === 0) {
+        return AppError.ArticleNotFound(articleId).throw();
       }
-      const rows = await this.cardQuery().where(eq(tArticle.id, req.replyTo));
-      return rows.length > 0 ? rows[0] : undefined;
-    };
-    const [article, replyTo] = await Promise.all([getArticle(), getReplyTo()]);
-    return { article, replyTo };
+      return rows[0];
+    });
+  }
+
+  async getCardById(articleId: string): Promise<ArticleCard> {
+    return await wrap('article.getCardById', async () => {
+      const rows = await this.cardQuery().where(eq(tArticle.id, articleId));
+      if (rows.length === 0) {
+        return AppError.ArticleNotFound(articleId).throw();
+      }
+      return rows[0];
+    });
   }
 
   async list(page: Pagination): Promise<Paginated<ArticleListItem>> {

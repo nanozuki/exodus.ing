@@ -16,7 +16,7 @@ export interface Article {
   bookmarkCount: number;
 }
 
-export type ArticleContentType = 'markdown' | 'external_link';
+export type ArticleContentType = 'markdown' | 'external';
 
 export interface ArticleInput {
   title: string;
@@ -65,19 +65,17 @@ export interface ArticleFeedsItem {
   content: string;
 }
 
-export interface ArticleEditorData {
-  article?: { title: string; content: string };
-  replyTo?: ArticleCard;
-}
-
-export interface GetArticleEditorDataRequest {
-  articleId?: string;
-  replyTo?: string;
+export interface ArticleContent {
+  id: string;
+  title: string;
+  content: string;
+  contentType: ArticleContentType;
 }
 
 export interface ArticleRepository {
   getById(articleId: string): Promise<Article>;
-  getArticleEditorData(req: GetArticleEditorDataRequest): Promise<ArticleEditorData>;
+  getContentById(articleId: string): Promise<ArticleContent>;
+  getCardById(articleId: string): Promise<ArticleCard>;
   list(page: Pagination): Promise<Paginated<ArticleListItem>>;
   listFeeds(last: number): Promise<ArticleFeedsItem[]>;
   listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;

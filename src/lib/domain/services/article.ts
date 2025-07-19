@@ -1,10 +1,4 @@
-import type {
-  Article,
-  ArticleCard,
-  ArticleEditorData,
-  ArticleRepository,
-  GetArticleEditorDataRequest,
-} from '$lib/domain/entities/article';
+import type { Article, ArticleCard, ArticleContent, ArticleRepository } from '$lib/domain/entities/article';
 import { compileArticle, throwResultError } from '$lib/markdown';
 import { AppError } from '$lib/errors';
 
@@ -15,8 +9,12 @@ export class ArticleService {
     return await this.repository.getById(articleId);
   }
 
-  async getArticleEditorData(req: GetArticleEditorDataRequest): Promise<ArticleEditorData> {
-    return await this.repository.getArticleEditorData(req);
+  async getContentById(articleId: string): Promise<ArticleContent> {
+    return await this.repository.getContentById(articleId);
+  }
+
+  async getCardById(articleId: string): Promise<ArticleCard> {
+    return await this.repository.getCardById(articleId);
   }
 
   async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {

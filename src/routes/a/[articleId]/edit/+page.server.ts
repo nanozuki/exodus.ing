@@ -1,15 +1,46 @@
+import type { ArticleCard, ArticleContent, ArticleContentType } from '$lib/domain/entities/article';
+import { services } from '$lib/server/registry';
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { services } from '$lib/server/registry';
 import { Permission } from '$lib/domain/entities/role';
 
-export const load: PageServerLoad = async ({ locals, params, url }) => {
+function parseContentType(url: URL): ArticleContentType | null {
+  const contentType = url.searchParams.get('contentType');
+  return contentType === 'markdown' || contentType === 'external' ? contentType : null;
+}
+
+type PageData =
+  | {
+      action: 'create';
+      contentType: ArticleContentType | null;
+      replyTo?: ArticleCard;
+    }
+  | {
+      action: 'update';
+      article: ArticleContent;
+      replyTo?: ArticleCard;
+    };
+
+export const load: PageServerLoad = async ({ locals, params, url }): Promise<PageData> => {
   await locals.requirePermission(Permission.CreateArticle, 'load article editor');
-  const data = await services.article.getArticleEditorData({
-    articleId: params.articleId === 'new' ? 'new' : params.articleId,
-    replyTo: url.searchParams.get('replyTo') || undefined,
-  });
-  return data;
+  let replyTo: ArticleCard | undefined;
+  if (url.searchParams.has('replyTo')) {
+    replyTo = await services.article.getCardById(url.searchParams.get('replyTo')!);
+  }
+  const articleId = params.articleId;
+  if (articleId === 'new') {
+    return {
+      action: 'create',
+      contentType: parseContentType(url),
+      replyTo,
+    };
+  }
+  const article = await services.article.getContentById(articleId);
+  return {
+    action: 'update',
+    article,
+    replyTo,
+  };
 };
 
 interface FormData {
@@ -19,6 +50,7 @@ interface FormData {
 
 export const actions = {
   default: async ({ locals, params, request }): Promise<FormData> => {
+    const user = await locals.requirePermission(Permission.CreateArticle, 'load article editor');
     const data = await request.formData();
     const title = data.get('title');
     const content = data.get('content');
@@ -42,15 +74,14 @@ export const actions = {
       };
     }
 
-    const loggedInUser = await locals.requirePermission(Permission.CreateArticle, 'article editor');
     // New Article
     if (params.articleId === 'new') {
-      const articleId = await services.article.createByMarkdown(loggedInUser.id, content, replyTo);
+      const articleId = await services.article.createByMarkdown(user.id, content, replyTo);
       redirect(301, `/a/${articleId}`);
     }
 
     // Update Article
-    await services.article.updateByMarkdown(loggedInUser.id, params.articleId, content);
+    await services.article.updateByMarkdown(user.id, params.articleId, content);
     redirect(301, `/a/${params.articleId}`);
   },
 } satisfies Actions;
