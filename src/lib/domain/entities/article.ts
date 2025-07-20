@@ -13,7 +13,9 @@ export interface Article {
   contentType: ArticleContentType;
   content: string;
   replyTo?: ArticleCard;
+  replyCount: number;
   bookmarkCount: number;
+  commentCount: number;
 }
 
 export type ArticleContentType = 'markdown' | 'external';

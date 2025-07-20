@@ -6,6 +6,11 @@ export interface User {
   aboutMe: string;
 }
 
+export interface UserCard {
+  username: string;
+  name: string;
+}
+
 export interface UserInput {
   username: string;
   githubId: number | null;
