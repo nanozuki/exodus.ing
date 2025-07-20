@@ -3,7 +3,7 @@ import { createAdapterSet } from '$lib/server/adapters';
 import { createRepositorySet, getDatabase } from '$lib/server/repositories';
 import type { RequestEvent } from '@sveltejs/kit';
 import { hasPermission as rolesHasPermission, Role, type Permission } from '$lib/domain/entities/role';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 import type { User } from '$lib/domain/entities/user';
 import { getConfig } from './config';
 
@@ -21,9 +21,9 @@ export async function attachLocals(event: RequestEvent): Promise<void> {
   const loggedInUser = await services.auth.loadSession(event.cookies);
   let roles: Role[] | null = null;
 
-  function requireLoggedInUser(context: string): User {
+  function requireLoggedInUser(operation: string): User {
     if (!loggedInUser) {
-      return AppError.Unauthorized(context).throw();
+      return throwError('UNAUTHORIZED', { operation });
     }
     return loggedInUser;
   }
@@ -36,12 +36,12 @@ export async function attachLocals(event: RequestEvent): Promise<void> {
     }
     return rolesHasPermission(roles, p);
   }
-  async function requirePermission(p: Permission, context: string): Promise<User> {
-    const user = requireLoggedInUser(context);
+  async function requirePermission(p: Permission, operation: string): Promise<User> {
+    const user = requireLoggedInUser(operation);
     if (await hasPermission(p)) {
       return user;
     }
-    return AppError.Forbidden(`Require Permission when ${context}`).throw();
+    return throwError('FORBIDDEN', { operation });
   }
 
   event.locals = {

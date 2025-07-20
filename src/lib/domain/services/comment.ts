@@ -6,7 +6,7 @@ import type {
   CommentView,
 } from '$lib/domain/entities/comment';
 import type { Paginated } from '$lib/domain/values/page';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 
 function commentViews(comments: Comment[]): CommentView[] {
   const map = new Map<string, Comment>();
@@ -46,7 +46,7 @@ export class CommentService {
   async update(req: CommentUpdateRequest): Promise<void> {
     const comment = await this.repository.getById(req.commentId);
     if (comment.author.id !== req.userId) {
-      return AppError.Forbidden('Only the author can edit the comment').throw();
+      return throwError('BAD_REQUEST', '只能编辑自己的评论');
     }
     return await this.repository.update(req.commentId, { content: req.content });
   }

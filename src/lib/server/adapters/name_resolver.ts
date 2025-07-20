@@ -1,4 +1,4 @@
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 
 // getTxtRecords by cloudflare DoH Dns API, like these curl command:
 // curl --http2 --header "accept: application/dns-json" "https://1.1.1.1/dns-query?name=<domain>&type=TXT"
@@ -31,7 +31,7 @@ export async function resolveTxt(domain: string): Promise<string[]> {
   });
   const json = (await response.json()) as Response;
   if (json.Status !== 0) {
-    return AppError.DNSQueryFailed(json.Status).throw();
+    return throwError('EXTERNAL_API_ERROR', { operation: 'DNS 查询', message: `状态码：${json.Status}` });
   }
   return json.Answer?.map((record) => record.data) ?? [];
 }

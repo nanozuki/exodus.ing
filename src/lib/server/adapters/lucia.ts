@@ -1,7 +1,7 @@
 import { dev } from '$app/environment';
 import { StateSchema, type AuthAdapter, type State, type StateInput } from '$lib/domain/services/auth';
 import type { GitHubUser } from '$lib/domain/services/user';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies } from '@sveltejs/kit';
@@ -85,11 +85,11 @@ export class LuciaAuthService implements AuthAdapter {
   async getAuthState(cookies: Cookies): Promise<State> {
     const stateCookie = cookies.get('github_oauth_state');
     if (!stateCookie) {
-      return AppError.OAuthValidationError('state cookie not found').throw();
+      return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie not found');
     }
     const stateResult = StateSchema.safeParse(JSON.parse(stateCookie));
     if (!stateResult.success) {
-      return AppError.OAuthValidationError('state cookie parse error').throw();
+      return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie parse error');
     }
     return stateResult.data;
   }
@@ -123,12 +123,12 @@ export class LuciaAuthService implements AuthAdapter {
       return { id: res.id, username: res.login };
     } catch (e) {
       if (e instanceof OAuth2RequestError) {
-        return AppError.OAuthValidationError(e.message).throw();
+        return throwError('BAD_REQUEST', `OAuth 验证错误: ${e.message}`);
       }
       if (e instanceof Error) {
-        return AppError.InternalServerError(e.message).throw();
+        return throwError('INTERNAL_SERVER_ERROR', `OAuth 验证错误: ${e.message}`);
       }
-      return AppError.InternalServerError().throw();
+      return throwError('INTERNAL_SERVER_ERROR', `OAuth 验证错误: ${e}`);
     }
   }
 }

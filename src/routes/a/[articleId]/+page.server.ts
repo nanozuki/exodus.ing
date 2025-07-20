@@ -3,7 +3,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import type { PageServerLoad } from './$types';
-import { compileArticle, throwResultError } from '$lib/markdown';
+import { compileArticle } from '$lib/markdown';
 import { services } from '$lib/server/registry';
 import { Permission } from '$lib/domain/entities/role';
 
@@ -36,12 +36,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       articleId,
     },
   });
-  const result = await compileArticle(article.content);
-  if (!result.ok) {
-    return throwResultError(result.errors);
-  }
+  const compiled = await compileArticle(article.content);
   return {
-    article: { ...article, content: result.value, title: result.title },
+    article: { ...article, content: compiled.value, title: compiled.title },
     isBookmarked,
     comments,
     replies,

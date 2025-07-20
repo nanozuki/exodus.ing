@@ -6,7 +6,7 @@ import type { ArticleListItem } from '$lib/domain/entities/article';
 import type { Paginated } from '$lib/domain/values/page';
 import type { CommentListItem } from '$lib/domain/entities/comment';
 import type { User } from '$lib/domain/entities/user';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 
 type Tab = 'articles' | 'comments';
 function parseTab(isWriter: boolean, tab: string | null): Tab {
@@ -26,7 +26,7 @@ async function getUser(param: string): Promise<User> {
   const user = param.startsWith('@')
     ? await services.user.findUserByUsername(param.slice(1))
     : await services.user.findUserById(param);
-  return user ? user : AppError.UserNotFound(param).throw();
+  return user ? user : throwError('NOT_FOUND', { resource: '用户' });
 }
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {

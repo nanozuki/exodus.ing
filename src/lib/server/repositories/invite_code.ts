@@ -8,7 +8,7 @@ import type {
 import { and, eq, isNull } from 'drizzle-orm/sql';
 import { tArticle, tInviteCode, tUserRole, type AppDatabase } from './schema';
 import { newCode, wrap } from './utils';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 
 export class PgInviteCodeRepository implements InviteCodeRepository {
   constructor(private db: AppDatabase) {}
@@ -26,7 +26,7 @@ export class PgInviteCodeRepository implements InviteCodeRepository {
           const invitedCount = await tx.$count(tUserRole, eq(tUserRole.inviterId, inviterId));
           const quota = algo({ articleCount, validCodeCount, invitedCount });
           if (quota <= 0) {
-            return AppError.Forbidden('Invite code quota is exhausted').throw();
+            return throwError('BAD_REQUEST', '邀请码配额已用完');
           }
 
           const code = newCode();

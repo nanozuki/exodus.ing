@@ -4,7 +4,7 @@ import {
   type InviteCodeCard,
   type InviteCodeRepository,
 } from '$lib/domain/entities/invite_code';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 import type { Relation } from '$lib/domain/entities/role';
 import type { Role, RoleRepository } from '../entities/role';
 
@@ -33,10 +33,10 @@ export class InviteCodeService {
   async acceptInviteCode(userId: string, code: string): Promise<void> {
     const inviteCode = await this.inviteCodeRepo.findByCode(code);
     if (!inviteCode) {
-      return AppError.InviteCodeMissed('Invite code not found').throw();
+      return throwError('BAD_REQUEST', '邀请码不能为空');
     }
     if (inviteCode.usedAt) {
-      return AppError.InvalidInviteCode('Invite code is already used').throw();
+      return throwError('BAD_REQUEST', '邀请码已被使用');
     }
     await this.inviteCodeRepo.useCode(code);
     await this.roleRepo.specifyRoleByOther(userId, inviteCode.roleKey as Role, inviteCode.inviterId);

@@ -1,4 +1,5 @@
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
+import { isHttpError } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid';
 
 export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> {
@@ -8,13 +9,14 @@ export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> 
     const duration = Date.now() - start;
     console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms`);
     return result;
-  } catch (error) {
-    if (error instanceof AppError) {
-      return error.throw();
-    } else if (error instanceof Error) {
-      return AppError.DatabaseError(`${method} failed: ${error.message}`).throw();
+  } catch (e) {
+    if (isHttpError(e)) {
+      throw e;
+    } else if (e instanceof Error) {
+      return throwError('DATABASE_ERROR', { operation: method, cause: e });
     } else {
-      return AppError.DatabaseError(`${method} failed: ${JSON.stringify(error)}`).throw();
+      const cause = new Error(JSON.stringify(e));
+      return throwError('DATABASE_ERROR', { operation: method, cause });
     }
   }
 }

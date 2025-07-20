@@ -10,7 +10,7 @@ import type {
 } from '$lib/domain/entities/article';
 import { decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 import { aliasedTable } from 'drizzle-orm';
 import { and, desc, eq, like, ne, sql } from 'drizzle-orm/sql';
 import { tArticle, tBookmark, tComment, tUser, type AppDatabase } from './schema';
@@ -120,7 +120,7 @@ export class PgArticleRepository implements ArticleRepository {
     return await wrap('article.getById', async () => {
       const articles = await this.modelQuery().where(eq(tArticle.id, articleId));
       if (articles.length === 0) {
-        return AppError.ArticleNotFound(articleId).throw();
+        return throwError('NOT_FOUND', { resource: '文章' });
       }
       return convertReplyTo(decodePathField(articles[0] as ArticleResult));
     });
@@ -138,7 +138,7 @@ export class PgArticleRepository implements ArticleRepository {
         .from(tArticle)
         .where(eq(tArticle.id, articleId));
       if (rows.length === 0) {
-        return AppError.ArticleNotFound(articleId).throw();
+        return throwError('NOT_FOUND', { resource: '文章' });
       }
       return rows[0];
     });
@@ -148,7 +148,7 @@ export class PgArticleRepository implements ArticleRepository {
     return await wrap('article.getCardById', async () => {
       const rows = await this.cardQuery().where(eq(tArticle.id, articleId));
       if (rows.length === 0) {
-        return AppError.ArticleNotFound(articleId).throw();
+        return throwError('NOT_FOUND', { resource: '文章' });
       }
       return rows[0];
     });

@@ -6,7 +6,7 @@ import type {
   CommentRepository,
 } from '$lib/domain/entities/comment';
 import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 import { desc, eq } from 'drizzle-orm/sql';
 import { tArticle, tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
@@ -87,7 +87,7 @@ export class PgCommentRepository implements CommentRepository {
     return await wrap('comment.getById', async () => {
       const comment = await this.modelQuery().where(eq(tComment.id, commentId));
       if (comment.length === 0) {
-        return AppError.CommentNotFound().throw();
+        return throwError('NOT_FOUND', { resource: '评论' });
       }
       return decodePathField(comment[0]);
     });
@@ -111,7 +111,7 @@ export class PgCommentRepository implements CommentRepository {
       if (input.replyTo) {
         const replyTo = await this.db.select().from(tComment).where(eq(tComment.id, input.replyTo));
         if (replyTo.length === 0) {
-          return AppError.CommentNotFound('replyTo').throw();
+          return throwError('NOT_FOUND', { resource: '回复的评论' });
         }
         path = [...decodeIdPath(replyTo[0].path), id];
       }

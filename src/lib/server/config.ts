@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 
 export type Config = {
   EXODUSING_GITHUB_ID: string;
@@ -12,7 +12,7 @@ export function getConfig(): Config {
   const getEnv = (key: string): string => {
     const value = env[key];
     if (typeof value !== 'string') {
-      return AppError.MissingConfig(key).throw();
+      return throwError('MISSING_CONFIG', { item: key });
     }
     return value;
   };

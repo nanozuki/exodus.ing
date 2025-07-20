@@ -1,15 +1,13 @@
 import type { Permission } from '$lib/domain/entities/role';
 import type { User } from '$lib/domain/entities/user';
+import type { AppError, ErrorTag } from '$lib/errors';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
   namespace App {
-    interface Error {
-      key: string;
-      message: string;
-      context?: string;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface Error extends AppError<ErrorTag> {}
     interface Locals {
       loggedInUser: User | null;
       requireLoggedInUser: (context: string) => User;

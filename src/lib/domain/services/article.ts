@@ -1,6 +1,6 @@
 import type { Article, ArticleCard, ArticleContent, ArticleRepository } from '$lib/domain/entities/article';
-import { compileArticle, throwResultError } from '$lib/markdown';
-import { AppError } from '$lib/errors';
+import { compileArticle } from '$lib/markdown';
+import { throwError } from '$lib/errors';
 
 export class ArticleService {
   constructor(private repository: ArticleRepository) {}
@@ -19,9 +19,6 @@ export class ArticleService {
 
   async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
     const result = await compileArticle(content);
-    if (!result.ok) {
-      return throwResultError(result.errors);
-    }
     return await this.repository.create({
       userId,
       content,
@@ -34,12 +31,9 @@ export class ArticleService {
   async updateByMarkdown(userId: string, articleId: string, content: string): Promise<void> {
     const article = await this.repository.getById(articleId);
     if (article.authorId !== userId) {
-      return AppError.Forbidden('article editor').throw();
+      return throwError('BAD_REQUEST', '只能编辑自己的文章');
     }
     const result = await compileArticle(content);
-    if (!result.ok) {
-      return throwResultError(result.errors);
-    }
     return await this.repository.update(articleId, {
       title: result.title,
       content,

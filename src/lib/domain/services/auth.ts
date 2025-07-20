@@ -1,7 +1,7 @@
 import type { Cookies } from '@sveltejs/kit';
 import type { GitHubUser } from '$lib/domain/services/user';
 import type { User, UserRepository } from '$lib/domain/entities/user';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 import { z } from 'zod';
 
 export const StateSchema = z.object({
@@ -48,17 +48,17 @@ export class AuthService {
     const name = input.signUp?.name || username;
     if (username) {
       if (username.startsWith('@')) {
-        return AppError.UsernameCannotStartWithAt(username).throw();
+        return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });
       }
       const user = await this.user.findByUsername(username);
       if (user) {
-        return AppError.UsernameAlreadyExist(username).throw();
+        return throwError('PARAMETER_INVALID', { username: '用户名已存在' });
       }
     }
     if (name) {
       const user = await this.user.findByName(name);
       if (user) {
-        return AppError.NameAlreadyExist(name).throw();
+        return throwError('PARAMETER_INVALID', { name: '昵称已存在' });
       }
     }
     const authUrl = await this.auth.createGithubAuthUrl(cookies, input);
@@ -68,7 +68,7 @@ export class AuthService {
   async handleGithubCallback(cookies: Cookies, code: string, state: string): Promise<State> {
     const storedState = await this.auth.getAuthState(cookies);
     if (state !== storedState.state) {
-      return AppError.OAuthValidationError('invalid state').throw();
+      return throwError('BAD_REQUEST', 'OAuth 验证错误: invalid state');
     }
     const ghUser = await this.auth.getGitHubUserByCode(code);
     const user = await this.user.findByGitHubId(ghUser.id);
@@ -87,7 +87,7 @@ export class AuthService {
       aboutMe: '',
     });
     if (newUser.username.startsWith('@')) {
-      return AppError.UsernameCannotStartWithAt(newUser.username).throw();
+      return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });
     }
     await this.auth.setSession(cookies, newUser.id);
     return storedState;

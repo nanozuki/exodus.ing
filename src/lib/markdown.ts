@@ -10,27 +10,9 @@ import { matter } from 'vfile-matter';
 
 import type { Root } from 'mdast';
 import type { VFile, Value } from 'vfile';
-import { AppError } from './errors';
+import { throwError } from './errors';
 
-type ArticleCompileErrors = {
-  noTitle?: boolean;
-};
-const ArticleCompileErrorMessage: {
-  [K in keyof ArticleCompileErrors]: string;
-} = {
-  noTitle: '标题不能为空',
-};
-
-export type ArticleCompileResult =
-  | { ok: true; value: Value; title: string }
-  | { ok: false; value: Value; errors: ArticleCompileErrors };
-
-export function throwResultError(errors: ArticleCompileErrors): never {
-  const error = Object.keys(errors)
-    .map((key) => ArticleCompileErrorMessage[key as keyof ArticleCompileErrors])
-    .join(', ');
-  return AppError.InvalidMarkdownError(error).throw();
-}
+export type CompiledArticle = { value: Value; title: string };
 
 interface FileData {
   matter?: Record<string, unknown>;
@@ -55,7 +37,7 @@ function remarkMeta() {
   };
 }
 
-export const compileArticle = async (article: string): Promise<ArticleCompileResult> => {
+export const compileArticle = async (article: string): Promise<CompiledArticle> => {
   const file: File = await unified()
     .use(remarkParse)
     .use(remarkFrontmatter)
@@ -67,9 +49,9 @@ export const compileArticle = async (article: string): Promise<ArticleCompileRes
     .use(rehypeStringify)
     .process(article);
   if (!file.data.title) {
-    return { ok: false, value: file.value, errors: { noTitle: true } };
+    throwError('PARAMETER_INVALID', { title: '标题不能为空' });
   }
-  return { ok: true, value: file.value, title: file.data.title };
+  return { value: file.value, title: file.data.title };
 };
 
 export const compileMarkdown = async (content: string): Promise<Value> => {

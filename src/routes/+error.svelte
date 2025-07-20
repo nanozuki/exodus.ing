@@ -1,11 +1,15 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { errorTagTitle } from '$lib/errors';
 </script>
 
 <h1>Error: {page.status}</h1>
-<p>{page.error?.message}</p>
-<small>{page.error?.key}</small>
-<small>{page.error?.context}</small>
+{#if page.error}
+  <p>{errorTagTitle[page.error.tag]}</p>
+  <small>{page.error.message}</small>
+{:else}
+  <p>Unknown error occurred.</p>
+{/if}
 
 <style>
   small {
