@@ -43,6 +43,7 @@ export interface ArticleCard {
 
 export interface ArticleListItem {
   id: string;
+  path: IdPath;
   createdAt: Date;
   updatedAt: Date;
   title: string;

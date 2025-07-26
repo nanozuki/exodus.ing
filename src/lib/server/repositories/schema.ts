@@ -49,6 +49,9 @@ export const tArticle = pgTable(
     content: text('content').notNull(),
     contentType: text('content_type').$type<ArticleContentType>().notNull(),
     path: text('path').notNull(),
+    replyCount: integer('reply_count').default(0).notNull(),
+    bookmarkCount: integer('bookmark_count').default(0).notNull(),
+    commentCount: integer('comment_count').default(0).notNull(),
   },
   (table) => [
     uniqueIndex('article_title_idx').on(table.title, table.userId),
