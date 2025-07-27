@@ -1,9 +1,9 @@
-import type { Bookmark, BookmarkRepository } from '$lib/domain/entities/bookmark';
+import type { Bookmark } from '$lib/domain/entities/bookmark';
 import { and, eq } from 'drizzle-orm/sql';
 import { tBookmark, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
-export class PgBookmarkRepository implements BookmarkRepository {
+export class PgBookmarkRepository {
   constructor(private db: AppDatabase) {}
 
   async listByUserId(userId: string): Promise<Bookmark[]> {

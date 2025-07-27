@@ -1,4 +1,4 @@
-import type { AdapterSet } from '$lib/domain/services';
+import type { AdapterSet } from '$lib/server/services';
 import type { AppDatabase } from '$lib/server/repositories/schema';
 import { LuciaAuthService } from './lucia';
 import type { Config } from '$lib/server/config';

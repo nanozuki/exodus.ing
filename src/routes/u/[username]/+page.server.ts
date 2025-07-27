@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { compileMarkdown } from '$lib/markdown';
-import { services } from '$lib/server/registry';
+import { services, repositories } from '$lib/server/registry';
 import { hasPermission, Permission } from '$lib/domain/entities/role';
-import type { ArticleListItem } from '$lib/domain/entities/article';
+import { ARTICLE_PAGE_SIZE, type ArticleListItem } from '$lib/domain/entities/article';
 import type { Paginated } from '$lib/domain/values/page';
 import type { CommentListItem } from '$lib/domain/entities/comment';
 import type { User } from '$lib/domain/entities/user';
@@ -24,15 +24,15 @@ type ListData = {
 
 async function getUser(param: string): Promise<User> {
   const user = param.startsWith('@')
-    ? await services.user.findUserByUsername(param.slice(1))
-    : await services.user.findUserById(param);
+    ? await repositories.user.findByUsername(param.slice(1))
+    : await repositories.user.findById(param);
   return user ? user : throwError('NOT_FOUND', { resource: '用户' });
 }
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   const username = params.username;
   const user = await getUser(username);
-  const roles = await services.role.getUserRoles(user.id);
+  const roles = await repositories.role.getUserRoles(user.id);
   const isWriter = hasPermission(roles, Permission.CreateArticle);
 
   const page: number = url.searchParams.get('page') ? parseInt(url.searchParams.get('page')!) : 1;
@@ -43,7 +43,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
   if (tab === 'articles') {
     const [aboutMe, articles] = await Promise.all([
       compileMarkdown(user.aboutMe),
-      services.articleList.listByUserId(user.id, page),
+      repositories.article.listByUserId(user.id, { pageNumber: page, pageSize: ARTICLE_PAGE_SIZE }),
     ]);
     return {
       user: {

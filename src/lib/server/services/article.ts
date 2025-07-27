@@ -1,26 +1,27 @@
-import type { Article, ArticleCard, ArticleContent, ArticleRepository } from '$lib/domain/entities/article';
+import type { Article, ArticleCard, ArticleContent } from '$lib/domain/entities/article';
 import { compileArticle } from '$lib/markdown';
 import { throwError } from '$lib/errors';
+import { repositories } from '$lib/server/registry';
 
 export class ArticleService {
-  constructor(private repository: ArticleRepository) {}
+  constructor() {}
 
   async getById(articleId: string): Promise<Article> {
-    return await this.repository.getById(articleId);
+    return await repositories.article.getById(articleId);
   }
 
   async getContentById(articleId: string): Promise<ArticleContent> {
-    return await this.repository.getContentById(articleId);
+    return await repositories.article.getContentById(articleId);
   }
 
   async getCardById(articleId: string): Promise<ArticleCard> {
-    return await this.repository.getCardById(articleId);
+    return await repositories.article.getCardById(articleId);
   }
 
   async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
     const result = await compileArticle(content);
-    return await this.repository.create({
-      userId,
+    return await repositories.article.create({
+      authorId: userId,
       content,
       title: result.title,
       contentType: 'markdown',
@@ -29,12 +30,12 @@ export class ArticleService {
   }
 
   async updateByMarkdown(userId: string, articleId: string, content: string): Promise<void> {
-    const article = await this.repository.getById(articleId);
+    const article = await repositories.article.getById(articleId);
     if (article.authorId !== userId) {
       return throwError('BAD_REQUEST', '只能编辑自己的文章');
     }
     const result = await compileArticle(content);
-    return await this.repository.update(articleId, {
+    return await repositories.article.update(articleId, {
       title: result.title,
       content,
     });
@@ -45,10 +46,10 @@ export class ArticleService {
     if (articleId.length === 16) {
       articleId = articleId.slice(0, 6);
     }
-    return await this.repository.getById(articleId);
+    return await repositories.article.getById(articleId);
   }
 
   async listReplies(articleId: string): Promise<ArticleCard[]> {
-    return await this.repository.listReplies(articleId);
+    return await repositories.article.listReplies(articleId);
   }
 }

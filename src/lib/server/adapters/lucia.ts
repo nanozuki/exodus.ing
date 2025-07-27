@@ -1,13 +1,14 @@
 import { dev } from '$app/environment';
-import { StateSchema, type AuthAdapter, type State, type StateInput } from '$lib/domain/services/auth';
-import type { GitHubUser } from '$lib/domain/services/user';
+import type { GitHubUser } from '$lib/domain/entities/user';
+import type { StateInput } from '$lib/domain/values/auth';
 import { throwError } from '$lib/errors';
+import type { Config } from '$lib/server/config';
 import { tSession, tUser, type AppDatabase, type UserModel } from '$lib/server/repositories/schema';
+import { StateSchema, type AuthAdapter, type State } from '$lib/server/services/auth';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import type { Cookies } from '@sveltejs/kit';
 import { generateState, GitHub, OAuth2RequestError } from 'arctic';
 import { Lucia, type User } from 'lucia';
-import type { Config } from '$lib/server/config';
 
 declare module 'lucia' {
   interface Register {

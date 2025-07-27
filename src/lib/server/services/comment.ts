@@ -1,12 +1,8 @@
-import type {
-  Comment,
-  CommentInput,
-  CommentListItem,
-  CommentRepository,
-  CommentView,
-} from '$lib/domain/entities/comment';
+import { COMMENT_PAGE_SIZE } from '$lib/domain/entities/comment';
+import type { Comment, CommentInput, CommentListItem, CommentView } from '$lib/domain/entities/comment';
 import type { Paginated } from '$lib/domain/values/page';
 import { throwError } from '$lib/errors';
+import { repositories } from '$lib/server/registry';
 
 function commentViews(comments: Comment[]): CommentView[] {
   const map = new Map<string, Comment>();
@@ -25,30 +21,28 @@ function commentViews(comments: Comment[]): CommentView[] {
   return views;
 }
 
-export const COMMENT_PAGE_SIZE = 20;
-
 export class CommentService {
-  constructor(private repository: CommentRepository) {}
+  constructor() {}
 
   async listByArticle(articleId: string): Promise<CommentView[]> {
-    const comments = await this.repository.listByArticle(articleId);
+    const comments = await repositories.comment.listByArticle(articleId);
     return commentViews(comments);
   }
 
   async listByUser(userId: string, pageNumber: number): Promise<Paginated<CommentListItem>> {
-    return await this.repository.listByUser(userId, { pageNumber, pageSize: COMMENT_PAGE_SIZE });
+    return await repositories.comment.listByUser(userId, { pageNumber, pageSize: COMMENT_PAGE_SIZE });
   }
 
   async create(comment: CommentInput): Promise<string> {
-    return await this.repository.create(comment);
+    return await repositories.comment.create(comment);
   }
 
   async update(req: CommentUpdateRequest): Promise<void> {
-    const comment = await this.repository.getById(req.commentId);
+    const comment = await repositories.comment.getById(req.commentId);
     if (comment.author.id !== req.userId) {
       return throwError('BAD_REQUEST', '只能编辑自己的评论');
     }
-    return await this.repository.update(req.commentId, { content: req.content });
+    return await repositories.comment.update(req.commentId, { content: req.content });
   }
 }
 

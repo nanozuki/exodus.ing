@@ -1,10 +1,4 @@
-import type {
-  Comment,
-  CommentInput,
-  CommentListItem,
-  CommentPatch,
-  CommentRepository,
-} from '$lib/domain/entities/comment';
+import type { Comment, CommentInput, CommentListItem, CommentPatch } from '$lib/domain/entities/comment';
 import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import { throwError } from '$lib/errors';
 import { desc, eq } from 'drizzle-orm/sql';
@@ -12,7 +6,7 @@ import { tArticle, tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
 
-export class PgCommentRepository implements CommentRepository {
+export class PgCommentRepository {
   constructor(private db: AppDatabase) {}
 
   private modelQuery() {

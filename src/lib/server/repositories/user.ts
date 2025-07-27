@@ -1,9 +1,9 @@
-import type { User, UserInput, UserPatch, UserRepository } from '$lib/domain/entities/user';
+import type { User, UserInput, UserPatch } from '$lib/domain/entities/user';
 import { eq } from 'drizzle-orm';
 import { tUser, type AppDatabase } from './schema';
 import { newNanoId, newVerifyCode, wrap } from './utils';
 
-export class PgUserRepository implements UserRepository {
+export class PgUserRepository {
   constructor(private db: AppDatabase) {}
 
   async findById(id: string): Promise<User | null> {

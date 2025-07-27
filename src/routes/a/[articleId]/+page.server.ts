@@ -4,7 +4,7 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import type { PageServerLoad } from './$types';
 import { compileArticle } from '$lib/markdown';
-import { services } from '$lib/server/registry';
+import { services, repositories } from '$lib/server/registry';
 import { Permission } from '$lib/domain/entities/role';
 
 const commentSchema = z.object({
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   const articleId = params.articleId!;
   const [article, isBookmarked, comments, replies, canReply] = await Promise.all([
     services.article.getById(articleId),
-    user ? services.bookmark.isBookmarked(articleId, user.id) : false,
+    user ? repositories.bookmark.isBookmarked(articleId, user.id) : false,
     services.comment.listByArticle(articleId),
     services.article.listReplies(articleId),
     locals.hasPermission(Permission.CreateArticle),
@@ -83,10 +83,10 @@ export const actions = {
     const user = locals.requireLoggedInUser('add or delete bookmark');
     const { action, articleId } = bookmarkForm.data;
     if (action === 'add') {
-      await services.bookmark.addBookmark(articleId, user.id);
+      await repositories.bookmark.create(articleId, user.id);
     }
     if (action === 'remove') {
-      await services.bookmark.removeBookmark(articleId, user.id);
+      await repositories.bookmark.delete(articleId, user.id);
     }
   },
 } satisfies Actions;

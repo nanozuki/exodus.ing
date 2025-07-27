@@ -27,7 +27,7 @@
   let formState = $state<'new' | 'edit'>('new');
   let replyTo = $state<string | undefined>(undefined);
   let replied = $derived.by(() => {
-    return replyTo ? comments.find((comment) => comment.id === replyTo) : undefined;
+    return replyTo ? comments.find((comment: CommentView) => comment.id === replyTo) : undefined;
   });
 
   const reply = (commentId: string) => {

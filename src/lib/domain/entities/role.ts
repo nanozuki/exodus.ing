@@ -24,10 +24,3 @@ export interface UserRelations {
   inviter: Relation | undefined;
   invitees: Relation[];
 }
-
-export interface RoleRepository {
-  specifyRoleByOther(userId: string, role: Role, otherId: string): Promise<void>;
-  getUserRoles(userId: string): Promise<Role[]>;
-  getInviter(userId: string): Promise<Relation | undefined>;
-  getInvitees(userId: string): Promise<Relation[]>;
-}

@@ -1,4 +1,3 @@
-import type { RepositorySet } from '$lib/domain/services';
 import { schema, type AppDatabase } from '$lib/server/repositories/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { PgArticleRepository } from './article';
@@ -17,7 +16,7 @@ export async function getDatabase(config: Config): Promise<AppDatabase> {
   return db;
 }
 
-export async function createRepositorySet(db: AppDatabase): Promise<RepositorySet> {
+export function createRepositorySet(db: AppDatabase) {
   return {
     article: new PgArticleRepository(db),
     bookmark: new PgBookmarkRepository(db),
@@ -27,3 +26,5 @@ export async function createRepositorySet(db: AppDatabase): Promise<RepositorySe
     user: new PgUserRepository(db),
   };
 }
+
+export type RepositorySet = ReturnType<typeof createRepositorySet>;
