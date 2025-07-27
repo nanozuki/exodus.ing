@@ -1,17 +1,13 @@
 import { ArticleService } from './article';
-import { AuthService, type AuthAdapter } from './auth';
+import { AuthService } from './auth';
 import { CommentService } from './comment';
 import { FeedsService } from './feeds';
 import { InviteCodeService } from './invite_code';
 
-export interface AdapterSet {
-  auth: AuthAdapter;
-}
-
-export function createServiceSet(adapters: AdapterSet) {
+export function createServiceSet() {
   return {
     article: new ArticleService(),
-    auth: new AuthService(adapters.auth),
+    auth: new AuthService(),
     comment: new CommentService(),
     feeds: new FeedsService(),
     inviteCode: new InviteCodeService(),

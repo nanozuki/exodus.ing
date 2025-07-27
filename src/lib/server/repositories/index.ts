@@ -7,6 +7,7 @@ import { PgInviteCodeRepository } from './invite_code';
 import { PgUserRepository } from './user';
 import { PgRoleRepository } from './role';
 import type { Config } from '$lib/server/config';
+import { PgSessionRepository } from './session';
 
 export async function getDatabase(config: Config): Promise<AppDatabase> {
   const start = Date.now();
@@ -24,6 +25,7 @@ export function createRepositorySet(db: AppDatabase) {
     inviteCode: new PgInviteCodeRepository(db),
     role: new PgRoleRepository(db),
     user: new PgUserRepository(db),
+    session: new PgSessionRepository(db),
   };
 }
 

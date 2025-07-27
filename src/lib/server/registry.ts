@@ -1,5 +1,5 @@
 import { createServiceSet, type ServiceSet } from '$lib/server/services';
-import { createAdapterSet } from '$lib/server/adapters';
+import { createAdapterSet, type AdapterSet } from '$lib/server/adapters';
 import { createRepositorySet, getDatabase, type RepositorySet } from '$lib/server/repositories';
 import type { RequestEvent } from '@sveltejs/kit';
 import { hasPermission as rolesHasPermission, Role, type Permission } from '$lib/domain/entities/role';
@@ -11,12 +11,13 @@ export async function buildServices(): Promise<void> {
   const config = getConfig();
   const db = await getDatabase(config);
   repositories = createRepositorySet(db);
-  const adapters = createAdapterSet(db, config);
-  services = createServiceSet(adapters);
+  adapters = createAdapterSet(config);
+  services = createServiceSet();
 }
 
 export let services: ServiceSet;
 export let repositories: RepositorySet;
+export let adapters: AdapterSet;
 
 export async function attachLocals(event: RequestEvent): Promise<void> {
   const loggedInUser = await services.auth.loadSession(event.cookies);

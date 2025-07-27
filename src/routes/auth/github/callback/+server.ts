@@ -1,19 +1,14 @@
-import { catchError, throwAppError, throwError } from '$lib/errors';
+import { catchError, throwAppError } from '$lib/errors';
 import { services } from '$lib/server/registry';
 import { type RequestEvent } from '@sveltejs/kit';
 
-export async function GET({ url, cookies }: RequestEvent): Promise<Response> {
-  const code = url.searchParams.get('code');
-  const state = url.searchParams.get('state');
-  if (!code || !state) {
-    return throwError('BAD_REQUEST', 'OAuth 验证错误: code or state is empty');
-  }
+export async function GET(request: RequestEvent): Promise<Response> {
   try {
-    const stateObj = await services.auth.handleGithubCallback(cookies, code, state);
+    const data = await services.auth.handleGithubCallback(request);
     return new Response(null, {
       status: 302,
       headers: {
-        Location: stateObj.next?.startsWith('/') ? stateObj.next : '/',
+        Location: data.next?.startsWith('/') ? data.next : '/',
       },
     });
   } catch (e) {
