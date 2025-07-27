@@ -1,4 +1,3 @@
-import { env } from '$env/dynamic/private';
 import { throwError } from '$lib/errors';
 
 export type Config = {
@@ -10,7 +9,7 @@ export type Config = {
 
 export function getConfig(): Config {
   const getEnv = (key: string): string => {
-    const value = env[key];
+    const value = process.env[key];
     if (typeof value !== 'string') {
       return throwError('MISSING_CONFIG', { item: key });
     }
