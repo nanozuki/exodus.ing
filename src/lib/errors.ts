@@ -6,8 +6,8 @@ export type ErrorValue = {
   FORBIDDEN: { operation: string };
   UNAUTHORIZED: { operation: string };
   NOT_FOUND: { resource: string };
-  INTERNAL_SERVER_ERROR: Error | string;
-  DATABASE_ERROR: { operation: string; cause: Error };
+  INTERNAL_SERVER_ERROR: string;
+  DATABASE_ERROR: { operation: string; cause: string };
   MISSING_CONFIG: { item: string };
   EXTERNAL_API_ERROR: { operation: string; message: string };
 };
@@ -60,16 +60,11 @@ const errorTagConfigs: { [Tag in ErrorTag]: ErrorTagConfig<Tag> } = {
   },
   INTERNAL_SERVER_ERROR: {
     code: 500,
-    messageBuilder: (value) => {
-      if (typeof value === 'string') {
-        return `服务器内部错误: ${value}`;
-      }
-      return `服务器内部错误: ${value.message}`;
-    },
+    messageBuilder: (value) => `服务器内部错误: ${value}`,
   },
   DATABASE_ERROR: {
     code: 500,
-    messageBuilder: (value) => `${value.operation} 失败: ${value.cause.message}`,
+    messageBuilder: (value) => `${value.operation} 失败: ${value.cause}`,
   },
   MISSING_CONFIG: {
     code: 500,
@@ -126,7 +121,7 @@ export function catchError(e: unknown): AppError<ErrorTag> {
   }
   if (e instanceof Error) {
     console.error('Unknown error caught', e);
-    return createError('INTERNAL_SERVER_ERROR', e);
+    return createError('INTERNAL_SERVER_ERROR', e.message);
   }
   console.log('Unknown thing caught:', e);
   throw e; // Re-throw unknown non-error, maybe useful for other lib or framework

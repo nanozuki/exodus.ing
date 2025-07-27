@@ -7,15 +7,15 @@ export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> 
     const start = Date.now();
     const result = await fn();
     const duration = Date.now() - start;
-    console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms`);
+    console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms, result:`, result);
     return result;
   } catch (e) {
     if (isHttpError(e)) {
       throw e;
     } else if (e instanceof Error) {
-      return throwError('DATABASE_ERROR', { operation: method, cause: e });
+      return throwError('DATABASE_ERROR', { operation: method, cause: e.message });
     } else {
-      const cause = new Error(JSON.stringify(e));
+      const cause = JSON.stringify(e);
       return throwError('DATABASE_ERROR', { operation: method, cause });
     }
   }

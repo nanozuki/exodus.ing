@@ -143,6 +143,9 @@ export class PgArticleRepository implements ArticleRepository {
       const rows = await this.listItemQuery(page);
       const articles = rows.map(decodePathField);
       await this.populateReplyTo(articles as WaitReplyToArticle[]);
+      if (articles.length > 10) {
+        throwError('INTERNAL_SERVER_ERROR', 'list articles failed, please check the database connection');
+      }
       return {
         pageNumber: page.pageNumber,
         count,
