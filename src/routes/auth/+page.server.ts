@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { services } from '$lib/server/registry';
-import type { StateInput } from '$lib/domain/services/auth';
+import type { StateInput } from '$lib/domain/values/auth';
 import { catchError } from '$lib/errors';
 
 export const load: PageServerLoad = async ({ url }) => {

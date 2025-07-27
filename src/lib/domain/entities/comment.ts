@@ -1,6 +1,5 @@
 import type { IdPath } from '$lib/domain/values/id_path';
 import type { Author } from '../values/author';
-import type { Paginated, Pagination } from '../values/page';
 import type { ArticleCard } from './article';
 
 export interface Comment {
@@ -37,10 +36,4 @@ export interface CommentPatch {
   content: string;
 }
 
-export interface CommentRepository {
-  listByArticle(articleId: string): Promise<Comment[]>;
-  listByUser(userId: string, page: Pagination): Promise<Paginated<CommentListItem>>;
-  getById(commentId: string): Promise<Comment>;
-  create(comment: CommentInput): Promise<string>;
-  update(commentId: string, patch: Partial<CommentPatch>): Promise<void>;
-}
+export const COMMENT_PAGE_SIZE = 20;

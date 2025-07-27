@@ -1,12 +1,7 @@
-import {
-  inviteCodeQuota,
-  type InviteCode,
-  type InviteCodeCard,
-  type InviteCodeRepository,
-} from '$lib/domain/entities/invite_code';
+import { inviteCodeQuota, type InviteCode, type InviteCodeCard } from '$lib/domain/entities/invite_code';
 import { throwError } from '$lib/errors';
-import type { Relation } from '$lib/domain/entities/role';
-import type { Role, RoleRepository } from '../entities/role';
+import type { Relation, Role } from '$lib/domain/entities/role';
+import { repositories } from '$lib/server/registry';
 
 const INVITE_CODE_EXPIRATION = 30 * 86400 * 1000; // 30 days
 
@@ -18,41 +13,38 @@ export interface UserInvitationData {
 }
 
 export class InviteCodeService {
-  constructor(
-    private readonly inviteCodeRepo: InviteCodeRepository,
-    private readonly roleRepo: RoleRepository,
-  ) {}
+  constructor() {}
 
   async createInviteCode(inviterId: string, roleKey: string): Promise<InviteCode> {
     const validFrom = Date.now();
     const validTo = validFrom + INVITE_CODE_EXPIRATION;
     const input = { inviterId, roleKey, validFrom, validTo };
-    return await this.inviteCodeRepo.create(input, inviteCodeQuota);
+    return await repositories.inviteCode.create(input, inviteCodeQuota);
   }
 
   async acceptInviteCode(userId: string, code: string): Promise<void> {
-    const inviteCode = await this.inviteCodeRepo.findByCode(code);
+    const inviteCode = await repositories.inviteCode.findByCode(code);
     if (!inviteCode) {
       return throwError('BAD_REQUEST', '邀请码不能为空');
     }
     if (inviteCode.usedAt) {
       return throwError('BAD_REQUEST', '邀请码已被使用');
     }
-    await this.inviteCodeRepo.useCode(code);
-    await this.roleRepo.specifyRoleByOther(userId, inviteCode.roleKey as Role, inviteCode.inviterId);
+    await repositories.inviteCode.useCode(code);
+    await repositories.role.specifyRoleByOther(userId, inviteCode.roleKey as Role, inviteCode.inviterId);
   }
 
   async getUserInvitationData(userId: string): Promise<UserInvitationData> {
     const [inviter, invitees, unusedCodes, quota] = await Promise.all([
-      this.roleRepo.getInviter(userId),
-      this.roleRepo.getInvitees(userId),
-      this.inviteCodeRepo.getUserUnusedCodes(userId),
-      this.inviteCodeRepo.getUserInviteQuota(userId, inviteCodeQuota),
+      repositories.role.getInviter(userId),
+      repositories.role.getInvitees(userId),
+      repositories.inviteCode.getUserUnusedCodes(userId),
+      repositories.inviteCode.getUserInviteQuota(userId, inviteCodeQuota),
     ]);
     return { inviter, invitees, unusedCodes, quota };
   }
 
   async deleteInviteCode(userId: string, code: string): Promise<void> {
-    await this.inviteCodeRepo.delete(userId, code);
+    await repositories.inviteCode.delete(userId, code);
   }
 }

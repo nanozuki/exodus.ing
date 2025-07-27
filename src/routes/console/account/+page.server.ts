@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { services } from '$lib/server/registry';
+import { repositories } from '$lib/server/registry';
 
 export const actions = {
   default: async ({ locals, request }) => {
@@ -20,7 +20,7 @@ export const actions = {
     }
 
     try {
-      await services.user.updateUsername(user.id, username);
+      await repositories.user.update(user.id, { username });
     } catch (e) {
       if (e instanceof Error) {
         return {

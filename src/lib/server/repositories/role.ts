@@ -1,9 +1,9 @@
-import type { Relation, Role, RoleRepository } from '$lib/domain/entities/role';
+import type { Relation, Role } from '$lib/domain/entities/role';
 import { and, desc, eq } from 'drizzle-orm';
 import { tUser, tUserRole, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
-export class PgRoleRepository implements RoleRepository {
+export class PgRoleRepository {
   constructor(private readonly db: AppDatabase) {}
 
   async specifyRoleByOther(userId: string, role: Role, inviterId: string): Promise<void> {

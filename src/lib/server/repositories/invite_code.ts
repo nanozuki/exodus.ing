@@ -2,7 +2,6 @@ import type {
   InviteCode,
   InviteCodeCard,
   InviteCodeInput,
-  InviteCodeRepository,
   InviteQuotaAlgorithm,
 } from '$lib/domain/entities/invite_code';
 import { and, eq, isNull } from 'drizzle-orm/sql';
@@ -10,7 +9,7 @@ import { tArticle, tInviteCode, tUserRole, type AppDatabase } from './schema';
 import { newCode, wrap } from './utils';
 import { throwError } from '$lib/errors';
 
-export class PgInviteCodeRepository implements InviteCodeRepository {
+export class PgInviteCodeRepository {
   constructor(private db: AppDatabase) {}
 
   async create(input: InviteCodeInput, algo: InviteQuotaAlgorithm): Promise<InviteCode> {

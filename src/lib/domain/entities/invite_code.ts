@@ -28,12 +28,3 @@ export interface InviteCodeInput {
   inviterId: string;
   roleKey: string;
 }
-
-export interface InviteCodeRepository {
-  create(input: InviteCodeInput, quotaAlgo: InviteQuotaAlgorithm): Promise<InviteCode>;
-  findByCode(code: string): Promise<InviteCode | null>;
-  useCode(code: string): Promise<void>;
-  delete(userId: string, code: string): Promise<void>;
-  getUserUnusedCodes(userId: string): Promise<InviteCodeCard[]>;
-  getUserInviteQuota(userId: string, algo: InviteQuotaAlgorithm): Promise<number>;
-}

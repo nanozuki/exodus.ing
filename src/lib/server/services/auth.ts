@@ -1,8 +1,9 @@
 import type { Cookies } from '@sveltejs/kit';
-import type { GitHubUser } from '$lib/domain/services/user';
-import type { User, UserRepository } from '$lib/domain/entities/user';
+import type { User, GitHubUser } from '$lib/domain/entities/user';
 import { throwError } from '$lib/errors';
 import { z } from 'zod';
+import { repositories } from '$lib/server/registry';
+import type { StateInput } from '$lib/domain/values/auth';
 
 export const StateSchema = z.object({
   state: z.string(),
@@ -17,11 +18,6 @@ export const StateSchema = z.object({
 
 export type State = z.infer<typeof StateSchema>;
 
-export interface StateInput {
-  next?: string;
-  signUp?: { username?: string; name?: string };
-}
-
 // TODO: move the Cookies out of the domain layer
 export interface AuthAdapter {
   // Session/State operations
@@ -34,10 +30,7 @@ export interface AuthAdapter {
 }
 
 export class AuthService {
-  constructor(
-    private readonly auth: AuthAdapter,
-    private readonly user: UserRepository,
-  ) {}
+  constructor(private readonly auth: AuthAdapter) {}
 
   async loadSession(cookies: Cookies): Promise<User | null> {
     return await this.auth.loadSession(cookies);
@@ -50,13 +43,13 @@ export class AuthService {
       if (username.startsWith('@')) {
         return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });
       }
-      const user = await this.user.findByUsername(username);
+      const user = await repositories.user.findByUsername(username);
       if (user) {
         return throwError('PARAMETER_INVALID', { username: '用户名已存在' });
       }
     }
     if (name) {
-      const user = await this.user.findByName(name);
+      const user = await repositories.user.findByName(name);
       if (user) {
         return throwError('PARAMETER_INVALID', { name: '昵称已存在' });
       }
@@ -71,7 +64,7 @@ export class AuthService {
       return throwError('BAD_REQUEST', 'OAuth 验证错误: invalid state');
     }
     const ghUser = await this.auth.getGitHubUserByCode(code);
-    const user = await this.user.findByGitHubId(ghUser.id);
+    const user = await repositories.user.findByGitHubId(ghUser.id);
 
     if (user) {
       // exsiting user
@@ -80,7 +73,7 @@ export class AuthService {
     }
 
     // new user, create user
-    const newUser = await this.user.create({
+    const newUser = await repositories.user.create({
       username: storedState.signUp?.username || ghUser.username,
       name: storedState.signUp?.name || ghUser.username,
       githubId: ghUser.id,

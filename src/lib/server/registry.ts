@@ -1,6 +1,6 @@
-import { createServiceSet, type ServiceSet } from '$lib/domain/services';
+import { createServiceSet, type ServiceSet } from '$lib/server/services';
 import { createAdapterSet } from '$lib/server/adapters';
-import { createRepositorySet, getDatabase } from '$lib/server/repositories';
+import { createRepositorySet, getDatabase, type RepositorySet } from '$lib/server/repositories';
 import type { RequestEvent } from '@sveltejs/kit';
 import { hasPermission as rolesHasPermission, Role, type Permission } from '$lib/domain/entities/role';
 import { throwError } from '$lib/errors';
@@ -10,12 +10,13 @@ import { getConfig } from './config';
 export async function buildServices(): Promise<void> {
   const config = getConfig();
   const db = await getDatabase(config);
-  const repositories = await createRepositorySet(db);
+  repositories = createRepositorySet(db);
   const adapters = createAdapterSet(db, config);
-  services = createServiceSet(repositories, adapters);
+  services = createServiceSet(adapters);
 }
 
 export let services: ServiceSet;
+export let repositories: RepositorySet;
 
 export async function attachLocals(event: RequestEvent): Promise<void> {
   const loggedInUser = await services.auth.loadSession(event.cookies);
@@ -32,9 +33,9 @@ export async function attachLocals(event: RequestEvent): Promise<void> {
       return false;
     }
     if (!roles) {
-      roles = await services.role.getUserRoles(loggedInUser.id);
+      roles = await repositories.role.getUserRoles(loggedInUser.id);
     }
-    return rolesHasPermission(roles, p);
+    return rolesHasPermission(roles! as Role[], p);
   }
   async function requirePermission(p: Permission, operation: string): Promise<User> {
     const user = requireLoggedInUser(operation);

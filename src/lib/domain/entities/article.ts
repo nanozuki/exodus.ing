@@ -1,5 +1,4 @@
 import type { IdPath } from '$lib/domain/values/id_path';
-import type { Paginated, Pagination } from '$lib/domain/values/page';
 
 export interface Article {
   id: string;
@@ -20,7 +19,7 @@ export type ArticleContentType = 'markdown' | 'external';
 
 export interface ArticleInput {
   title: string;
-  userId: string;
+  authorId: string;
   contentType: ArticleContentType;
   content: string;
   replyTo?: string;
@@ -71,19 +70,6 @@ export interface ArticleContent {
   title: string;
   content: string;
   contentType: ArticleContentType;
-}
-
-export interface ArticleRepository {
-  getById(articleId: string): Promise<Article>;
-  getContentById(articleId: string): Promise<ArticleContent>;
-  getCardById(articleId: string): Promise<ArticleCard>;
-  list(page: Pagination): Promise<Paginated<ArticleListItem>>;
-  listFeeds(last: number): Promise<ArticleFeedsItem[]>;
-  listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
-  listReplies(articleId: string): Promise<ArticleCard[]>;
-  listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
-  create(input: ArticleInput): Promise<string>;
-  update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
 }
 
 export const ARTICLE_PAGE_SIZE = 20;
