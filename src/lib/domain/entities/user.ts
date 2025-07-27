@@ -13,11 +13,6 @@ export interface UserInput {
   aboutMe: string;
 }
 
-export interface GitHubUser {
-  id: number;
-  username: string;
-}
-
 export interface UserPatch {
   username: string;
   name: string;

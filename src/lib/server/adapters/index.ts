@@ -1,10 +1,12 @@
-import type { AdapterSet } from '$lib/server/services';
-import type { AppDatabase } from '$lib/server/repositories/schema';
-import { LuciaAuthService } from './lucia';
 import type { Config } from '$lib/server/config';
+import { GitHubOAuth } from '$lib/server/adapters/github_auth';
+import { resolveTxt } from '$lib/server/adapters/name_resolver';
 
-export function createAdapterSet(db: AppDatabase, config: Config): AdapterSet {
+export function createAdapterSet(config: Config) {
   return {
-    auth: new LuciaAuthService(db, config),
+    githubOAuth: new GitHubOAuth(config),
+    name_resolver: { resolveTxt },
   };
 }
+
+export type AdapterSet = ReturnType<typeof createAdapterSet>;

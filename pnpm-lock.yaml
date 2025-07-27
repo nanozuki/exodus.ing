@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@lucia-auth/adapter-drizzle':
-        specifier: ^1.1.0
-        version: 1.1.0(drizzle-orm@0.44.3(@libsql/client@0.15.9)(@types/pg@8.15.4)(gel@2.0.2)(pg@8.16.3))(lucia@3.2.2)
       arctic:
         specifier: ^3.7.0
         version: 3.7.0
@@ -126,9 +123,6 @@ importers:
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0
-      lucia:
-        specifier: ^3.2.2
-        version: 3.2.2
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -710,13 +704,6 @@ packages:
     resolution: {integrity: sha512-aNcmDrD1Ws+dNZIv9ECbxBQumqB9MlSVEykwfXJpqv/593nABb8Ttg5nAGUPtnADyaGDTrGvPPP81d/KsKho4Q==}
     cpu: [x64]
     os: [win32]
-
-  '@lucia-auth/adapter-drizzle@1.1.0':
-    resolution: {integrity: sha512-iCTnZWvfI5lLZOdUHZYiXA1jaspIFEeo2extLxQ3DjP3uOVys7IPwBi7zezLIRu9dhro4H4Kji+7gSYyjcef2A==}
-    deprecated: This package has been deprecated. Please see https://lucia-auth.com/lucia-v3/migrate.
-    peerDependencies:
-      drizzle-orm: '>= 0.29 <1'
-      lucia: 3.x
 
   '@melt-ui/pp@0.3.2':
     resolution: {integrity: sha512-xKkPvaIAFinklLXcQOpwZ8YSpqAFxykjWf8Y/fSJQwsixV/0rcFs07hJ49hJjPy5vItvw5Qa0uOjzFUbXzBypQ==}
@@ -2082,10 +2069,6 @@ packages:
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
-
-  lucia@3.2.2:
-    resolution: {integrity: sha512-P1FlFBGCMPMXu+EGdVD9W4Mjm0DqsusmKgO7Xc33mI5X1bklmsQb0hfzPhXomQr9waWIBDsiOjvr1e6BTaUqpA==}
-    deprecated: This package has been deprecated. Please see https://lucia-auth.com/lucia-v3/migrate.
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -3554,11 +3537,6 @@ snapshots:
   '@libsql/win32-x64-msvc@0.5.13':
     optional: true
 
-  '@lucia-auth/adapter-drizzle@1.1.0(drizzle-orm@0.44.3(@libsql/client@0.15.9)(@types/pg@8.15.4)(gel@2.0.2)(pg@8.16.3))(lucia@3.2.2)':
-    dependencies:
-      drizzle-orm: 0.44.3(@libsql/client@0.15.9)(@types/pg@8.15.4)(gel@2.0.2)(pg@8.16.3)
-      lucia: 3.2.2
-
   '@melt-ui/pp@0.3.2(@melt-ui/svelte@0.86.6(svelte@5.36.4))(svelte@5.36.4)':
     dependencies:
       '@melt-ui/svelte': 0.86.6(svelte@5.36.4)
@@ -4945,11 +4923,6 @@ snapshots:
   loupe@3.1.4: {}
 
   lru-cache@10.4.3: {}
-
-  lucia@3.2.2:
-    dependencies:
-      '@oslojs/crypto': 1.0.1
-      '@oslojs/encoding': 1.1.0
 
   lz-string@1.5.0: {}
 
