@@ -1,6 +1,6 @@
 import type { Bookmark } from '$lib/domain/entities/bookmark';
-import { and, eq } from 'drizzle-orm/sql';
-import { tBookmark, type AppDatabase } from './schema';
+import { and, eq, sql } from 'drizzle-orm/sql';
+import { tArticle, tBookmark, type AppDatabase } from './schema';
 import { wrap } from './utils';
 
 export class PgBookmarkRepository {
@@ -25,13 +25,25 @@ export class PgBookmarkRepository {
   async create(articleId: string, userId: string): Promise<void> {
     await wrap('bookmark.create', async () => {
       const bookmark = { userId, articleId, createdAt: new Date() };
-      await this.db.insert(tBookmark).values(bookmark);
+      await this.db.transaction(async (tx) => {
+        await tx.insert(tBookmark).values(bookmark);
+        await tx
+          .update(tArticle)
+          .set({ bookmarkCount: sql`${tArticle.bookmarkCount} + 1` })
+          .where(eq(tArticle.id, articleId));
+      });
     });
   }
 
   async delete(articleId: string, userId: string): Promise<void> {
-    await wrap('bookmark.delete', () =>
-      this.db.delete(tBookmark).where(and(eq(tBookmark.userId, userId), eq(tBookmark.articleId, articleId))),
-    );
+    await wrap('bookmark.delete', async () => {
+      await this.db.transaction(async (tx) => {
+        await tx.delete(tBookmark).where(and(eq(tBookmark.userId, userId), eq(tBookmark.articleId, articleId)));
+        await tx
+          .update(tArticle)
+          .set({ bookmarkCount: sql`${tArticle.bookmarkCount} - 1` })
+          .where(eq(tArticle.id, articleId));
+      });
+    });
   }
 }

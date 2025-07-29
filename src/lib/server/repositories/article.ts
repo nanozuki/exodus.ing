@@ -242,9 +242,7 @@ export class PgArticleRepository {
         if (input.replyTo) {
           await tx
             .update(tArticle)
-            .set({
-              replyCount: sql`${tArticle.replyCount} + 1`,
-            })
+            .set({ replyCount: sql`${tArticle.replyCount} + 1` })
             .where(eq(tArticle.id, input.replyTo));
         }
         await tx.insert(tArticle).values(article);

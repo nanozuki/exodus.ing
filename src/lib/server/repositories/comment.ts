@@ -1,7 +1,7 @@
 import type { Comment, CommentInput, CommentListItem, CommentPatch } from '$lib/domain/entities/comment';
 import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
 import { throwError } from '$lib/errors';
-import { desc, eq } from 'drizzle-orm/sql';
+import { desc, eq, sql } from 'drizzle-orm/sql';
 import { tArticle, tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
@@ -117,20 +117,20 @@ export class PgCommentRepository {
         createdAt: now,
         updatedAt: now,
       };
-      await this.db.insert(tComment).values(comment);
+      await this.db.transaction(async (tx) => {
+        await tx.insert(tComment).values(comment);
+        await tx
+          .update(tArticle)
+          .set({ commentCount: sql`${tArticle.commentCount} + 1` })
+          .where(eq(tArticle.id, input.articleId));
+      });
       return comment.id;
     });
   }
 
   async update(commentId: string, patch: Partial<CommentPatch>): Promise<void> {
     await wrap('comment.update', () =>
-      this.db
-        .update(tComment)
-        .set({
-          content: patch.content,
-          updatedAt: new Date(),
-        })
-        .where(eq(tComment.id, commentId)),
+      this.db.update(tComment).set({ content: patch.content, updatedAt: new Date() }).where(eq(tComment.id, commentId)),
     );
   }
 }
