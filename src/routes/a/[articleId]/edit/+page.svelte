@@ -11,7 +11,7 @@
 
   let mode: 'editor' | 'previewer' = $state('editor');
   let article: string = $state(form?.content || data.article?.content || '');
-  let articleSnapshot = $state('');
+  let articleSnapshot = '';
   let compiled: CompiledArticle = $state({ title: '', value: '' });
   let errorMessage = $state('');
   let content = $derived.by(() => compiled.value);
@@ -24,20 +24,21 @@
   let btnVariant: 'primary' | 'disabled' = $derived(errorMessage === '' ? 'primary' : 'disabled');
 
   const compile = () => {
-    if (article !== articleSnapshot) {
-      articleSnapshot = article;
-      compileArticle(article).then((result) => {
-        try {
-          compiled = result;
-        } catch (e) {
-          const error = catchError(e);
-          if (error.tag === 'PARAMETER_INVALID') {
-            errorMessage = error.message;
-          }
-          throw e;
+    if (article === articleSnapshot) {
+      return;
+    }
+    articleSnapshot = article;
+    compileArticle(articleSnapshot)
+      .then((result) => {
+        compiled = result;
+        errorMessage = '';
+      })
+      .catch((e) => {
+        const error = catchError(e);
+        if (error.tag === 'PARAMETER_INVALID') {
+          errorMessage = error.message;
         }
       });
-    }
   };
 
   onMount(() => {
