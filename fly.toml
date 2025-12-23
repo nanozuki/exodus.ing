@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for exodus-ing on 2025-12-23T21:56:08+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'exodus-ing'
+primary_region = 'fra'
+
+[build]
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[env]
+  EXODUSING_HOST = "https://exodus-ing.fly.dev"
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

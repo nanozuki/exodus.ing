@@ -26,6 +26,7 @@
         {
           devShells.default = pkgs.mkShell {
             packages = with pkgs; [
+              flyctl
               git
               just
               nodePackages."@tailwindcss/language-server"
