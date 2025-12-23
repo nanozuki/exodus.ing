@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Actions } from './$types';
 import { services } from '$lib/server/registry';
-import { AppError } from '$lib/errors';
+import { catchError } from '$lib/errors';
 import { fail, redirect } from '@sveltejs/kit';
 import { consoleRoutes } from '../routes';
 
@@ -25,7 +25,7 @@ export const actions = {
     try {
       await services.inviteCode.acceptInviteCode(user.id, inviteCode);
     } catch (e) {
-      const error = AppError.catch(e);
+      const error = catchError(e);
       return fail(error.code, {
         inviteCode: inviteCode,
         error: error.message,

@@ -1,29 +1,31 @@
-import { createServiceSet, type ServiceSet } from '$lib/domain/services';
-import { createAdapterSet } from '$lib/server/adapters';
-import { createRepositorySet, getDatabase } from '$lib/server/repositories';
+import { createServiceSet, type ServiceSet } from '$lib/server/services';
+import { createAdapterSet, type AdapterSet } from '$lib/server/adapters';
+import { createRepositorySet, getDatabase, type RepositorySet } from '$lib/server/repositories';
 import type { RequestEvent } from '@sveltejs/kit';
 import { hasPermission as rolesHasPermission, Role, type Permission } from '$lib/domain/entities/role';
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
 import type { User } from '$lib/domain/entities/user';
 import { getConfig } from './config';
 
 export async function buildServices(): Promise<void> {
   const config = getConfig();
   const db = await getDatabase(config);
-  const repositories = await createRepositorySet(db);
-  const adapters = createAdapterSet(db, config);
-  services = createServiceSet(repositories, adapters);
+  repositories = createRepositorySet(db);
+  adapters = createAdapterSet(config);
+  services = createServiceSet();
 }
 
 export let services: ServiceSet;
+export let repositories: RepositorySet;
+export let adapters: AdapterSet;
 
 export async function attachLocals(event: RequestEvent): Promise<void> {
   const loggedInUser = await services.auth.loadSession(event.cookies);
   let roles: Role[] | null = null;
 
-  function requireLoggedInUser(context: string): User {
+  function requireLoggedInUser(operation: string): User {
     if (!loggedInUser) {
-      return AppError.Unauthorized(context).throw();
+      return throwError('UNAUTHORIZED', { operation });
     }
     return loggedInUser;
   }
@@ -32,16 +34,16 @@ export async function attachLocals(event: RequestEvent): Promise<void> {
       return false;
     }
     if (!roles) {
-      roles = await services.role.getUserRoles(loggedInUser.id);
+      roles = await repositories.role.getUserRoles(loggedInUser.id);
     }
-    return rolesHasPermission(roles, p);
+    return rolesHasPermission(roles! as Role[], p);
   }
-  async function requirePermission(p: Permission, context: string): Promise<User> {
-    const user = requireLoggedInUser(context);
+  async function requirePermission(p: Permission, operation: string): Promise<User> {
+    const user = requireLoggedInUser(operation);
     if (await hasPermission(p)) {
       return user;
     }
-    return AppError.Forbidden(`Require Permission when ${context}`).throw();
+    return throwError('FORBIDDEN', { operation });
   }
 
   event.locals = {

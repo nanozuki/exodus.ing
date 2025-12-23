@@ -1,164 +1,151 @@
 import type {
   Article,
   ArticleCard,
-  ArticleEditorData,
+  ArticleContent,
+  ArticleFeedsItem,
   ArticleInput,
   ArticleListItem,
-  ArticleFeedsItem,
   ArticlePatch,
-  ArticleRepository,
 } from '$lib/domain/entities/article';
-import { decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
+import {
+  decodePathField,
+  encodeIdPath,
+  getPathParent,
+  type IdPath,
+  type PathEncoded,
+} from '$lib/domain/values/id_path';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
-import { AppError } from '$lib/errors';
-import { aliasedTable } from 'drizzle-orm';
-import { and, desc, eq, like, ne, sql } from 'drizzle-orm/sql';
-import { tArticle, tBookmark, tComment, tUser, type AppDatabase } from './schema';
+import { throwError } from '$lib/errors';
+import { and, desc, eq, inArray, like, ne, sql } from 'drizzle-orm/sql';
+import { tArticle, tBookmark, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
-type ReplyToModel = ArticleCard | { id: null; title: null; authorId: null; authorUsername: null; authorName: null };
-type ArticleResult = Omit<Article, 'path' | 'replyTo'> & { path: string; replyTo: ReplyToModel };
-type ArticleItemResult = Omit<ArticleListItem, 'replyTo'> & { replyTo: ReplyToModel };
-
-function convertReplyTo<T extends { replyTo: ReplyToModel }>(item: T): Omit<T, 'replyTo'> & { replyTo?: ArticleCard } {
-  return { ...item, replyTo: item.replyTo.id ? item.replyTo : undefined };
+interface WaitReplyToArticle extends ArticleCard {
+  path: IdPath;
+  replyTo?: ArticleCard;
 }
 
-export class PgArticleRepository implements ArticleRepository {
+export class PgArticleRepository {
   constructor(private db: AppDatabase) {}
 
+  private selectCard = {
+    id: tArticle.id,
+    title: tArticle.title,
+    authorId: tArticle.userId,
+    authorUsername: tUser.username,
+    authorName: tUser.name,
+  };
+  private selectListItem = {
+    ...this.selectCard,
+    path: tArticle.path,
+    createdAt: tArticle.createdAt,
+    updatedAt: tArticle.updatedAt,
+    contentType: tArticle.contentType,
+    replyCount: tArticle.replyCount,
+    bookmarkCount: tArticle.bookmarkCount,
+    commentCount: tArticle.commentCount,
+  };
+  private selectModel = {
+    ...this.selectListItem,
+    content: tArticle.content,
+  };
+
   private modelQuery() {
-    const p = aliasedTable(tArticle, 'parent');
-    const pu = aliasedTable(tUser, 'pu');
-    return this.db
-      .select({
-        id: tArticle.id,
-        path: tArticle.path,
-        createdAt: tArticle.createdAt,
-        updatedAt: tArticle.updatedAt,
-        title: tArticle.title,
-        authorId: tArticle.userId,
-        authorUsername: tUser.username,
-        authorName: tUser.name,
-        contentType: tArticle.contentType,
-        content: tArticle.content,
-        replyTo: {
-          id: p.id,
-          title: p.title,
-          authorId: p.userId,
-          authorUsername: pu.username,
-          authorName: pu.name,
-        },
-        bookmarkCount: this.db.$count(tBookmark, eq(tBookmark.articleId, tArticle.id)),
-      })
-      .from(tArticle)
-      .leftJoin(tUser, eq(tArticle.userId, tUser.id))
-      .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
-      .leftJoin(pu, eq(p.userId, pu.id));
+    return this.db.select(this.selectModel).from(tArticle).innerJoin(tUser, eq(tArticle.userId, tUser.id)).$dynamic();
   }
 
-  private listItemQuery() {
-    const p = aliasedTable(tArticle, 'parent');
-    const pu = aliasedTable(tUser, 'pu');
-    const r = aliasedTable(tArticle, 'r');
-    const replies = this.db.$with('replies').as(
-      this.db
-        .select({
-          id: tArticle.id,
-          replyCount: sql<number>`COALESCE(COUNT(r.id), 0)`.as('reply_count'),
-        })
-        .from(tArticle)
-        .leftJoin(r, and(ne(tArticle.id, r.id), eq(sql`${tArticle.path} || ${r.id} || '/'`, r.path)))
-        .groupBy(tArticle.id),
-    );
+  private listItemQuery(page: Pagination) {
     return this.db
-      .with(replies)
-      .select({
-        id: tArticle.id,
-        createdAt: tArticle.createdAt,
-        updatedAt: tArticle.updatedAt,
-        title: tArticle.title,
-        authorId: tArticle.userId,
-        authorUsername: tUser.username,
-        authorName: tUser.name,
-        contentType: tArticle.contentType,
-        replyTo: {
-          id: p.id,
-          title: p.title,
-          authorId: p.userId,
-          authorUsername: pu.username,
-          authorName: pu.name,
-        },
-        replyCount: replies.replyCount,
-        bookmarkCount: this.db.$count(tBookmark, eq(tBookmark.articleId, tArticle.id)),
-        commentCount: this.db.$count(tComment, eq(tComment.articleId, tArticle.id)),
-      })
+      .select(this.selectListItem)
       .from(tArticle)
-      .leftJoin(tUser, eq(tArticle.userId, tUser.id))
-      .leftJoin(p, eq(sql`${p.path} || ${tArticle.id} || '/'`, tArticle.path))
-      .leftJoin(pu, eq(p.userId, pu.id))
-      .leftJoin(replies, eq(tArticle.id, replies.id));
+      .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+      .orderBy(desc(tArticle.createdAt))
+      .limit(page.pageSize)
+      .offset(page.pageSize * (page.pageNumber - 1))
+      .$dynamic();
   }
 
   private cardQuery() {
-    return this.db
-      .select({
-        id: tArticle.id,
-        title: tArticle.title,
-        authorId: tArticle.userId,
-        authorUsername: tUser.username,
-        authorName: tUser.name,
-      })
-      .from(tArticle)
-      .innerJoin(tUser, eq(tArticle.userId, tUser.id));
+    return this.db.select(this.selectCard).from(tArticle).innerJoin(tUser, eq(tArticle.userId, tUser.id)).$dynamic();
+  }
+
+  private async populateReplyTo(articles: WaitReplyToArticle[]) {
+    const datas = new Map<string, WaitReplyToArticle>();
+    const wantedIdSet = new Set<string>();
+    for (const article of articles) {
+      datas.set(article.id, article);
+      const pathDepth = article.path.length;
+      if (pathDepth > 1) {
+        wantedIdSet.add(article.path[pathDepth - 2]);
+      }
+    }
+    const wantedIds = Array.from(wantedIdSet);
+    const cards = await this.cardQuery().where(inArray(tArticle.id, wantedIds));
+    const replyToMap = new Map<string, ArticleCard>();
+    for (const card of cards) {
+      replyToMap.set(card.id, card);
+    }
+    for (const article of articles) {
+      const parentId = getPathParent(article.path);
+      if (parentId) {
+        article.replyTo = replyToMap.get(parentId);
+        if (!article.replyTo) {
+          throwError('INTERNAL_SERVER_ERROR', `Can't find artile ${article.id}'s replyTo ${parentId}`);
+        }
+      }
+    }
   }
 
   async getById(articleId: string): Promise<Article> {
     return await wrap('article.getById', async () => {
-      const articles = await this.modelQuery().where(eq(tArticle.id, articleId));
+      const rows: PathEncoded<Article>[] = await this.modelQuery().where(eq(tArticle.id, articleId));
+      const articles = rows.map(decodePathField);
       if (articles.length === 0) {
-        return AppError.ArticleNotFound(articleId).throw();
+        return throwError('NOT_FOUND', { resource: '文章' });
       }
-      return convertReplyTo(decodePathField(articles[0] as ArticleResult));
+      await this.populateReplyTo(articles);
+      return articles[0];
     });
   }
 
-  async getArticleEditorData(req: { articleId?: string; replyTo?: string }): Promise<ArticleEditorData> {
-    const getArticle = async () => {
-      if (!req.articleId) {
-        return undefined;
-      }
+  async getContentById(articleId: string): Promise<ArticleContent> {
+    return await wrap('article.getContentById', async () => {
       const rows = await this.db
         .select({
+          id: tArticle.id,
           title: tArticle.title,
           content: tArticle.content,
+          contentType: tArticle.contentType,
         })
         .from(tArticle)
-        .where(eq(tArticle.id, req.articleId));
-      return rows.length > 0 ? rows[0] : undefined;
-    };
-    const getReplyTo = async () => {
-      if (!req.replyTo) {
-        return undefined;
+        .where(eq(tArticle.id, articleId));
+      if (rows.length === 0) {
+        return throwError('NOT_FOUND', { resource: '文章' });
       }
-      const rows = await this.cardQuery().where(eq(tArticle.id, req.replyTo));
-      return rows.length > 0 ? rows[0] : undefined;
-    };
-    const [article, replyTo] = await Promise.all([getArticle(), getReplyTo()]);
-    return { article, replyTo };
+      return rows[0];
+    });
+  }
+
+  async getCardById(articleId: string): Promise<ArticleCard> {
+    return await wrap('article.getCardById', async () => {
+      const rows = await this.cardQuery().where(eq(tArticle.id, articleId));
+      if (rows.length === 0) {
+        return throwError('NOT_FOUND', { resource: '文章' });
+      }
+      return rows[0];
+    });
   }
 
   async list(page: Pagination): Promise<Paginated<ArticleListItem>> {
     return await wrap('article.list', async () => {
       const count = await this.db.$count(tArticle);
-      const articles = await this.listItemQuery()
-        .orderBy(desc(tArticle.createdAt))
-        .limit(page.pageSize)
-        .offset(page.pageSize * (page.pageNumber - 1));
+      const rows = await this.listItemQuery(page);
+      const articles = rows.map(decodePathField);
+      await this.populateReplyTo(articles as WaitReplyToArticle[]);
       return {
         pageNumber: page.pageNumber,
         count,
-        items: (articles as ArticleItemResult[]).map(convertReplyTo),
+        items: articles,
       };
     });
   }
@@ -187,15 +174,13 @@ export class PgArticleRepository implements ArticleRepository {
   async listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>> {
     return await wrap('article.listByUserId', async () => {
       const count = await this.db.$count(tArticle, eq(tArticle.userId, userId));
-      const articles = await this.listItemQuery()
-        .where(eq(tArticle.userId, userId))
-        .orderBy(desc(tArticle.createdAt))
-        .limit(page.pageSize)
-        .offset(page.pageSize * (page.pageNumber - 1));
+      const rows = await this.listItemQuery(page).where(eq(tArticle.userId, userId));
+      const articles = rows.map(decodePathField);
+      await this.populateReplyTo(articles as WaitReplyToArticle[]);
       return {
         pageNumber: page.pageNumber,
         count,
-        items: (articles as ArticleItemResult[]).map(convertReplyTo),
+        items: articles,
       };
     });
   }
@@ -212,16 +197,15 @@ export class PgArticleRepository implements ArticleRepository {
   async listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>> {
     return await wrap('article.listUserBookmarks', async () => {
       const count = await this.db.$count(tBookmark, eq(tBookmark.userId, userId));
-      const articles = await this.listItemQuery()
+      const rows = await this.listItemQuery(page)
         .innerJoin(tBookmark, eq(tArticle.id, tBookmark.articleId))
-        .where(eq(tBookmark.userId, userId))
-        .orderBy(desc(tBookmark.createdAt))
-        .limit(page.pageSize)
-        .offset(page.pageSize * (page.pageNumber - 1));
+        .where(eq(tBookmark.userId, userId));
+      const articles = rows.map(decodePathField);
+      await this.populateReplyTo(articles);
       return {
         pageNumber: page.pageNumber,
         count,
-        items: (articles as ArticleItemResult[]).map(convertReplyTo),
+        items: articles,
       };
     });
   }
@@ -250,11 +234,19 @@ export class PgArticleRepository implements ArticleRepository {
         ...input,
         id: articleId,
         path: encodeIdPath(path),
-        userId: input.userId,
+        userId: input.authorId,
         createdAt: now,
         updatedAt: now,
       };
-      await this.db.insert(tArticle).values(article);
+      await this.db.transaction(async (tx) => {
+        if (input.replyTo) {
+          await tx
+            .update(tArticle)
+            .set({ replyCount: sql`${tArticle.replyCount} + 1` })
+            .where(eq(tArticle.id, input.replyTo));
+        }
+        await tx.insert(tArticle).values(article);
+      });
       return articleId;
     });
   }

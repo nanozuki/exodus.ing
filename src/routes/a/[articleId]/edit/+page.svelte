@@ -1,18 +1,19 @@
 <script lang="ts">
-  import { compileArticle, type ArticleCompileResult } from '$lib/markdown';
+  import { compileArticle, type CompiledArticle } from '$lib/markdown';
   import { onMount } from 'svelte';
   import { enhance } from '$app/forms';
   import Markdown from '$lib/component/Markdown.svelte';
   import Button from '$lib/component/Button.svelte';
   import ArticleCard from '$lib/component/ArticleCard.svelte';
+  import { catchError } from '$lib/errors.js';
 
   const { form, data } = $props();
 
   let mode: 'editor' | 'previewer' = $state('editor');
   let article: string = $state(form?.content || data.article?.content || '');
-  let articleSnapshot = $state('');
-  let compiled: ArticleCompileResult = $state({ ok: false, title: '', value: '', errors: { noTitle: true } });
-  let title = $derived.by(() => (compiled.ok ? compiled.title : ''));
+  let articleSnapshot = '';
+  let compiled: CompiledArticle = $state({ title: '', value: '' });
+  let errorMessage = $state('');
   let content = $derived.by(() => compiled.value);
   let { replyTo } = $derived(data);
 
@@ -20,15 +21,24 @@
   const preSubmit = () => {
     submitting = true;
   };
-  let btnVariant: 'primary' | 'disabled' = $derived(!submitting && compiled.ok ? 'primary' : 'disabled');
+  let btnVariant: 'primary' | 'disabled' = $derived(errorMessage === '' ? 'primary' : 'disabled');
 
   const compile = () => {
-    if (article !== articleSnapshot) {
-      articleSnapshot = article;
-      compileArticle(article).then((result) => {
-        compiled = result;
-      });
+    if (article === articleSnapshot) {
+      return;
     }
+    articleSnapshot = article;
+    compileArticle(articleSnapshot)
+      .then((result) => {
+        compiled = result;
+        errorMessage = '';
+      })
+      .catch((e) => {
+        const error = catchError(e);
+        if (error.tag === 'PARAMETER_INVALID') {
+          errorMessage = error.message;
+        }
+      });
   };
 
   onMount(() => {
@@ -44,7 +54,7 @@
 </script>
 
 <svelte:head>
-  <title>编辑 {title} - EXODUS</title>
+  <title>编辑 {compiled.title} - EXODUS</title>
 </svelte:head>
 
 <div class="gap-y-m flex h-full flex-1 flex-col">
@@ -79,18 +89,16 @@
     </div>
   {/if}
 
-  {#if !compiled.ok}
+  {#if errorMessage}
     <div class="bg-error/30 text-error p-2">
-      {#if compiled.errors.noTitle}
-        <p class="font-bold">标题不能为空</p>
-        <small>标题为第一个一级标题</small>
-      {/if}
+      <p class="font-bold">标题不能为空</p>
+      <small>标题为第一个一级标题</small>
     </div>
   {/if}
 
   <form method="POST" use:enhance={preSubmit}>
     <input type="hidden" name="content" value={article} />
-    <input type="hidden" name="title" value={title} />
+    <input type="hidden" name="title" value={compiled.title} />
     <input type="hidden" name="replyTo" value={replyTo?.id} />
     <Button variant={btnVariant} type="submit">发布</Button>
   </form>

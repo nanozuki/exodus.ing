@@ -1,8 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { services } from '$lib/server/registry';
-import type { StateInput } from '$lib/domain/services/auth';
-import { AppError } from '$lib/errors';
+import { catchError } from '$lib/errors';
+import type { OAuthCookieDataInput } from '$lib/domain/values/auth';
 
 export const load: PageServerLoad = async ({ url }) => {
   const next = url.searchParams.get('next') || undefined;
@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 export const actions = {
   register: async ({ cookies, request }) => {
-    const input: StateInput = {};
+    const input: OAuthCookieDataInput = {};
     const data = await request.formData();
     const next = data.get('next');
     if (typeof next === 'string' && next.length > 0) {
@@ -33,7 +33,7 @@ export const actions = {
     try {
       authUrl = await services.auth.authByGithub(cookies, input);
     } catch (e) {
-      const error = AppError.catch(e);
+      const error = catchError(e);
       return fail(400, { username, name, error: error.message });
     }
     redirect(302, authUrl.toString());

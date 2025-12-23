@@ -1,5 +1,6 @@
 import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { ArticleContentType } from '$lib/domain/entities/article';
 
 const timestamps = {
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -38,8 +39,6 @@ export const tInviteCode = pgTable(
   (table) => [index('invite_code_inviter_id_idx').on(table.inviterId)],
 );
 
-export type ArticleContentType = 'markdown' | 'external_link';
-
 export const tArticle = pgTable(
   'article',
   {
@@ -50,6 +49,9 @@ export const tArticle = pgTable(
     content: text('content').notNull(),
     contentType: text('content_type').$type<ArticleContentType>().notNull(),
     path: text('path').notNull(),
+    replyCount: integer('reply_count').default(0).notNull(),
+    bookmarkCount: integer('bookmark_count').default(0).notNull(),
+    commentCount: integer('comment_count').default(0).notNull(),
   },
   (table) => [
     uniqueIndex('article_title_idx').on(table.title, table.userId),

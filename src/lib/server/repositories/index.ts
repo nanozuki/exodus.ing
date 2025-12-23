@@ -1,4 +1,3 @@
-import type { RepositorySet } from '$lib/domain/services';
 import { schema, type AppDatabase } from '$lib/server/repositories/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { PgArticleRepository } from './article';
@@ -8,6 +7,7 @@ import { PgInviteCodeRepository } from './invite_code';
 import { PgUserRepository } from './user';
 import { PgRoleRepository } from './role';
 import type { Config } from '$lib/server/config';
+import { PgSessionRepository } from './session';
 
 export async function getDatabase(config: Config): Promise<AppDatabase> {
   const start = Date.now();
@@ -17,7 +17,7 @@ export async function getDatabase(config: Config): Promise<AppDatabase> {
   return db;
 }
 
-export async function createRepositorySet(db: AppDatabase): Promise<RepositorySet> {
+export function createRepositorySet(db: AppDatabase) {
   return {
     article: new PgArticleRepository(db),
     bookmark: new PgBookmarkRepository(db),
@@ -25,5 +25,8 @@ export async function createRepositorySet(db: AppDatabase): Promise<RepositorySe
     inviteCode: new PgInviteCodeRepository(db),
     role: new PgRoleRepository(db),
     user: new PgUserRepository(db),
+    session: new PgSessionRepository(db),
   };
 }
+
+export type RepositorySet = ReturnType<typeof createRepositorySet>;

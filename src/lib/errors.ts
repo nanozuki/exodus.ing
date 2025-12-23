@@ -1,112 +1,128 @@
 import { error, type HttpError } from '@sveltejs/kit';
 
-export class AppError implements App.Error {
-  private constructor(
-    public code: number,
-    public key: string,
-    public message: string,
-    public context?: string,
-  ) {
-    console.error(`AppError: ${key} - ${message}`, context ? `Context: ${context}` : '');
-  }
+export type ErrorValue = {
+  BAD_REQUEST: string;
+  PARAMETER_INVALID: Record<string, string>;
+  FORBIDDEN: { operation: string };
+  UNAUTHORIZED: { operation: string };
+  NOT_FOUND: { resource: string };
+  INTERNAL_SERVER_ERROR: string;
+  DATABASE_ERROR: { operation: string; cause: string };
+  MISSING_CONFIG: { item: string };
+  EXTERNAL_API_ERROR: { operation: string; message: string };
+};
 
-  static catch(e: unknown): AppError {
-    if (
-      e instanceof Object &&
-      'status' in e &&
-      typeof e.status === 'number' &&
-      'body' in e &&
-      typeof e.body === 'object'
-    ) {
-      const err = e as HttpError;
-      return new AppError(err.status, err.body.key, err.body.message, err.body.context);
-    }
-    if (e instanceof AppError) {
-      return e;
-    }
-    console.error('Unknown error caught:', e);
-    return AppError.InternalServerError();
-  }
+export type ErrorTag = keyof ErrorValue;
 
-  throw(): never {
-    const { code, key, message, context } = this;
-    error(code, { key, message, context });
-  }
+export const errorTagTitle: { [Tag in ErrorTag]: string } = {
+  BAD_REQUEST: '请求错误',
+  PARAMETER_INVALID: '参数错误',
+  UNAUTHORIZED: '未登录',
+  FORBIDDEN: '没有权限',
+  NOT_FOUND: '未找到',
+  INTERNAL_SERVER_ERROR: '服务器内部错误',
+  MISSING_CONFIG: '缺少配置项',
+  DATABASE_ERROR: '数据库错误',
+  EXTERNAL_API_ERROR: '外部API错误',
+};
 
-  is(other: unknown): boolean {
-    return other instanceof AppError && this.key === other.key;
-  }
+type ErrorTagConfig<Tag extends ErrorTag> = {
+  code: number;
+  messageBuilder: (value: ErrorValue[Tag]) => string;
+};
 
-  static InvalidInviteCode(context?: string): AppError {
-    return new AppError(400, 'INVALID_INVITE_CODE', '邀请码无效', context);
-  }
+const errorTagConfigs: { [Tag in ErrorTag]: ErrorTagConfig<Tag> } = {
+  BAD_REQUEST: {
+    code: 400,
+    messageBuilder: (value) => value,
+  },
+  PARAMETER_INVALID: {
+    code: 400,
+    messageBuilder: (value) => {
+      const messages = ['参数错误'];
+      for (const [key, message] of Object.entries(value)) {
+        messages.push(`- ${key}: ${message}`);
+      }
+      return messages.join('\n');
+    },
+  },
+  UNAUTHORIZED: {
+    code: 401,
+    messageBuilder: (value) => `未登录，不能${value.operation}`,
+  },
+  FORBIDDEN: {
+    code: 403,
+    messageBuilder: (value) => `没有权限，不能${value.operation}`,
+  },
+  NOT_FOUND: {
+    code: 404,
+    messageBuilder: (value) => `${value.resource}不存在`,
+  },
+  INTERNAL_SERVER_ERROR: {
+    code: 500,
+    messageBuilder: (value) => `服务器内部错误: ${value}`,
+  },
+  DATABASE_ERROR: {
+    code: 500,
+    messageBuilder: (value) => `${value.operation} 失败: ${value.cause}`,
+  },
+  MISSING_CONFIG: {
+    code: 500,
+    messageBuilder: (value) => `缺少配置项: ${value.item}`,
+  },
+  EXTERNAL_API_ERROR: {
+    code: 502,
+    messageBuilder: (value) => `${value.operation} 失败: ${value.message}`,
+  },
+};
 
-  static InviteCodeMissed(context?: string): AppError {
-    return new AppError(400, 'INVITE_CODE_MISSED', '邀请码不能为空', context);
-  }
+export interface AppError<Tag extends keyof ErrorValue> {
+  tag: Tag;
+  value: ErrorValue[Tag];
+  code: number;
+  message: string;
+}
 
-  static UsernameAlreadyExist(username: string): AppError {
-    return new AppError(400, 'USER_ALREADY_EXIST', `用户名 ${username} 已存在`, username);
-  }
+export function createError<Tag extends ErrorTag>(tag: Tag, value: ErrorValue[Tag]): AppError<Tag> {
+  const { code, messageBuilder } = errorTagConfigs[tag];
+  const message = messageBuilder(value);
+  return {
+    tag,
+    value,
+    code,
+    message,
+  };
+}
 
-  static UsernameCannotStartWithAt(username: string): AppError {
-    return new AppError(400, 'USERNAME_CANNOT_START_WITH_AT', `用户名不能以 @ 开头`, username);
-  }
+export function throwAppError<Tag extends ErrorTag>(appError: AppError<Tag>): never {
+  error(appError.code, appError);
+}
 
-  static NameAlreadyExist(name: string): AppError {
-    return new AppError(400, 'NAME_ALREADY_EXIST', `昵称 ${name} 已存在`, name);
-  }
+export function throwError<Tag extends ErrorTag>(tag: Tag, value: ErrorValue[Tag]): never {
+  const appError = createError(tag, value);
+  throwAppError(appError);
+}
 
-  // for invisible form
-  static InvalidFormDataError(context?: string): AppError {
-    return new AppError(400, 'INVALID_FORM_DATA_ERROR', '表单数据错误', context);
-  }
+export function isHttpError(e: unknown): e is HttpError {
+  return (
+    typeof e === 'object' &&
+    e !== null &&
+    'status' in e &&
+    typeof e.status === 'number' &&
+    'body' in e &&
+    typeof e.body === 'object' &&
+    e.body !== null
+  );
+}
 
-  static OAuthValidationError(context?: string): AppError {
-    return new AppError(400, 'OAUTH_VALIDATION_ERROR', 'OAuth 验证错误', context);
+export function catchError(e: unknown): AppError<ErrorTag> {
+  if (isHttpError(e)) {
+    return e.body;
   }
-
-  static InvalidMarkdownError(context?: string): AppError {
-    return new AppError(400, 'INVALID_MARKDOWN_ERROR', 'Markdown 格式错误', context);
+  if (e instanceof Error) {
+    console.error('Unknown error caught', e);
+    return createError('INTERNAL_SERVER_ERROR', e.message);
   }
-
-  static InternalServerError(context?: string): AppError {
-    return new AppError(500, 'INTERNAL_SERVER_ERROR', '服务器内部错误', context);
-  }
-
-  static Unauthorized(context?: string): AppError {
-    return new AppError(401, 'UNAUTHORIZED', '未登录', context);
-  }
-
-  static Forbidden(context?: string): AppError {
-    return new AppError(403, 'FORBIDDEN', '没有权限', context);
-  }
-
-  static ArticleNotFound(context?: string): AppError {
-    return new AppError(404, 'ARTICLE_NOT_FOUND', '文章不存在', context);
-  }
-
-  static UserNotFound(context?: string): AppError {
-    return new AppError(404, 'USER_NOT_FOUND', '用户不存在', context);
-  }
-
-  static CommentNotFound(context?: string): AppError {
-    return new AppError(404, 'COMMENT_NOT_FOUND', '评论不存在', context);
-  }
-
-  static UserDomainNotFound(context?: string): AppError {
-    return new AppError(404, 'USER_DOMAIN_NOT_FOUND', '用户域名不存在', context);
-  }
-
-  static DatabaseError(context?: string): AppError {
-    return new AppError(500, `DATABASE_ERROR`, '数据库错误', context);
-  }
-
-  static DNSQueryFailed(status: number): AppError {
-    return new AppError(500, 'DNS_QUERY_FAILED', `DNS 查询失败，状态码：${status}`);
-  }
-
-  static MissingConfig(key: string): AppError {
-    return new AppError(500, 'MISSING_CONFIG', `缺少配置项：${key}`);
-  }
+  console.log('Unknown thing caught:', e);
+  throw e; // Re-throw unknown non-error, maybe useful for other lib or framework
 }

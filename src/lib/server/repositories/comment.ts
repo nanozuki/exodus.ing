@@ -1,18 +1,12 @@
-import type {
-  Comment,
-  CommentInput,
-  CommentListItem,
-  CommentPatch,
-  CommentRepository,
-} from '$lib/domain/entities/comment';
+import type { Comment, CommentInput, CommentListItem, CommentPatch } from '$lib/domain/entities/comment';
 import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/domain/values/id_path';
-import { AppError } from '$lib/errors';
-import { desc, eq } from 'drizzle-orm/sql';
+import { throwError } from '$lib/errors';
+import { desc, eq, sql } from 'drizzle-orm/sql';
 import { tArticle, tComment, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
 
-export class PgCommentRepository implements CommentRepository {
+export class PgCommentRepository {
   constructor(private db: AppDatabase) {}
 
   private modelQuery() {
@@ -87,7 +81,7 @@ export class PgCommentRepository implements CommentRepository {
     return await wrap('comment.getById', async () => {
       const comment = await this.modelQuery().where(eq(tComment.id, commentId));
       if (comment.length === 0) {
-        return AppError.CommentNotFound().throw();
+        return throwError('NOT_FOUND', { resource: '评论' });
       }
       return decodePathField(comment[0]);
     });
@@ -111,7 +105,7 @@ export class PgCommentRepository implements CommentRepository {
       if (input.replyTo) {
         const replyTo = await this.db.select().from(tComment).where(eq(tComment.id, input.replyTo));
         if (replyTo.length === 0) {
-          return AppError.CommentNotFound('replyTo').throw();
+          return throwError('NOT_FOUND', { resource: '回复的评论' });
         }
         path = [...decodeIdPath(replyTo[0].path), id];
       }
@@ -123,20 +117,20 @@ export class PgCommentRepository implements CommentRepository {
         createdAt: now,
         updatedAt: now,
       };
-      await this.db.insert(tComment).values(comment);
+      await this.db.transaction(async (tx) => {
+        await tx.insert(tComment).values(comment);
+        await tx
+          .update(tArticle)
+          .set({ commentCount: sql`${tArticle.commentCount} + 1` })
+          .where(eq(tArticle.id, input.articleId));
+      });
       return comment.id;
     });
   }
 
   async update(commentId: string, patch: Partial<CommentPatch>): Promise<void> {
     await wrap('comment.update', () =>
-      this.db
-        .update(tComment)
-        .set({
-          content: patch.content,
-          updatedAt: new Date(),
-        })
-        .where(eq(tComment.id, commentId)),
+      this.db.update(tComment).set({ content: patch.content, updatedAt: new Date() }).where(eq(tComment.id, commentId)),
     );
   }
 }

@@ -1,5 +1,6 @@
-import type { ArticleRepository, ArticleFeedsItem } from '$lib/domain/entities/article';
+import type { ArticleFeedsItem } from '$lib/domain/entities/article';
 import { compileMarkdown } from '$lib/markdown';
+import { repositories } from '$lib/server/registry';
 import { formatRFC3339 } from 'date-fns';
 
 const feed = {
@@ -57,10 +58,10 @@ async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
 const FEED_ARTICLE_LIMIT = 30;
 
 export class FeedsService {
-  constructor(private repository: ArticleRepository) {}
+  constructor() {}
 
   async getArticlesFeed(): Promise<Feed> {
-    const articles = await this.repository.listFeeds(FEED_ARTICLE_LIMIT);
+    const articles = await repositories.article.listFeeds(FEED_ARTICLE_LIMIT);
     const items: FeedItem[] = await Promise.all(articles.map((article) => convertToFeedItem(article)));
     return { ...feed, items };
   }

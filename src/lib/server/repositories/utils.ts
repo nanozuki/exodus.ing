@@ -1,4 +1,5 @@
-import { AppError } from '$lib/errors';
+import { throwError } from '$lib/errors';
+import { isHttpError } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid';
 
 export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> {
@@ -6,15 +7,16 @@ export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> 
     const start = Date.now();
     const result = await fn();
     const duration = Date.now() - start;
-    console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms`);
+    console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms, result:`, result);
     return result;
-  } catch (error) {
-    if (error instanceof AppError) {
-      return error.throw();
-    } else if (error instanceof Error) {
-      return AppError.DatabaseError(`${method} failed: ${error.message}`).throw();
+  } catch (e) {
+    if (isHttpError(e)) {
+      throw e;
+    } else if (e instanceof Error) {
+      return throwError('DATABASE_ERROR', { operation: method, cause: e.message });
     } else {
-      return AppError.DatabaseError(`${method} failed: ${JSON.stringify(error)}`).throw();
+      const cause = JSON.stringify(e);
+      return throwError('DATABASE_ERROR', { operation: method, cause });
     }
   }
 }
@@ -23,6 +25,7 @@ const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
 const nanoid = customAlphabet(alphabet, 6);
 const code = customAlphabet(alphabet, 16);
 const verifyCode = customAlphabet(alphabet, 32);
+const sessionCode = customAlphabet(alphabet, 32);
 
 export function newNanoId(): string {
   return nanoid();
@@ -34,4 +37,8 @@ export function newCode(): string {
 
 export function newVerifyCode(): string {
   return verifyCode();
+}
+
+export function newSessionCode(): string {
+  return sessionCode();
 }

@@ -1,9 +1,8 @@
 <script lang="ts">
   import ArticleCard from '$lib/component/ArticleCard.svelte';
   import Pager from '$lib/component/Pager.svelte';
-  import type { CommentListItem } from '$lib/domain/entities/comment';
+  import { type CommentListItem, COMMENT_PAGE_SIZE } from '$lib/domain/entities/comment';
   import type { Paginated } from '$lib/domain/values/page';
-  import { COMMENT_PAGE_SIZE } from '$lib/domain/services/comment';
   import { format } from 'date-fns';
   import { twMerge } from 'tailwind-merge';
 
@@ -32,6 +31,6 @@
     {/each}
   </ul>
   {#if count > COMMENT_PAGE_SIZE}
-    <Pager class="bg-base" {count} perPage={COMMENT_PAGE_SIZE} page={pageNumber} {pageLink} />
+    <Pager class="bg-base " {count} perPage={COMMENT_PAGE_SIZE} page={pageNumber} {pageLink} />
   {/if}
 </div>

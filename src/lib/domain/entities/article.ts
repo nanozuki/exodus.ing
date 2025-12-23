@@ -1,5 +1,4 @@
 import type { IdPath } from '$lib/domain/values/id_path';
-import type { Paginated, Pagination } from '$lib/domain/values/page';
 
 export interface Article {
   id: string;
@@ -16,11 +15,11 @@ export interface Article {
   bookmarkCount: number;
 }
 
-export type ArticleContentType = 'markdown' | 'external_link';
+export type ArticleContentType = 'markdown' | 'external';
 
 export interface ArticleInput {
   title: string;
-  userId: string;
+  authorId: string;
   contentType: ArticleContentType;
   content: string;
   replyTo?: string;
@@ -41,6 +40,7 @@ export interface ArticleCard {
 
 export interface ArticleListItem {
   id: string;
+  path: IdPath;
   createdAt: Date;
   updatedAt: Date;
   title: string;
@@ -65,26 +65,11 @@ export interface ArticleFeedsItem {
   content: string;
 }
 
-export interface ArticleEditorData {
-  article?: { title: string; content: string };
-  replyTo?: ArticleCard;
-}
-
-export interface GetArticleEditorDataRequest {
-  articleId?: string;
-  replyTo?: string;
-}
-
-export interface ArticleRepository {
-  getById(articleId: string): Promise<Article>;
-  getArticleEditorData(req: GetArticleEditorDataRequest): Promise<ArticleEditorData>;
-  list(page: Pagination): Promise<Paginated<ArticleListItem>>;
-  listFeeds(last: number): Promise<ArticleFeedsItem[]>;
-  listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
-  listReplies(articleId: string): Promise<ArticleCard[]>;
-  listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
-  create(input: ArticleInput): Promise<string>;
-  update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
+export interface ArticleContent {
+  id: string;
+  title: string;
+  content: string;
+  contentType: ArticleContentType;
 }
 
 export const ARTICLE_PAGE_SIZE = 20;
