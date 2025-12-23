@@ -33,6 +33,7 @@
               nodePackages.pnpm
               nodePackages.svelte-language-server
               pgcli
+              vtsls
             ];
             shellHook = ''
               export ESLINT_USE_FLAT_CONFIG="true"
