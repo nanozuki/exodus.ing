@@ -1,7 +1,16 @@
+import { getConfig } from '$lib/server/config';
 import { buildServices, attachLocals, services } from '$lib/server/registry';
-import type { Handle, ServerInit } from '@sveltejs/kit';
+import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
+
+function ensureHost(request: Request) {
+  const host = getConfig().EXODUSING_HOST;
+  if (!request.url.startsWith(host)) {
+    throw redirect(303, host);
+  }
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
+  ensureHost(event.request);
   const start = Date.now();
   await attachLocals(event);
   const response = resolve(event);
