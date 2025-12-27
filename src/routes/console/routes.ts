@@ -11,7 +11,7 @@ export const consoleRoutes = {
 
 export async function getConsoleRoutes(locals: App.Locals): Promise<ConsoleRoute[]> {
   const routes = [consoleRoutes.profile, consoleRoutes.bookmarks, consoleRoutes.account];
-  const isWriter = await locals.hasPermission(Permission.CreateArticle);
+  const isWriter = locals.hasPermission(Permission.CreateArticle);
   if (!isWriter) {
     routes.push(consoleRoutes.beWriter);
   } else {

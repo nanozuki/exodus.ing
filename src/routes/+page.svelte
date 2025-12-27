@@ -4,8 +4,9 @@
 
   const { data } = $props();
   let { page } = $derived(data);
-  const pageLink = (page: number) => `?page=${page}`;
   const articles = $derived(await listArticles(page));
+
+  const pageLink = (page: number) => `?page=${page}`;
 </script>
 
 <svelte:head>

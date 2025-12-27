@@ -10,7 +10,7 @@
   const { form, data } = $props();
 
   let mode: 'editor' | 'previewer' = $state('editor');
-  let article: string = $state(form?.content || data.article?.content || '');
+  let article: string = $derived(form?.content || data.article?.content || '');
   let articleSnapshot = '';
   let compiled: CompiledArticle = $state({ title: '', value: '' });
   let errorMessage = $state('');
@@ -100,7 +100,7 @@
     <input type="hidden" name="content" value={article} />
     <input type="hidden" name="title" value={compiled.title} />
     <input type="hidden" name="replyTo" value={replyTo?.id} />
-    <Button variant={btnVariant} type="submit">发布</Button>
+    <Button disabled={submitting} variant={btnVariant} type="submit">发布</Button>
   </form>
 </div>
 

@@ -3,27 +3,30 @@
   import MdiReply from '~icons/mdi/reply';
   import Markdown from '$lib/component/Markdown.svelte';
   import { format, formatISO } from 'date-fns';
-  import ActionBar from './ActionBar.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
   import Replies from './Replies.svelte';
   import Comments from './Comments.svelte';
+  import { getArticleDetails, listRepliesOfArticle } from '$remotes/articles.remote';
+  import ReplyBadge from './ReplyBadge.svelte';
+  import CommentBadge from './CommentBadge.svelte';
+  import { listCommentsOfArticle } from '$remotes/comments.remote';
+  import BookmarkBadge from './BookmarkBadge.svelte';
+  import EditBadge from './EditBadge.svelte';
+  import { getArticleBookmarkStatus } from '$remotes/bookmarks.remote';
 
-  let { data } = $props();
-  let { article } = $derived(data);
-  let content = $derived(article.content.toString());
+  let { data, params } = $props();
+  const user = $derived(data.user);
+  const articleId = $derived(params.articleId);
 
-  const topActions = {
-    reply: true,
-    comment: true,
-    bookmark: true,
-    edit: true,
-  };
-  const buttomActions = {
-    reply: false,
-    comment: false,
-    bookmark: true,
-    edit: true,
-  };
+  // queries
+  const articleQ = $derived(getArticleDetails(articleId));
+  const repliesQ = $derived(listRepliesOfArticle(articleId));
+  const commentsQ = $derived(listCommentsOfArticle(articleId));
+  const bookmarkStatusQ = $derived(getArticleBookmarkStatus(articleId));
+  const article = $derived(await articleQ);
+  const replies = $derived(await repliesQ);
+  const comments = $derived(await commentsQ);
+  const bookmarkStatus = $derived(await bookmarkStatusQ);
 </script>
 
 <svelte:head>
@@ -36,7 +39,7 @@
   <meta property="article:modified_time" content={formatISO(article.updatedAt)} />
 </svelte:head>
 
-<Markdown {content} title={article.title}>
+<Markdown content={article.content} title={article.title}>
   {#snippet header()}
     <header class="mb-2xl gap-y-xs flex flex-col align-bottom">
       <h1 class="font-serif font-bold">{article.title}</h1>
@@ -59,13 +62,21 @@
           </a>
         </p>
       {/if}
-      <ActionBar {...{ actions: topActions, ...data }} />
+      <div class="text-accent-alt flex w-fit gap-x-2 leading-relaxed">
+        <ReplyBadge count={replies.length} />
+        <CommentBadge count={comments.length} />
+        <BookmarkBadge key="top" {articleId} status={bookmarkStatus} />
+        <EditBadge {user} {article} />
+      </div>
     </header>
   {/snippet}
 </Markdown>
 
-<ActionBar {...{ actions: buttomActions, ...data }} />
+<div class="text-accent-alt flex w-fit gap-x-2 leading-relaxed">
+  <BookmarkBadge key="bottom" {articleId} status={bookmarkStatus} />
+  <EditBadge {user} {article} />
+</div>
 
-<Replies {data} />
+<Replies {articleId} {replies} {user} />
 
-<Comments {data} />
+<Comments {articleId} {comments} {user} />

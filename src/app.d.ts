@@ -1,5 +1,5 @@
 import type { Permission } from '$lib/domain/entities/role';
-import type { User } from '$lib/domain/entities/user';
+import type { LoggedInUser, User } from '$lib/domain/entities/user';
 import type { AppError, ErrorTag } from '$lib/errors';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -9,10 +9,10 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Error extends AppError<ErrorTag> {}
     interface Locals {
-      loggedInUser: User | null;
-      requireLoggedInUser: (context: string) => User;
-      hasPermission: (p: Permission) => Promise<boolean>;
-      requirePermission: (p: Permission, context: string) => Promise<User>;
+      loggedInUser: LoggedInUser | null;
+      requireLoggedInUser: (context: string) => LoggedInUser;
+      hasPermission: (p: Permission) => boolean;
+      requirePermission: (p: Permission, context: string) => Promise<LoggedInUser>;
     }
     // interface PageData {}
     // interface PageState {}

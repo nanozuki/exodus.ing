@@ -18,16 +18,18 @@
   const {
     elements: { root, pageTrigger, prevButton, nextButton },
     states: { pages },
-  } = createPagination({
-    count,
-    perPage,
-    defaultPage: page,
-    siblingCount: 1,
-    onPageChange: (args): number => {
-      goto(pageLink(args.next));
-      return args.next;
-    },
-  });
+  } = $derived(
+    createPagination({
+      count,
+      perPage,
+      defaultPage: page,
+      siblingCount: 1,
+      onPageChange: (args): number => {
+        goto(pageLink(args.next));
+        return args.next;
+      },
+    }),
+  );
 </script>
 
 <nav class={twMerge('gap-xs flex flex-row items-center', outerClass)} aria-label="pagination" use:melt={$root}>

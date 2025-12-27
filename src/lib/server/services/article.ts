@@ -6,10 +6,6 @@ import { repositories } from '$lib/server/registry';
 export class ArticleService {
   constructor() {}
 
-  async getById(articleId: string): Promise<Article> {
-    return await repositories.article.getById(articleId);
-  }
-
   async getContentById(articleId: string): Promise<ArticleContent> {
     return await repositories.article.getContentById(articleId);
   }

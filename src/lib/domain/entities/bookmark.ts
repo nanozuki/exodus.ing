@@ -3,3 +3,8 @@ export interface Bookmark {
   articleId: string;
   createdAt: Date;
 }
+
+export interface BookmarkStatus {
+  isBookmarked: boolean;
+  bookmarkCount: number;
+}

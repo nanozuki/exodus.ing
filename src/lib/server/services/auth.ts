@@ -1,5 +1,5 @@
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
-import type { User } from '$lib/domain/entities/user';
+import type { LoggedInUser } from '$lib/domain/entities/user';
 import type { Session } from '$lib/domain/entities/session';
 import { throwError } from '$lib/errors';
 import { adapters, repositories } from '$lib/server/registry';
@@ -19,7 +19,7 @@ function setAuthCookie(cookies: Cookies, session: Session) {
 export class AuthService {
   constructor() {}
 
-  async loadSession(cookies: Cookies): Promise<User | null> {
+  async loadSession(cookies: Cookies): Promise<LoggedInUser | null> {
     const sessionId = cookies.get(AUTH_COOKIE_NAME);
     if (!sessionId) {
       return null;
@@ -31,7 +31,11 @@ export class AuthService {
     if (result.refresh) {
       setAuthCookie(cookies, result.session);
     }
-    return await repositories.user.findById(result.session.userId);
+    const [user, roles] = await Promise.all([
+      repositories.user.findById(result.session.userId),
+      repositories.role.getUserRoles(result.session.userId),
+    ]);
+    return user ? ({ ...user, roles } as LoggedInUser) : null;
   }
 
   async authByGithub(cookies: Cookies, input: OAuthCookieDataInput): Promise<URL> {
