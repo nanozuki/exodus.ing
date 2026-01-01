@@ -6,7 +6,7 @@
   import UserBadge from '$lib/component/UserBadge.svelte';
   import Replies from './Replies.svelte';
   import Comments from './Comments.svelte';
-  import { getArticleDetails, listRepliesOfArticle } from '$remotes/articles.remote';
+  import { getArticleDetailById, listRepliesOfArticle } from '$remotes/articles.remote';
   import ReplyBadge from './ReplyBadge.svelte';
   import CommentBadge from './CommentBadge.svelte';
   import { listCommentsOfArticle } from '$remotes/comments.remote';
@@ -19,7 +19,7 @@
   const articleId = $derived(params.articleId);
 
   // queries
-  const articleQ = $derived(getArticleDetails(articleId));
+  const articleQ = $derived(getArticleDetailById(articleId));
   const repliesQ = $derived(listRepliesOfArticle(articleId));
   const commentsQ = $derived(listCommentsOfArticle(articleId));
   const bookmarkStatusQ = $derived(getArticleBookmarkStatus(articleId));

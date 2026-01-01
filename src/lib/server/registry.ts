@@ -33,7 +33,7 @@ export async function attachLocals(event: RequestEvent): Promise<void> {
     return userHasPermission(loggedInUser, p);
   }
 
-  async function requirePermission(p: Permission, operation: string): Promise<LoggedInUser> {
+  function requirePermission(p: Permission, operation: string): LoggedInUser {
     const user = requireLoggedInUser(operation);
     if (hasPermission(p)) {
       return user;

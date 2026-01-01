@@ -1,5 +1,5 @@
 import type { Permission } from '$lib/domain/entities/role';
-import type { LoggedInUser, User } from '$lib/domain/entities/user';
+import type { LoggedInUser } from '$lib/domain/entities/user';
 import type { AppError, ErrorTag } from '$lib/errors';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -12,7 +12,7 @@ declare global {
       loggedInUser: LoggedInUser | null;
       requireLoggedInUser: (context: string) => LoggedInUser;
       hasPermission: (p: Permission) => boolean;
-      requirePermission: (p: Permission, context: string) => Promise<LoggedInUser>;
+      requirePermission: (p: Permission, context: string) => LoggedInUser;
     }
     // interface PageData {}
     // interface PageState {}

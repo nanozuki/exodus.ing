@@ -1,13 +1,19 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
   import Button from '$lib/component/Button.svelte';
   import ArticleCard from '$lib/component/ArticleCard.svelte';
   import MarkdownEditor from './MarkdownEditor.svelte';
+  import { createOrUpdateMarkdownArticle, getArticleCardById, getArticleContentById } from '$remotes/articles.remote';
 
-  const { form, data } = $props();
+  const { data } = $props();
+  const { articleId, replyToId } = $derived(data);
+  const articleQ = $derived(articleId ? getArticleContentById(articleId) : undefined);
+  const replyToQ = $derived(replyToId ? getArticleCardById(replyToId) : undefined);
+  const article = $derived(articleQ ? await articleQ : undefined);
+  const replyTo = $derived(replyToQ ? await replyToQ : undefined);
 
-  let article: string = $derived(form?.content || data.article?.content || '');
-  let title: string = $derived(data.article?.title || '');
+  let title: string = $derived(article?.title ?? '');
+  let content: string = $derived(article?.content ?? '');
+  console.log('Loaded data:', { title, content });
   let valid: boolean = $state(false);
   const onValidateChange = (isValid: boolean) => {
     valid = isValid;
@@ -16,13 +22,7 @@
     title = newTitle;
   };
 
-  let { replyTo } = $derived(data);
-
-  let submitting = $state(false);
-  const preSubmit = () => {
-    submitting = true;
-  };
-  let btnVariant: 'primary' | 'disabled' = $derived(!valid || submitting ? 'disabled' : 'primary');
+  let btnVariant: 'primary' | 'disabled' = $derived(valid ? 'primary' : 'disabled');
 </script>
 
 <svelte:head>
@@ -37,12 +37,12 @@
     </div>
   {/if}
 
-  <MarkdownEditor bind:article {onValidateChange} {onTitleChange} />
+  <MarkdownEditor bind:article={content} {onValidateChange} {onTitleChange} />
 
-  <form method="POST" use:enhance={preSubmit}>
-    <input type="hidden" name="content" value={article} />
-    <input type="hidden" name="title" value={title} />
-    <input type="hidden" name="replyTo" value={replyTo?.id} />
+  <form {...createOrUpdateMarkdownArticle}>
+    <input type="hidden" name="articleId" value={articleId} />
+    <input type="hidden" name="replyTo" value={replyToId} />
+    <input type="hidden" name="content" value={content} />
     <Button variant={btnVariant} type="submit">发布</Button>
   </form>
 </div>
