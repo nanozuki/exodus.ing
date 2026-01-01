@@ -57,7 +57,7 @@ export function throwArticleIssue(issue: MarkdownArticleIssue, field: string): n
 }
 
 export type CompiledArticle = {
-  value: Value;
+  markup: string;
   title: string;
   issues: MarkdownArticleIssue[];
 };
@@ -93,5 +93,5 @@ export const compileArticle = async (article: string): Promise<CompiledArticle> 
   if (!file.data.title) {
     issues.push(MarkdownArticleIssue.MissingTitle);
   }
-  return { value: file.value, title: file.data.title || '', issues };
+  return { markup: file.value.toString(), title: file.data.title || '', issues };
 };

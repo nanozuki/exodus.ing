@@ -13,8 +13,8 @@ export const getArticleDetailById = query(z.string(), async (articleId) => {
     articleId = articleId.slice(0, 6);
   }
   const article = await repositories.article.getById(articleId);
-  const compiled = await compileArticle(article.content);
-  return { ...article, content: compiled.value.toString(), title: compiled.title };
+  const { markup, title } = await compileArticle(article.content);
+  return { ...article, markup, title };
 });
 
 export const getArticleContentById = query(z.string(), async (articleId) => {
@@ -35,11 +35,11 @@ export const listRepliesOfArticle = query(z.string(), async (articleId) => {
 
 export const createOrUpdateMarkdownArticle = form(
   z.object({
-    articleId: z.string().optional(),
     content: z.string().min(1),
-    replyTo: z.string().optional(),
+    articleId: z.string().optional(),
+    replyToId: z.string().optional(),
   }),
-  async ({ articleId, content, replyTo }) => {
+  async ({ articleId, content, replyToId }) => {
     const { locals } = getRequestEvent();
     const user = locals.requirePermission(Permission.CreateArticle, '编辑文章');
     const { title, issues } = await compileArticle(content);
@@ -63,7 +63,7 @@ export const createOrUpdateMarkdownArticle = form(
       content,
       title,
       contentType: 'markdown',
-      replyTo,
+      replyToId,
     });
     redirect(303, `/a/${newArticleId}`);
   },

@@ -24,7 +24,7 @@ export class ArticleService {
       content,
       title: result.title,
       contentType: 'markdown',
-      replyTo,
+      replyToId: replyTo,
     });
   }
 

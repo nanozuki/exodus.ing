@@ -13,7 +13,6 @@
 
   let title: string = $derived(article?.title ?? '');
   let content: string = $derived(article?.content ?? '');
-  console.log('Loaded data:', { title, content });
   let valid: boolean = $state(false);
   const onValidateChange = (isValid: boolean) => {
     valid = isValid;
@@ -37,11 +36,11 @@
     </div>
   {/if}
 
-  <MarkdownEditor bind:article={content} {onValidateChange} {onTitleChange} />
+  <MarkdownEditor bind:content {onValidateChange} {onTitleChange} />
 
   <form {...createOrUpdateMarkdownArticle}>
     <input type="hidden" name="articleId" value={articleId} />
-    <input type="hidden" name="replyTo" value={replyToId} />
+    <input type="hidden" name="replyToId" value={replyToId} />
     <input type="hidden" name="content" value={content} />
     <Button variant={btnVariant} type="submit">发布</Button>
   </form>

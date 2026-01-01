@@ -39,7 +39,7 @@
   <meta property="article:modified_time" content={formatISO(article.updatedAt)} />
 </svelte:head>
 
-<Markdown content={article.content} title={article.title}>
+<Markdown markup={article.markup} title={article.title}>
   {#snippet header()}
     <header class="mb-2xl gap-y-xs flex flex-col align-bottom">
       <h1 class="font-serif font-bold">{article.title}</h1>

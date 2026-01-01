@@ -1,26 +1,27 @@
 <script lang="ts">
-  import { articleIssueMessages, compileArticle } from '$lib/markdown';
+  import { articleIssueMessages, compileArticle, type CompiledArticle } from '$lib/markdown';
   import { resource } from 'runed';
   import Markdown from '$lib/component/Markdown.svelte';
 
   interface Props {
-    article?: ReturnType<typeof $bindable<string>>;
+    content?: ReturnType<typeof $bindable<string>>;
     onValidateChange?: (valid: boolean) => void;
     onTitleChange?: (title: string) => void;
   }
 
-  let { article = $bindable(''), onValidateChange, onTitleChange }: Props = $props();
+  let { content = $bindable(''), onValidateChange, onTitleChange }: Props = $props();
   let mode: 'editor' | 'previewer' = $state('editor');
   const compilation = resource(
-    () => article,
-    async (value) => {
-      return await compileArticle(value);
+    () => content,
+    async (content) => {
+      return await compileArticle(content);
     },
     { debounce: 500 },
   );
-  const compiled = $derived(compilation.current ?? { title: '', value: '', issues: [] });
-  const { title, value: compiledValue, issues } = $derived(compiled);
+  const compiled: CompiledArticle = $derived(compilation.current ?? { title: '', markup: '', issues: [] });
+  const { title, markup, issues } = $derived(compiled);
   const issueMessages = $derived(issues.map((issue) => articleIssueMessages[issue]));
+
   $effect(() => {
     if (onValidateChange) {
       onValidateChange(issues.length === 0);
@@ -52,11 +53,11 @@
 </div>
 
 {#if mode === 'editor'}
-  <textarea class="editor border-border w-full resize-none overflow-y-scroll border p-1" bind:value={article}
+  <textarea class="editor border-border w-full resize-none overflow-y-scroll border p-1" bind:value={content}
   ></textarea>
 {:else}
   <div class="editor border-border overflow-y-scroll border p-1">
-    <Markdown content={compiledValue.toString()} />
+    <Markdown {markup} />
   </div>
 {/if}
 

@@ -225,8 +225,8 @@ export class PgArticleRepository {
     return await wrap('article.create', async () => {
       const articleId = await this.generateId();
       let path = [articleId];
-      if (input.replyTo) {
-        const parentArticle = await this.getById(input.replyTo);
+      if (input.replyToId) {
+        const parentArticle = await this.getById(input.replyToId);
         path = [...parentArticle.path, articleId];
       }
       const now = new Date();
@@ -239,11 +239,11 @@ export class PgArticleRepository {
         updatedAt: now,
       };
       await this.db.transaction(async (tx) => {
-        if (input.replyTo) {
+        if (input.replyToId) {
           await tx
             .update(tArticle)
             .set({ replyCount: sql`${tArticle.replyCount} + 1` })
-            .where(eq(tArticle.id, input.replyTo));
+            .where(eq(tArticle.id, input.replyToId));
         }
         await tx.insert(tArticle).values(article);
       });

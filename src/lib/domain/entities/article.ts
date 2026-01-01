@@ -22,7 +22,7 @@ export interface ArticleInput {
   authorId: string;
   contentType: ArticleContentType;
   content: string;
-  replyTo?: string;
+  replyToId?: string;
 }
 
 export interface ArticlePatch {

@@ -3,14 +3,14 @@
   import './markdown.css';
 
   interface MarkdownProps {
-    content: string;
+    markup: string;
     title?: string;
     header?: Snippet;
     ['class']?: string;
   }
 
-  const { title, content, header, class: classProp }: MarkdownProps = $props();
-  const contents = $derived(title && header ? content.split(`<h1>${title}</h1>`, 2).map((s) => s.trim()) : [content]);
+  const { title, markup, header, class: classProp }: MarkdownProps = $props();
+  const contents = $derived(title && header ? markup.split(`<h1>${title}</h1>`, 2).map((s) => s.trim()) : [markup]);
 </script>
 
 <article class={classProp}>
