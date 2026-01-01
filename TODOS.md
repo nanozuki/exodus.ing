@@ -22,7 +22,7 @@ Routes:
 - [ ] Create/Edit page support external-link article type
   - [x] Extract MarkdownEditor component
   - [x] Get article content from query, check contentType
-  - [ ] Add dummy external article form
+  - [x] Add dummy external article form
   - [ ] Implemented external article form
   - [ ] Add extrance for create two types of article, use query param enter type
         editor
