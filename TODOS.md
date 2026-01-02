@@ -27,4 +27,4 @@ Routes:
   - [x] Add extrance for create two types of article, use query param enter type editor
 - [x] Article page support external-link article type
 - [x] ArticleList support external-link article type
-- [ ] Feed support external-link article type
+- [x] Feed support external-link article type
