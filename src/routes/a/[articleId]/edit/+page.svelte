@@ -50,7 +50,7 @@
     </form>
   </div>
 {:else if contentType === 'external'}
-  <ExternalArticleForm {articleId} {replyToId} {user} />
+  <ExternalArticleForm {article} {articleId} {replyToId} {user} />
 {:else}
   <h2 class="font-serif text-2xl font-bold">添加新文章</h2>
   <h5 class="font-sans font-semibold">请选择方式</h5>

@@ -4,6 +4,7 @@
   import MdiReplyOutline from '~icons/mdi/reply-outline';
   import MdiCommentTextOutline from '~icons/mdi/comment-text-outline';
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
+  import MdiLinkVariant from '~icons/mdi/link-variant';
   import { format } from 'date-fns';
   import type { ArticleListItem } from '$lib/domain/entities/article';
   import UserBadge from './UserBadge.svelte';
@@ -18,7 +19,14 @@
 
 <article>
   <a href="/a/{article.id}">
-    <h2 class="font-serif font-bold">{article.title}</h2>
+    <h2 class="font-serif font-bold">
+      {#if article.contentType === 'external'}
+        <span class="text-accent-alt">
+          <MdiLinkVariant class="inline" />
+        </span>
+      {/if}
+      {article.title}
+    </h2>
   </a>
   {#if article.replyTo}
     <p class="text-subtle bg-accent-alt/10 px-2xs w-fit">

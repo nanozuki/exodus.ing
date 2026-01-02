@@ -12,7 +12,10 @@ export interface Article {
   contentType: ArticleContentType;
   content: string;
   replyTo?: ArticleCard;
-  bookmarkCount: number;
+}
+
+export interface ArticleDetail extends Article {
+  markup: string;
 }
 
 export type ArticleContentType = 'markdown' | 'external';

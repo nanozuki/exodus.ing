@@ -25,6 +25,6 @@ Routes:
   - [x] Add dummy external article form
   - [x] Implemented external article form
   - [x] Add extrance for create two types of article, use query param enter type editor
-- [ ] Article page support external-link article type
-- [ ] ArticleList support external-link article type
+- [x] Article page support external-link article type
+- [x] ArticleList support external-link article type
 - [ ] Feed support external-link article type

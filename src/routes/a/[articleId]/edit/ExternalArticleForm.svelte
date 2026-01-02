@@ -6,15 +6,25 @@
   import type { LoggedInUser } from '$lib/domain/entities/user';
   import { createOrUpdateExternalArticleSchema } from '$remotes/schemas';
   import { catchError } from '$lib/errors';
+  import type { ArticleContent } from '$lib/domain/entities/article';
+  import { untrack } from 'svelte';
 
   type Props = {
     articleId?: string;
     replyToId?: string;
+    article?: ArticleContent;
     user: LoggedInUser;
   };
 
-  const { articleId, replyToId, user }: Props = $props();
-  const fields = $derived(createOrUpdateExternalArticle.fields);
+  const { article: articleProp, articleId, replyToId, user }: Props = $props();
+  const fields = createOrUpdateExternalArticle.fields;
+  const article = untrack(() => articleProp);
+  if (article) {
+    fields.url.set(article.content);
+    fields.title.set(article.title);
+  }
+
+  let formError = $state<string | null>(null);
   let hostname = $derived.by(() => {
     try {
       const url = fields.url.value();
@@ -26,7 +36,6 @@
       return undefined;
     }
   });
-  let formError = $state<string | null>(null);
 </script>
 
 <Form
@@ -46,7 +55,7 @@
   <Input {...fields.title.as('text')} label="文章标题" issues={fields.title.issues()} required />
   {#if hostname}
     <div class="bg-surface p-2">
-      <p>添加文章前，请确保你为域名 {hostname} 设置了以下 TXT 记录：</p>
+      <p>提交前，请确保你为域名 {hostname} 设置了以下 TXT 记录：</p>
       <p class="font-mono break-all">exodus-site-verification={user.verifyCode}</p>
     </div>
   {/if}

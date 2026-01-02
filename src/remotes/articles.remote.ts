@@ -1,6 +1,6 @@
 import { form, getRequestEvent, query } from '$app/server';
 import { repositories } from '$lib/server/registry';
-import { ARTICLE_PAGE_SIZE } from '$lib/domain/entities/article';
+import { ARTICLE_PAGE_SIZE, type ArticleDetail } from '$lib/domain/entities/article';
 import z from 'zod';
 import { compileArticle, throwArticleIssue } from '$lib/markdown';
 import { Permission } from '$lib/domain/entities/role';
@@ -9,14 +9,20 @@ import { redirect } from '@sveltejs/kit';
 import { resolveTxt } from '$lib/server/adapters/name_resolver';
 import { createOrUpdateExternalArticleSchema } from './schemas';
 
-export const getArticleDetailById = query(z.string(), async (articleId) => {
+export const getArticleDetailById = query(z.string(), async (articleId): Promise<ArticleDetail> => {
   // if articleId's length is 16, it's legacy articleId, shorten it by first 6 characters
   if (articleId.length === 16) {
     articleId = articleId.slice(0, 6);
   }
   const article = await repositories.article.getById(articleId);
-  const { markup, title } = await compileArticle(article.content);
-  return { ...article, markup, title };
+  if (article.contentType === 'markdown') {
+    const { markup, title } = await compileArticle(article.content);
+    return { ...article, markup, title };
+  } else if (article.contentType === 'external') {
+    return { ...article, markup: '' };
+  } else {
+    throw throwError('INTERNAL_SERVER_ERROR', '未知的文章内容类型');
+  }
 });
 
 export const getArticleContentById = query(z.string(), async (articleId) => {
