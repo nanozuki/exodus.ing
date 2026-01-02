@@ -1,6 +1,6 @@
 <script lang="ts">
   import ArticleList from '$lib/component/ArticleList.svelte';
-  import { listArticles } from '../remotes/articles.remote.js';
+  import { listArticles } from '$remotes/articles.remote.js';
 
   const { data } = $props();
   let { page } = $derived(data);

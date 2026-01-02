@@ -7,7 +7,7 @@ export async function wrap<T>(method: string, fn: () => Promise<T>): Promise<T> 
     const start = Date.now();
     const result = await fn();
     const duration = Date.now() - start;
-    console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms, result:`, result);
+    console.log(`[DATABASE-METHOD] ${method} executed in ${duration}ms`);
     return result;
   } catch (e) {
     if (isHttpError(e)) {

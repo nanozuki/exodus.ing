@@ -108,7 +108,7 @@
         <InputTextArea
           id="comment-input"
           placeholder={'编辑评论'}
-          field="content"
+          name="content"
           label={'编辑评论'}
           error={getIssuesMessage(editComment.fields.content.issues())}
           bind:value={content}

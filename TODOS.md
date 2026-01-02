@@ -19,6 +19,7 @@ Routes:
 
 ## Extend Auth Type
 
+- [ ] Use single login/register page
 - [ ] Google
 - [ ] Mastodon
 - [ ] Passkey
