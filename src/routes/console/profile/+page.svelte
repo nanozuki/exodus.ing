@@ -14,7 +14,7 @@
 </svelte:head>
 
 <Form id="profile" method="post" class="gap-y-m flex flex-col">
-  <Input field="name" label="名称" type="text" value={user.name} required />
-  <InputTextArea field="aboutMe" label="介绍" value={user.aboutMe} />
+  <Input name="name" label="名称" type="text" value={user.name} required />
+  <InputTextArea name="aboutMe" label="介绍" value={user.aboutMe} />
   <Button variant="primary" type="submit">更新</Button>
 </Form>

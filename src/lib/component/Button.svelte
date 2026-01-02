@@ -9,7 +9,7 @@
     variant?: Variant;
     children: Snippet;
   }
-  const { variant = 'normal', children, class: classProp, ...rest }: ButtonProps = $props();
+  const { variant = 'normal', children, class: classProp, disabled: disabledProp, ...rest }: ButtonProps = $props();
   const colorClasses = {
     normal: 'bg-text/20 hover:bg-text/30 text-text border-text',
     primary: 'bg-link/20 hover:bg-link/30 text-link font-semibold border-link',
@@ -19,6 +19,7 @@
 
   let disabled = $derived.by(() => {
     if (variant === 'disabled') return true;
+    if (disabledProp) return true;
     if (rest.type === 'submit') {
       let formState = getFormStateContext();
       if (formState && formState.submitting) {

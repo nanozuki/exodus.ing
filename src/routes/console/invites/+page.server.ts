@@ -16,11 +16,11 @@ const deleteFormScheme = z.object({
 
 export const actions = {
   create: async ({ locals }) => {
-    const loggedInUser = await locals.requirePermission(Permission.CreateArticle, 'create invite code');
+    const loggedInUser = locals.requirePermission(Permission.CreateArticle, 'create invite code');
     await services.inviteCode.createInviteCode(loggedInUser.id, Role.ArticleAuthor);
   },
   delete: async ({ locals, request }) => {
-    const loggedInUser = await locals.requirePermission(Permission.CreateArticle, 'delete invite code');
+    const loggedInUser = locals.requirePermission(Permission.CreateArticle, 'delete invite code');
     const data = await request.formData();
     const form = deleteFormScheme.parse({
       code: data.get('code'),

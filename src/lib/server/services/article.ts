@@ -1,14 +1,10 @@
 import type { Article, ArticleCard, ArticleContent } from '$lib/domain/entities/article';
-import { compileArticle } from '$lib/markdown';
+import { compileArticle, throwArticleIssue } from '$lib/markdown';
 import { throwError } from '$lib/errors';
 import { repositories } from '$lib/server/registry';
 
 export class ArticleService {
   constructor() {}
-
-  async getById(articleId: string): Promise<Article> {
-    return await repositories.article.getById(articleId);
-  }
 
   async getContentById(articleId: string): Promise<ArticleContent> {
     return await repositories.article.getContentById(articleId);
@@ -20,12 +16,15 @@ export class ArticleService {
 
   async createByMarkdown(userId: string, content: string, replyTo?: string): Promise<string> {
     const result = await compileArticle(content);
+    if (result.issues.length > 0) {
+      return throwArticleIssue(result.issues[0], 'content');
+    }
     return await repositories.article.create({
       authorId: userId,
       content,
       title: result.title,
       contentType: 'markdown',
-      replyTo,
+      replyToId: replyTo,
     });
   }
 
@@ -35,6 +34,9 @@ export class ArticleService {
       return throwError('BAD_REQUEST', '只能编辑自己的文章');
     }
     const result = await compileArticle(content);
+    if (result.issues.length > 0) {
+      return throwArticleIssue(result.issues[0], 'content');
+    }
     return await repositories.article.update(articleId, {
       title: result.title,
       content,

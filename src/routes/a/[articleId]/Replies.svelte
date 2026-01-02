@@ -1,13 +1,21 @@
 <script lang="ts">
   import Action from '$lib/component/Action.svelte';
   import MdiReplyOutline from '~icons/mdi/reply-outline';
-  import type { PageData } from './$types';
   import { consoleRoutes } from '../../console/routes';
+  import { Permission } from '$lib/domain/entities/role';
+  import type { ArticleCard } from '$lib/domain/entities/article';
+  import { userHasPermission, type LoggedInUser } from '$lib/domain/entities/user';
 
-  let { data }: { data: PageData } = $props();
-  let { article, replies, user, canReply } = $derived(data);
-  let replyUrl = $derived(encodeURI(`/a/new/edit?replyTo=${article.id}`));
-  let authNext = $derived(encodeURIComponent(`/a/new/edit?replyTo=${article.id}`));
+  type Props = {
+    articleId: string;
+    replies: ArticleCard[];
+    user: LoggedInUser | null;
+  };
+
+  const { articleId, replies, user }: Props = $props();
+  const canReply = $derived(userHasPermission(user, Permission.CreateArticle));
+  let replyUrl = $derived(encodeURI(`/a/new/edit?replyTo=${articleId}`));
+  let authNext = $derived(encodeURIComponent(`/a/new/edit?replyTo=${articleId}`));
 </script>
 
 <div id="reply-section" class="border-accent gap-y-m flex flex-col border-t-4">
@@ -38,10 +46,10 @@
   <div class="gap-y-m flex flex-col">
     {#each replies as reply (reply.id)}
       <p class="bg-overlay py-xs px-s">
-        <a class="hover:text-primary mr-2 font-serif text-2xl font-bold" href={`/a/${article.id}`}>
+        <a class="hover:text-primary mr-2 font-serif text-2xl font-bold" href={`/a/${reply.id}`}>
           {reply.title}
         </a>
-        <a class="text-accent hover:text-accent-alt font-semibold" href={`/u/@${article.authorUsername}`}>
+        <a class="text-accent hover:text-accent-alt font-semibold" href={`/u/@${reply.authorUsername}`}>
           {reply.authorName}
         </a>
       </p>

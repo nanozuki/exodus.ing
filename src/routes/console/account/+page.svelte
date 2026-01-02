@@ -33,7 +33,7 @@
         <p class="text-warn">用户名更改后，个人主页地址也变更，请谨慎修改。</p>
       </div>
       <form class="gap-y-m flex flex-col" method="POST" use:enhance>
-        <Input type="text" field="username" label="用户名" value={user.username} required />
+        <Input type="text" name="username" label="用户名" value={user.username} required />
         <div class="gap-x-m flex flex-row">
           <div class="flex-1">
             <Button type="button" onclick={closeDialog}>取消</Button>

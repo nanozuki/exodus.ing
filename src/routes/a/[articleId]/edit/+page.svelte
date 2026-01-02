@@ -1,111 +1,65 @@
 <script lang="ts">
-  import { compileArticle, type CompiledArticle } from '$lib/markdown';
-  import { onMount } from 'svelte';
-  import { enhance } from '$app/forms';
-  import Markdown from '$lib/component/Markdown.svelte';
-  import Button from '$lib/component/Button.svelte';
   import ArticleCard from '$lib/component/ArticleCard.svelte';
-  import { catchError } from '$lib/errors.js';
+  import Button from '$lib/component/Button.svelte';
+  import ButtonLink from '$lib/component/ButtonLink.svelte';
+  import MarkdownEditor from './MarkdownEditor.svelte';
+  import { createOrUpdateMarkdownArticle, getArticleCardById, getArticleContentById } from '$remotes/articles.remote';
+  import ExternalArticleForm from './ExternalArticleForm.svelte';
 
-  const { form, data } = $props();
+  const { data } = $props();
+  const { articleId, replyToId, user } = $derived(data);
+  const articleQ = $derived(articleId ? getArticleContentById(articleId) : undefined);
+  const replyToQ = $derived(replyToId ? getArticleCardById(replyToId) : undefined);
+  const article = $derived(articleQ ? await articleQ : undefined);
+  const replyTo = $derived(replyToQ ? await replyToQ : undefined);
+  const contentType = $derived(article ? article.contentType : data.contentType);
 
-  let mode: 'editor' | 'previewer' = $state('editor');
-  let article: string = $state(form?.content || data.article?.content || '');
-  let articleSnapshot = '';
-  let compiled: CompiledArticle = $state({ title: '', value: '' });
-  let errorMessage = $state('');
-  let content = $derived.by(() => compiled.value);
-  let { replyTo } = $derived(data);
-
-  let submitting = $state(false);
-  const preSubmit = () => {
-    submitting = true;
+  let title: string = $derived(article?.title ?? '');
+  let content: string = $derived(article?.content ?? '');
+  let valid: boolean = $state(false);
+  const onValidateChange = (isValid: boolean) => {
+    valid = isValid;
   };
-  let btnVariant: 'primary' | 'disabled' = $derived(errorMessage === '' ? 'primary' : 'disabled');
-
-  const compile = () => {
-    if (article === articleSnapshot) {
-      return;
-    }
-    articleSnapshot = article;
-    compileArticle(articleSnapshot)
-      .then((result) => {
-        compiled = result;
-        errorMessage = '';
-      })
-      .catch((e) => {
-        const error = catchError(e);
-        if (error.tag === 'PARAMETER_INVALID') {
-          errorMessage = error.message;
-        }
-      });
+  const onTitleChange = (newTitle: string) => {
+    title = newTitle;
   };
 
-  onMount(() => {
-    compile();
-    const interval = setInterval(compile, 1000);
-    return () => clearInterval(interval);
-  });
-
-  const buttonClass = {
-    activated: 'flex-1 p-0.5 text-text bg-surface',
-    deactivated: 'flex-1 p-0.5 text-subtle bg-highlight-high/30 hover:text-text',
-  };
+  let btnVariant: 'primary' | 'disabled' = $derived(valid ? 'primary' : 'disabled');
 </script>
 
 <svelte:head>
-  <title>编辑 {compiled.title} - EXODUS</title>
+  <title>编辑 {title} - EXODUS</title>
 </svelte:head>
 
-<div class="gap-y-m flex h-full flex-1 flex-col">
-  {#if replyTo}
-    <div class="gap-x-m bg-accent/10 flex flex-row p-2">
-      <p class="font-bold">回应</p>
-      <ArticleCard article={replyTo} />
-    </div>
-  {/if}
+{#if contentType === 'markdown'}
+  <div class="gap-y-m flex h-full flex-1 flex-col">
+    {#if replyTo}
+      <div class="gap-x-m bg-accent/10 flex flex-row p-2">
+        <p class="font-bold">回应</p>
+        <ArticleCard article={replyTo} />
+      </div>
+    {/if}
 
-  <div class="switch border-border flex border">
-    <button
-      class={mode === 'editor' ? buttonClass.activated : buttonClass.deactivated}
-      onclick={() => {
-        mode = 'editor';
-      }}>编辑</button
-    >
-    <button
-      class={mode === 'previewer' ? buttonClass.activated : buttonClass.deactivated}
-      onclick={() => {
-        mode = 'previewer';
-      }}>预览</button
-    >
+    <MarkdownEditor bind:content {onValidateChange} {onTitleChange} />
+
+    <form {...createOrUpdateMarkdownArticle}>
+      <input type="hidden" name="articleId" value={articleId} />
+      <input type="hidden" name="replyToId" value={replyToId} />
+      <input type="hidden" name="content" value={content} />
+      <Button variant={btnVariant} type="submit">发布</Button>
+    </form>
   </div>
-
-  {#if mode === 'editor'}
-    <textarea class="editor border-border w-full resize-none overflow-y-scroll border p-1" bind:value={article}
-    ></textarea>
-  {:else}
-    <div class="editor border-border overflow-y-scroll border p-1">
-      <Markdown content={content.toString()} />
-    </div>
-  {/if}
-
-  {#if errorMessage}
-    <div class="bg-error/30 text-error p-2">
-      <p class="font-bold">标题不能为空</p>
-      <small>标题为第一个一级标题</small>
-    </div>
-  {/if}
-
-  <form method="POST" use:enhance={preSubmit}>
-    <input type="hidden" name="content" value={article} />
-    <input type="hidden" name="title" value={compiled.title} />
-    <input type="hidden" name="replyTo" value={replyTo?.id} />
-    <Button variant={btnVariant} type="submit">发布</Button>
-  </form>
-</div>
-
-<style>
-  .editor {
-    flex: 1 1 0;
-  }
-</style>
+{:else if contentType === 'external'}
+  <ExternalArticleForm {article} {articleId} {replyToId} {user} />
+{:else}
+  <h2 class="font-serif text-2xl font-bold">添加新文章</h2>
+  <h5 class="font-sans font-semibold">请选择方式</h5>
+  <div class="bg-accent-alt/10 p-m gap-m flex flex-col">
+    <p>使用 Markdown 添加文章，可以直接在 Exodus 内撰写和编辑。文章内容可以直接在站内完整阅读并支持所有的互动功能</p>
+    <ButtonLink href="/a/new/edit?contentType=markdown" variant="primary">创建 Markdown 文章</ButtonLink>
+  </div>
+  <div class="bg-accent-alt/10 p-m gap-m flex flex-col">
+    <p>链接到你在其他网页上发表的文章，需要验证作者身份。在 Exodus 不展示文章内容，但仍支持评论回应等互动功能</p>
+    <ButtonLink variant="primary" href="/a/new/edit?contentType=external">链接外部文章</ButtonLink>
+  </div>
+{/if}

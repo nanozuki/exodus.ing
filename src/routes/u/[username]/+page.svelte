@@ -41,7 +41,7 @@
     {user.name}
   </h1>
   {#if user.aboutMe}
-    <Markdown content={user.aboutMe.toString()} />
+    <Markdown markup={user.aboutMe.toString()} />
   {/if}
 </article>
 

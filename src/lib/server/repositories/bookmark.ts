@@ -1,4 +1,4 @@
-import type { Bookmark } from '$lib/domain/entities/bookmark';
+import type { BookmarkStatus } from '$lib/domain/entities/bookmark';
 import { and, eq, sql } from 'drizzle-orm/sql';
 import { tArticle, tBookmark, type AppDatabase } from './schema';
 import { wrap } from './utils';
@@ -6,19 +6,18 @@ import { wrap } from './utils';
 export class PgBookmarkRepository {
   constructor(private db: AppDatabase) {}
 
-  async listByUserId(userId: string): Promise<Bookmark[]> {
-    return await wrap('bookmark.listByUserId', () =>
-      this.db.select().from(tBookmark).where(eq(tBookmark.userId, userId)).orderBy(tBookmark.createdAt),
-    );
-  }
-
-  async isBookmarked(articleId: string, userId: string): Promise<boolean> {
-    return await wrap('bookmark.isBookmarked', async () => {
-      const count = await this.db.$count(
-        tBookmark,
-        and(eq(tBookmark.articleId, articleId), eq(tBookmark.userId, userId)),
-      );
-      return count > 0;
+  async getBookmarkStatus(articleId: string, userId?: string): Promise<BookmarkStatus> {
+    return await wrap('bookmark.getBookmarkStatus', async () => {
+      const [bookmarked, bookmarkCount] = await Promise.all([
+        userId
+          ? await this.db.$count(tBookmark, and(eq(tBookmark.articleId, articleId), eq(tBookmark.userId, userId)))
+          : 0,
+        this.db.$count(tBookmark, eq(tBookmark.articleId, articleId)),
+      ]);
+      return {
+        isBookmarked: bookmarked > 0,
+        bookmarkCount: bookmarkCount,
+      };
     });
   }
 

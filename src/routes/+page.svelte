@@ -1,8 +1,11 @@
 <script lang="ts">
   import ArticleList from '$lib/component/ArticleList.svelte';
+  import { listArticles } from '$remotes/articles.remote.js';
 
   const { data } = $props();
-  let { items } = $derived(data);
+  let { page } = $derived(data);
+  const articles = $derived(await listArticles(page));
+
   const pageLink = (page: number) => `?page=${page}`;
 </script>
 
@@ -12,7 +15,7 @@
   <meta property="og:description" content="A blog platform for friends." />
 </svelte:head>
 
-{#if items.length === 0}
+{#if articles.items.length === 0}
   <p>
     Nothing can save you except writing<br />
     by Charles Bukowski
@@ -21,4 +24,4 @@
 
 <h5 class="font-semibold">文章列表</h5>
 
-<ArticleList articles={data} {pageLink} />
+<ArticleList {articles} {pageLink} />

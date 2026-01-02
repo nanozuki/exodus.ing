@@ -15,6 +15,7 @@ export class PgUserRepository {
         githubId: tUser.githubId,
         name: tUser.name,
         aboutMe: tUser.aboutMe,
+        verifyCode: tUser.verifyCode,
       })
       .from(tUser)
       .where(eq(tUser.id, compabilityId));
@@ -30,6 +31,7 @@ export class PgUserRepository {
           githubId: tUser.githubId,
           name: tUser.name,
           aboutMe: tUser.aboutMe,
+          verifyCode: tUser.verifyCode,
         })
         .from(tUser)
         .where(eq(tUser.username, username));
@@ -46,6 +48,7 @@ export class PgUserRepository {
           githubId: tUser.githubId,
           name: tUser.name,
           aboutMe: tUser.aboutMe,
+          verifyCode: tUser.verifyCode,
         })
         .from(tUser)
         .where(eq(tUser.name, name));
@@ -62,6 +65,7 @@ export class PgUserRepository {
           githubId: tUser.githubId,
           name: tUser.name,
           aboutMe: tUser.aboutMe,
+          verifyCode: tUser.verifyCode,
         })
         .from(tUser)
         .where(eq(tUser.githubId, githubId));

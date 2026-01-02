@@ -4,7 +4,20 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const config = {
   preprocess: sequence([vitePreprocess(), preprocessMeltUI()]),
-  kit: { adapter: adapter() },
+  kit: {
+    adapter: adapter(),
+    alias: {
+      '$remotes/*': 'src/remotes/*',
+    },
+    experimental: {
+      remoteFunctions: true,
+    },
+  },
+  compilerOptions: {
+    experimental: {
+      async: true,
+    },
+  },
 };
 
 export default config;
