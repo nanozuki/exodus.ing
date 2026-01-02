@@ -26,13 +26,13 @@
 <form class="gap-y-m flex flex-col sm:max-w-[60%]" action="?/register" method="POST" use:enhance={withSubmitting}>
   <input type="hidden" name="next" value={next} />
   <Input
-    field="username"
+    name="username"
     label="用户名（可选）"
     type="text"
     description="账户唯一 ID，默认使用 GitHub 用户名"
     value={form?.username || ''}
   />
-  <Input field="name" label="昵称（可选）" type="text" description="默认使用用户名" value={form?.name || ''} />
+  <Input name="name" label="昵称（可选）" type="text" description="默认使用用户名" value={form?.name || ''} />
   <div class="gap-y-2xs flex flex-col">
     {#if form?.error}<p class="text-error">{form.error}</p>{/if}
     <Button {variant} id="register" class="positive" type="submit">使用 GitHub 注册</Button>

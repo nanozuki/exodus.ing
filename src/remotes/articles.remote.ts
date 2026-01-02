@@ -6,6 +6,8 @@ import { compileArticle, throwArticleIssue } from '$lib/markdown';
 import { Permission } from '$lib/domain/entities/role';
 import { throwError } from '$lib/errors';
 import { redirect } from '@sveltejs/kit';
+import { resolveTxt } from '$lib/server/adapters/name_resolver';
+import { createOrUpdateExternalArticleSchema } from './schemas';
 
 export const getArticleDetailById = query(z.string(), async (articleId) => {
   // if articleId's length is 16, it's legacy articleId, shorten it by first 6 characters
@@ -63,6 +65,56 @@ export const createOrUpdateMarkdownArticle = form(
       content,
       title,
       contentType: 'markdown',
+      replyToId,
+    });
+    redirect(303, `/a/${newArticleId}`);
+  },
+);
+
+export const verifyDomainOwnership = form(
+  z.object({
+    url: z.url(),
+  }),
+  async ({ url }) => {
+    const { locals } = getRequestEvent();
+    const user = locals.requirePermission(Permission.CreateArticle, '验证站点所有权');
+    const { hostname } = new URL(url);
+    const textRecords = await resolveTxt(hostname);
+    return {
+      url,
+      hostname,
+      verified: textRecords.some((record) => record.includes(`exodus-site-verification=${user.verifyCode}`)),
+    };
+  },
+);
+
+export const createOrUpdateExternalArticle = form(
+  createOrUpdateExternalArticleSchema,
+  async ({ url, title, articleId, replyToId }) => {
+    const { locals } = getRequestEvent();
+    const user = locals.requirePermission(Permission.CreateArticle, '编辑文章');
+    const { hostname } = new URL(url);
+    const textRecords = await resolveTxt(hostname);
+    if (!textRecords.some((record) => record.includes(`exodus-site-verification=${user.verifyCode}`))) {
+      return throwError('PARAMETER_INVALID', { url: '无法验证站点所有权，请按照说明添加 TXT 记录后重试' });
+    }
+
+    // update article
+    if (articleId) {
+      const article = await repositories.article.getById(articleId);
+      if (article.authorId !== user.id) {
+        return throwError('BAD_REQUEST', '只能编辑自己的文章');
+      }
+      await repositories.article.update(articleId, { title, content: url });
+      redirect(303, `/a/${articleId}`);
+    }
+
+    // create article
+    const newArticleId = await repositories.article.create({
+      authorId: user.id,
+      content: url,
+      title,
+      contentType: 'external',
       replyToId,
     });
     redirect(303, `/a/${newArticleId}`);

@@ -6,6 +6,7 @@ export interface User {
   githubId: number | null;
   name: string;
   aboutMe: string;
+  verifyCode: string;
 }
 
 export interface LoggedInUser extends User {

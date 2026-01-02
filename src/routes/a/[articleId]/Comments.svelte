@@ -70,7 +70,7 @@
         <InputTextArea
           id="comment-input"
           placeholder={'发表评论'}
-          field="content"
+          name="content"
           label={'新评论'}
           error={getIssuesMessage(addComment.fields.content.issues())}
           bind:value={content}

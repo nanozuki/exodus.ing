@@ -8,10 +8,12 @@ function parseContentType(url: URL): ArticleContentType | null {
 }
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
-  locals.requirePermission(Permission.CreateArticle, '编辑文章');
+  const user = locals.requirePermission(Permission.CreateArticle, '编辑文章');
+  const replyTo = url.searchParams.get('replyTo');
   return {
-    replyToId: url.searchParams.get('replyTo'),
+    replyToId: replyTo ? replyTo : undefined,
     articleId: params.articleId === 'new' ? undefined : params.articleId,
     contentType: parseContentType(url),
+    user,
   };
 };

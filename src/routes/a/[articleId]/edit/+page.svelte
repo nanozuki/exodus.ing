@@ -4,9 +4,10 @@
   import ButtonLink from '$lib/component/ButtonLink.svelte';
   import MarkdownEditor from './MarkdownEditor.svelte';
   import { createOrUpdateMarkdownArticle, getArticleCardById, getArticleContentById } from '$remotes/articles.remote';
+  import ExternalArticleForm from './ExternalArticleForm.svelte';
 
   const { data } = $props();
-  const { articleId, replyToId } = $derived(data);
+  const { articleId, replyToId, user } = $derived(data);
   const articleQ = $derived(articleId ? getArticleContentById(articleId) : undefined);
   const replyToQ = $derived(replyToId ? getArticleCardById(replyToId) : undefined);
   const article = $derived(articleQ ? await articleQ : undefined);
@@ -49,7 +50,7 @@
     </form>
   </div>
 {:else if contentType === 'external'}
-  <p>外部链接文章编辑功能尚未实现。</p>
+  <ExternalArticleForm {articleId} {replyToId} {user} />
 {:else}
   <h2 class="font-serif text-2xl font-bold">添加新文章</h2>
   <h5 class="font-sans font-semibold">请选择方式</h5>
