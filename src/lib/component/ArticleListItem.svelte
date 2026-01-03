@@ -18,16 +18,21 @@
 </script>
 
 <article>
-  <a href="/a/{article.id}">
+  {#if article.contentType === 'markdown'}
+    <a href="/a/{article.id}">
+      <h2 class="font-serif font-bold">
+        {article.title}
+      </h2>
+    </a>
+  {:else}
+    <!-- contentType === 'external' -->
     <h2 class="font-serif font-bold">
-      {#if article.contentType === 'external'}
-        <span class="text-accent-alt">
-          <MdiLinkVariant class="inline" />
-        </span>
-      {/if}
-      {article.title}
+      <a href={article.content} target="_blank" rel="noopener noreferrer" class="text-accent-alt">
+        <MdiLinkVariant class="inline" />
+      </a>
+      <a href="/a/{article.id}">{article.title}</a>
     </h2>
-  </a>
+  {/if}
   {#if article.replyTo}
     <p class="text-subtle bg-accent-alt/10 px-2xs w-fit">
       <MdiReply style="display: inline; vertical-align: text-top;" />

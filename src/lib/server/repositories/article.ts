@@ -41,6 +41,7 @@ export class PgArticleRepository {
     createdAt: tArticle.createdAt,
     updatedAt: tArticle.updatedAt,
     contentType: tArticle.contentType,
+    content: tArticle.content,
     replyCount: tArticle.replyCount,
     bookmarkCount: tArticle.bookmarkCount,
     commentCount: tArticle.commentCount,

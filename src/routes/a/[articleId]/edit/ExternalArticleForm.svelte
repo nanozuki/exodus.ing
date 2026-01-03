@@ -55,7 +55,7 @@
   <Input {...fields.title.as('text')} label="文章标题" issues={fields.title.issues()} required />
   {#if hostname}
     <div class="bg-surface p-2">
-      <p>提交前，请确保你为域名 {hostname} 设置了以下 TXT 记录：</p>
+      <p>提交前，请确保你为域名 {hostname} 设置了 TXT 类型的 DNS 记录：</p>
       <p class="font-mono break-all">exodus-site-verification={user.verifyCode}</p>
     </div>
   {/if}

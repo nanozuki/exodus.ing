@@ -51,6 +51,7 @@ export interface ArticleListItem {
   authorName: string;
   authorUsername: string;
   contentType: ArticleContentType;
+  content: string;
   replyTo?: ArticleCard;
   replyCount: number;
   bookmarkCount: number;
