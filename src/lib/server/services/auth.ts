@@ -79,11 +79,16 @@ export class AuthService {
     if (!cookie) {
       return null;
     }
-    const result = PendingRegistrationSchema.safeParse(JSON.parse(cookie));
-    if (!result.success) {
+    try {
+      const result = PendingRegistrationSchema.safeParse(JSON.parse(cookie));
+      if (!result.success) {
+        return null;
+      }
+      return result.data;
+    } catch {
+      // Handle malformed JSON in cookie
       return null;
     }
-    return result.data;
   }
 
   clearPendingRegistration(cookies: Cookies): void {

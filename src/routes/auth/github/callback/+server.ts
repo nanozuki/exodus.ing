@@ -19,10 +19,11 @@ export async function GET(request: RequestEvent): Promise<Response> {
       });
     }
     // Existing user: login and redirect
+    const nextUrl = result.next?.startsWith('/') && !result.next.startsWith('//') ? result.next : '/';
     return new Response(null, {
       status: 302,
       headers: {
-        Location: result.next?.startsWith('/') ? result.next : '/',
+        Location: nextUrl,
       },
     });
   } catch (e) {

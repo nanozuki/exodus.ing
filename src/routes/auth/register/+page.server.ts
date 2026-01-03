@@ -44,7 +44,7 @@ export const actions = {
       return fail(400, { username, name, error: error.message });
     }
 
-    const redirectUrl = typeof next === 'string' && next.startsWith('/') ? next : '/';
+    const redirectUrl = typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/';
     redirect(302, redirectUrl);
   },
 } satisfies Actions;
