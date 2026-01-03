@@ -19,7 +19,6 @@
   };
   let { articleId, comments, user }: CommentsProps = $props();
   let authNext = $derived(encodeURIComponent(`/a/${articleId}#comment-section`));
-  let btnVariant = $state<'primary' | 'disabled'>('primary');
 
   let formAction = $state<'new' | 'edit'>('new');
   let editCommentId = $state<string | undefined>(undefined);
@@ -86,7 +85,7 @@
               }}>{'取消'}</Button
             >
           {/if}
-          <Button variant={btnVariant} type="submit">{'发表评论'}</Button>
+          <Button variant="primary" pending={addComment.pending} type="submit">{'发表评论'}</Button>
         </div>
       </form>
     {:else if formAction === 'edit'}
@@ -124,7 +123,7 @@
               }}>{'取消'}</Button
             >
           {/if}
-          <Button variant={btnVariant} type="submit">{'更新评论'}</Button>
+          <Button variant="primary" type="submit">{'更新评论'}</Button>
         </div>
       </form>
     {/if}

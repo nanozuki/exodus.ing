@@ -17,14 +17,13 @@
   let title: string = $derived(article?.title ?? '');
   let content: string = $derived(article?.content ?? '');
   let valid: boolean = $state(false);
+  let pending = $derived(createOrUpdateMarkdownArticle.pending);
   const onValidateChange = (isValid: boolean) => {
     valid = isValid;
   };
   const onTitleChange = (newTitle: string) => {
     title = newTitle;
   };
-
-  let btnVariant: 'primary' | 'disabled' = $derived(valid ? 'primary' : 'disabled');
 </script>
 
 <svelte:head>
@@ -46,7 +45,7 @@
       <input type="hidden" name="articleId" value={articleId} />
       <input type="hidden" name="replyToId" value={replyToId} />
       <input type="hidden" name="content" value={content} />
-      <Button variant={btnVariant} type="submit">发布</Button>
+      <Button variant="primary" disabled={!valid} {pending} type="submit">发布</Button>
     </form>
   </div>
 {:else if contentType === 'external'}

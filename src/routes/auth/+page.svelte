@@ -7,7 +7,6 @@
   let { data, form } = $props();
   let { next } = $derived(data);
   let submitting = $state(false);
-  let variant = $derived<'disabled' | 'primary'>(submitting ? 'disabled' : 'primary');
   const withSubmitting: SubmitFunction = () => {
     submitting = true;
     return async ({ update }) => {
@@ -35,7 +34,7 @@
   <Input name="name" label="昵称（可选）" type="text" description="默认使用用户名" value={form?.name || ''} />
   <div class="gap-y-2xs flex flex-col">
     {#if form?.error}<p class="text-error">{form.error}</p>{/if}
-    <Button {variant} id="register" class="positive" type="submit">使用 GitHub 注册</Button>
+    <Button variant="primary" disabled={submitting} id="register" type="submit">使用 GitHub 注册</Button>
   </div>
 </form>
 
@@ -44,5 +43,5 @@
 <p class="font-serif text-2xl font-bold">登录</p>
 <form class="gap-y-m flex flex-col sm:max-w-[60%]" action="?/login" method="POST" use:enhance={withSubmitting}>
   <input type="hidden" name="next" value={next} />
-  <Button {variant} id="login" type="submit">使用 GitHub 登录</Button>
+  <Button variant="primary" disabled={submitting} id="login" type="submit">使用 GitHub 登录</Button>
 </form>

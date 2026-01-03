@@ -1,7 +1,6 @@
 <script lang="ts">
   import Button from '$lib/component/Button.svelte';
   import Input from '$lib/component/Input.svelte';
-  import Form from '$lib/component/Form.svelte';
   import { createOrUpdateExternalArticle } from '$remotes/articles.remote';
   import type { LoggedInUser } from '$lib/domain/entities/user';
   import { createOrUpdateExternalArticleSchema } from '$remotes/schemas';
@@ -38,7 +37,7 @@
   });
 </script>
 
-<Form
+<form
   {...createOrUpdateExternalArticle.preflight(createOrUpdateExternalArticleSchema).enhance(async ({ submit }) => {
     try {
       await submit();
@@ -63,4 +62,4 @@
     <p class="text-error">{formError}</p>
   {/if}
   <Button variant="primary" type="submit">发布</Button>
-</Form>
+</form>
