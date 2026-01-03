@@ -4,11 +4,25 @@ import { type RequestEvent } from '@sveltejs/kit';
 
 export async function GET(request: RequestEvent): Promise<Response> {
   try {
-    const data = await services.auth.handleGithubCallback(request);
+    const result = await services.auth.handleGithubCallback(request);
+    if (result.type === 'register') {
+      // New user: redirect to registration page to complete signup
+      const registerUrl = new URL('/auth/register', request.url);
+      if (result.next) {
+        registerUrl.searchParams.set('next', result.next);
+      }
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: registerUrl.toString(),
+        },
+      });
+    }
+    // Existing user: login and redirect
     return new Response(null, {
       status: 302,
       headers: {
-        Location: data.next?.startsWith('/') ? data.next : '/',
+        Location: result.next?.startsWith('/') ? result.next : '/',
       },
     });
   } catch (e) {
