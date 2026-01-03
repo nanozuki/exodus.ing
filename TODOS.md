@@ -24,9 +24,3 @@ Routes:
 - [ ] Mastodon
 - [ ] Passkey
 - [ ] Support bind multiple auth methods to one account
-
-## Adjust components about form
-
-- [ ] Remove `Form` component
-- [ ] Use `<form>.pending` to prevent multiple submits in Button
-- [ ] Remove "disabled" variant in Button, use `disabled` attribute instead
