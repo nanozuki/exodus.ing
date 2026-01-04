@@ -5,7 +5,7 @@
   import type { SubmitFunction } from './$types.js';
 
   let { data, form } = $props();
-  let { next, githubUsername } = $derived(data);
+  let { next } = $derived(data);
   let submitting = $state(false);
   const withSubmitting: SubmitFunction = () => {
     submitting = true;
@@ -29,7 +29,7 @@
     name="username"
     label="用户名（可选）"
     type="text"
-    description="账户唯一 ID，默认使用 GitHub 用户名: {githubUsername}"
+    description="账户唯一 ID，默认使用 GitHub 用户名"
     value={form?.username || ''}
   />
   <Input name="name" label="昵称（可选）" type="text" description="默认使用用户名" value={form?.name || ''} />

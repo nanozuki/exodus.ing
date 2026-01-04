@@ -18,9 +18,7 @@ function setAuthCookie(cookies: Cookies, session: Session) {
   });
 }
 
-export type GithubCallbackResult =
-  | { type: 'login'; next?: string }
-  | { type: 'register'; next?: string; githubId: number; githubUsername: string };
+export type GithubCallbackResult = { type: 'login'; next?: string } | { type: 'register'; next?: string };
 
 export class AuthService {
   constructor() {}
@@ -66,7 +64,7 @@ export class AuthService {
         maxAge: 60 * 10, // 10 minutes
         sameSite: 'lax',
       });
-      return { type: 'register', next: cookieData.next, githubId: ghUser.id, githubUsername: ghUser.username };
+      return { type: 'register', next: cookieData.next };
     }
     // Existing user: login
     const session = await repositories.session.create(user.id);

@@ -12,7 +12,6 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
   const next = url.searchParams.get('next') || pendingData.next || undefined;
   return {
     next,
-    githubUsername: pendingData.githubUsername,
   };
 };
 
