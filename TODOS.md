@@ -17,13 +17,13 @@ Routes:
 - [x] /a/[articleId]
 - [x] /a/[articleId]/edit
 - [x] /auth
-- [ ] /console
-- [ ] /console/account
-- [ ] /console/be-writer
-- [ ] /console/bookmarks
-- [ ] /console/invites
-- [ ] /console/profile
-- [ ] /feeds
+- [x] /console
+- [x] /console/account
+- [x] /console/be-writer
+- [x] /console/bookmarks
+- [x] /console/invites
+- [x] /console/profile
+- [x] /feeds
 - [x] /u/[username]
 
 After migrate

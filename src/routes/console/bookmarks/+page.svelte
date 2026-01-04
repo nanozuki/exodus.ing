@@ -1,8 +1,10 @@
 <script lang="ts">
   import ArticleList from '$lib/component/ArticleList.svelte';
+  import { page } from '$app/state';
+  import { getConsoleBookmarks } from '$remotes/console.remote';
 
-  const { data } = $props();
-  let { bookmarks } = $derived(data);
+  const currentPage = $derived(Math.max(1, parseInt(page.url.searchParams.get('page') || '1', 10) || 1));
+  const bookmarks = $derived(await getConsoleBookmarks(currentPage));
   const pageLink = (page: number) => `?page=${page}`;
 </script>
 
