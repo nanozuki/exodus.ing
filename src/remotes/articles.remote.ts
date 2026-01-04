@@ -7,7 +7,6 @@ import { Permission } from '$lib/domain/entities/role';
 import { throwError } from '$lib/errors';
 import { redirect } from '@sveltejs/kit';
 import { resolveTxt } from '$lib/server/adapters/name_resolver';
-import { createOrUpdateExternalArticleSchema } from './schemas';
 
 export const getArticleDetailById = query(z.string(), async (articleId): Promise<ArticleDetail> => {
   // if articleId's length is 16, it's legacy articleId, shorten it by first 6 characters
@@ -93,6 +92,13 @@ export const verifyDomainOwnership = form(
     };
   },
 );
+
+const createOrUpdateExternalArticleSchema = z.object({
+  url: z.url(),
+  title: z.string(),
+  articleId: z.string().optional(),
+  replyToId: z.string().optional(),
+});
 
 export const createOrUpdateExternalArticle = form(
   createOrUpdateExternalArticleSchema,
