@@ -16,7 +16,7 @@ Routes:
 - [x] /
 - [x] /a/[articleId]
 - [x] /a/[articleId]/edit
-- [ ] /auth
+- [x] /auth
 - [ ] /console
 - [ ] /console/account
 - [ ] /console/be-writer
@@ -24,11 +24,12 @@ Routes:
 - [ ] /console/invites
 - [ ] /console/profile
 - [ ] /feeds
-- [ ] /u/[username]
+- [x] /u/[username]
 
 After migrate
 
 - [ ] Remove `src/lib/server/services`
+- [ ] Extract common code for remote functions, like enhance
 
 ## Extend Auth Type
 
