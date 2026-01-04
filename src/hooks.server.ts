@@ -1,5 +1,5 @@
 import { getConfig } from '$lib/server/config';
-import { buildServices, attachLocals, services } from '$lib/server/registry';
+import { buildServices, attachLocals, adapters, repositories } from '$lib/server/registry';
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 
 function ensureHost(request: Request) {
@@ -20,7 +20,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 
 export const init: ServerInit = async () => {
-  if (!services) {
+  if (!repositories || !adapters) {
     await buildServices();
   }
 };

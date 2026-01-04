@@ -1,4 +1,4 @@
-import { getRequestEvent, query } from '$app/server';
+import { form, getRequestEvent, query } from '$app/server';
 import { ARTICLE_PAGE_SIZE } from '$lib/domain/entities/article';
 import { COMMENT_PAGE_SIZE } from '$lib/domain/entities/comment';
 import { Permission, hasPermission } from '$lib/domain/entities/role';
@@ -6,6 +6,7 @@ import type { User } from '$lib/domain/entities/user';
 import { throwError } from '$lib/errors';
 import { compileMarkdown } from '$lib/markdown';
 import { repositories } from '$lib/server/registry';
+import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 
 type Tab = 'articles' | 'comments';
@@ -71,3 +72,29 @@ export const getUserPageData = query(
     };
   },
 );
+
+const updateProfileSchema = z.object({
+  name: z.string().min(1, '名字不能为空'),
+  aboutMe: z.string(),
+});
+
+export const updateProfile = form(updateProfileSchema, async ({ name, aboutMe }) => {
+  const { locals } = getRequestEvent();
+  const user = locals.requireLoggedInUser('update profile');
+  await repositories.user.update(user.id, { name, aboutMe });
+  redirect(303, '/console/profile');
+});
+
+const updateUsernameSchema = z.object({
+  username: z.string().min(1, '用户名不能为空'),
+});
+
+export const updateUsername = form(updateUsernameSchema, async ({ username }) => {
+  const { locals } = getRequestEvent();
+  const user = locals.requireLoggedInUser('update username');
+  if (username === user.username) {
+    return { username };
+  }
+  await repositories.user.update(user.id, { username });
+  redirect(301, `/u/@${username}`);
+});

@@ -2,7 +2,7 @@
   import Button from '$lib/component/Button.svelte';
   import Input from '$lib/component/Input.svelte';
   import Dialog from '$lib/component/Dialog.svelte';
-  import { updateUsername } from '$remotes/console.remote';
+  import { updateUsername } from '$remotes/users.remote';
   import { catchError } from '$lib/errors';
 
   const { data } = $props();
@@ -37,11 +37,12 @@
       </div>
       <form
         class="gap-y-m flex flex-col"
-        {...updateUsername.enhance(async ({ submit }) => {
+        {...updateUsername.enhance(async ({ form, submit }) => {
           formError = null;
           try {
             await submit();
             closeDialog();
+            form.reset();
           } catch (e) {
             formError = catchError(e).message;
           }
@@ -60,7 +61,9 @@
           <div class="flex-1">
             <Button type="button" onclick={closeDialog}>取消</Button>
           </div>
-          <div class="flex-1"><Button variant="danger" pending={updateUsername.pending} type="submit">提交</Button></div>
+          <div class="flex-1">
+            <Button variant="danger" pending={updateUsername.pending} type="submit">提交</Button>
+          </div>
         </div>
       </form>
     {/snippet}

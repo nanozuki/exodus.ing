@@ -40,6 +40,15 @@ export const listRepliesOfArticle = query(z.string(), async (articleId) => {
   return await repositories.article.listReplies(articleId);
 });
 
+export const listBookmarkedArticles = query(z.number().min(1), async (page) => {
+  const { locals } = getRequestEvent();
+  const loggedInUser = locals.requireLoggedInUser('console bookmarks');
+  return await repositories.article.listUserBookmarks(loggedInUser.id, {
+    pageNumber: page,
+    pageSize: ARTICLE_PAGE_SIZE,
+  });
+});
+
 export const createOrUpdateMarkdownArticle = form(
   z.object({
     content: z.string().min(1),

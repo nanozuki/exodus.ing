@@ -37,9 +37,10 @@
 </script>
 
 <form
-  {...createOrUpdateExternalArticle.enhance(async ({ submit }) => {
+  {...createOrUpdateExternalArticle.enhance(async ({ form, submit }) => {
     try {
       await submit();
+      form.reset();
     } catch (e) {
       const err = catchError(e);
       formError = err.message;

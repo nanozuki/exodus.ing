@@ -6,7 +6,7 @@
   import DeleteIcon from '~icons/material-symbols-light/delete-outline';
   import UserBadge from '$lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
-  import { createInviteCode, deleteInviteCode, getConsoleInviteData } from '$remotes/console.remote';
+  import { createInviteCode, deleteInviteCode, getConsoleInviteData } from '$remotes/invite_codes.remote';
 
   const welcome = $derived(page.url.searchParams.get('welcome') === 'true');
   const inviteData = $derived(await getConsoleInviteData({}));

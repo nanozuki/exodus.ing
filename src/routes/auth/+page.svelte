@@ -19,10 +19,11 @@
 
 <p class="font-serif text-2xl font-bold">注册</p>
 <form
-  {...registerByGithub.enhance(async ({ submit }) => {
+  {...registerByGithub.enhance(async ({ form, submit }) => {
     registerError = null;
     try {
       await submit();
+      form.reset();
     } catch (e) {
       const err = catchError(e);
       registerError = err.message;
@@ -57,10 +58,11 @@
 
 <p class="font-serif text-2xl font-bold">登录</p>
 <form
-  {...loginByGithub.enhance(async ({ submit }) => {
+  {...loginByGithub.enhance(async ({ form, submit }) => {
     loginError = null;
     try {
       await submit();
+      form.reset();
     } catch (e) {
       const err = catchError(e);
       loginError = err.message;

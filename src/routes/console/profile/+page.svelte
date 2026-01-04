@@ -3,7 +3,7 @@
   import Input from '$lib/component/Input.svelte';
   import InputTextArea from '$lib/component/InputTextArea.svelte';
   import type { RemoteFormIssue } from '@sveltejs/kit';
-  import { updateProfile } from '$remotes/console.remote';
+  import { updateProfile } from '$remotes/users.remote';
   import { catchError } from '$lib/errors';
 
   const { data } = $props();
@@ -25,24 +25,18 @@
 
 <form
   id="profile"
-  {...updateProfile.enhance(async ({ submit }) => {
+  {...updateProfile.enhance(async ({ form, submit }) => {
     formError = null;
     try {
       await submit();
+      form.reset();
     } catch (e) {
       formError = catchError(e).message;
     }
   })}
   class="gap-y-m flex flex-col"
 >
-  <Input
-    name="name"
-    label="名称"
-    type="text"
-    value={user.name}
-    issues={updateProfile.fields.name.issues()}
-    required
-  />
+  <Input name="name" label="名称" type="text" value={user.name} issues={updateProfile.fields.name.issues()} required />
   <InputTextArea
     name="aboutMe"
     label="介绍"

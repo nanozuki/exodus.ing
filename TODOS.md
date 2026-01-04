@@ -28,8 +28,7 @@ Routes:
 
 After migrate
 
-- [ ] Remove `src/lib/server/services`
-- [ ] Extract common code for remote functions, like enhance
+- [x] Remove `src/lib/server/services`
 
 ## Extend Auth Type
 
