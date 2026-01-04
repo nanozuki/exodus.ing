@@ -5,7 +5,7 @@ import { type Permission } from '$lib/domain/entities/role';
 import { throwError } from '$lib/errors';
 import { userHasPermission, type LoggedInUser } from '$lib/domain/entities/user';
 import { getConfig } from './config';
-import { setAuthCookie } from '$lib/domain/entities/session';
+import { AUTH_COOKIE_NAME, setAuthCookie } from '$lib/domain/entities/session';
 
 export async function buildServices(): Promise<void> {
   const config = getConfig();
@@ -18,7 +18,7 @@ export let repositories: RepositorySet;
 export let adapters: AdapterSet;
 
 async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
-  const sessionId = event.cookies.get('auth_session');
+  const sessionId = event.cookies.get(AUTH_COOKIE_NAME);
   if (!sessionId) {
     return null;
   }

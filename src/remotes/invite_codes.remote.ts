@@ -27,7 +27,7 @@ export const acceptInviteCode = form(acceptInviteCodeSchema, async ({ inviteCode
   const user = locals.requireLoggedInUser('accept invite code');
   const inviteCodeRecord = await repositories.inviteCode.findByCode(inviteCode);
   if (!inviteCodeRecord) {
-    return throwError('BAD_REQUEST', '邀请码不能为空');
+    return throwError('BAD_REQUEST', '邀请码不存在');
   }
   if (inviteCodeRecord.usedAt) {
     return throwError('BAD_REQUEST', '邀请码已被使用');

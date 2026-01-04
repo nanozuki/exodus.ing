@@ -92,8 +92,11 @@ const updateUsernameSchema = z.object({
 export const updateUsername = form(updateUsernameSchema, async ({ username }) => {
   const { locals } = getRequestEvent();
   const user = locals.requireLoggedInUser('update username');
+  if (username.startsWith('@')) {
+    return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });
+  }
   if (username === user.username) {
-    return { username };
+    redirect(301, `/u/@${username}`);
   }
   await repositories.user.update(user.id, { username });
   redirect(301, `/u/@${username}`);

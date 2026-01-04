@@ -4,6 +4,7 @@ import { throwError } from '$lib/errors';
 import { redirect } from '@sveltejs/kit';
 import type { OAuthCookieDataInput } from '$lib/domain/values/auth';
 import z from 'zod';
+import { AUTH_COOKIE_NAME } from '$lib/domain/entities/session';
 
 const registerByGithubSchema = z.object({
   next: z.string().optional(),
@@ -74,8 +75,6 @@ export const loginByGithub = form(loginByGithubSchema, async ({ next }) => {
   const authUrl = adapters.githubOAuth.createAuthUrl(cookies, input);
   redirect(302, authUrl.toString());
 });
-
-const AUTH_COOKIE_NAME = 'auth_session';
 
 export const logout = form(async () => {
   const { cookies } = getRequestEvent();
