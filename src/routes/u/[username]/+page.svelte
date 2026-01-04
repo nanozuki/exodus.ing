@@ -1,12 +1,21 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import AddIcon from '~icons/mdi/add';
+  import MdiLogout from '~icons/mdi/logout';
   import ArticleList from '$lib/component/ArticleList.svelte';
   import CommentList from '$lib/component/CommentList.svelte';
   import Markdown from '$lib/component/Markdown.svelte';
   import SettingIcon from '~icons/mdi/settings-outline';
+  import { getUserPageData } from '$remotes/users.remote';
+  import Action from '$lib/component/Action.svelte';
+  import { logout } from '$remotes/auth.remote.js';
 
-  const { data } = $props();
-  let { user, listData, isMyself, isWriter } = $derived(data);
+  const { params } = $props();
+  const username = $derived(params.username);
+  const currentPage = $derived(Math.max(1, parseInt(page.url.searchParams.get('page') || '1', 10) || 1));
+  const currentTab = $derived(page.url.searchParams.get('tab') || undefined);
+  const pageData = $derived(await getUserPageData({ username, page: currentPage, tab: currentTab }));
+  let { user, listData, isMyself, isWriter } = $derived(pageData);
   const badgeClass = 'w-fit flex gap-x-1 items-center bg-accent-alt/20 hover:bg-accent-alt/30 py-1 px-2';
   const pageLink = $derived((page: number) => `?tab=${listData.tab}&page=${page}#list-top`);
   const routes = $derived(
@@ -33,6 +42,12 @@
         <AddIcon /><span>新文章</span>
       </a>
     {/if}
+    <form {...logout}>
+      <Action element="button" type="submit" class="bg-error/20 text-error">
+        <span>登出</span>
+        <MdiLogout />
+      </Action>
+    </form>
   </div>
 {/if}
 

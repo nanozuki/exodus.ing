@@ -1,13 +1,16 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
   import Button from '$lib/component/Button.svelte';
   import Input from '$lib/component/Input.svelte';
   import Dialog from '$lib/component/Dialog.svelte';
+  import { updateUsername } from '$remotes/users.remote';
+  import { catchError } from '$lib/errors';
 
   const { data } = $props();
   const { user } = $derived(data);
   let open = $state(false);
+  let formError = $state<string | null>(null);
   let openDialog = () => {
+    formError = null;
     open = true;
   };
   let closeDialog = () => {
@@ -32,13 +35,35 @@
         <h2 class="font-serif font-bold">修改用户名</h2>
         <p class="text-warn">用户名更改后，个人主页地址也变更，请谨慎修改。</p>
       </div>
-      <form class="gap-y-m flex flex-col" method="POST" use:enhance>
-        <Input type="text" name="username" label="用户名" value={user.username} required />
+      <form
+        class="gap-y-m flex flex-col"
+        {...updateUsername.enhance(async ({ form, submit }) => {
+          formError = null;
+          try {
+            await submit();
+            closeDialog();
+            form.reset();
+          } catch (e) {
+            formError = catchError(e).message;
+          }
+        })}
+      >
+        <Input
+          type="text"
+          name="username"
+          label="用户名"
+          value={user.username}
+          issues={updateUsername.fields.username.issues()}
+          error={formError || undefined}
+          required
+        />
         <div class="gap-x-m flex flex-row">
           <div class="flex-1">
             <Button type="button" onclick={closeDialog}>取消</Button>
           </div>
-          <div class="flex-1"><Button variant="danger" type="submit">提交</Button></div>
+          <div class="flex-1">
+            <Button variant="danger" pending={updateUsername.pending} type="submit">提交</Button>
+          </div>
         </div>
       </form>
     {/snippet}

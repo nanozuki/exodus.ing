@@ -1,13 +1,16 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import Action from '$lib/component/Action.svelte';
   import Button from '$lib/component/Button.svelte';
   import CopyIcon from '~icons/material-symbols-light/content-copy-outline-rounded';
   import DeleteIcon from '~icons/material-symbols-light/delete-outline';
   import UserBadge from '$lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
+  import { createInviteCode, deleteInviteCode, getConsoleInviteData } from '$remotes/invite_codes.remote';
 
-  const { data } = $props();
-  const { invitees, inviter, quota, unusedCodes, welcome } = $derived(data);
+  const welcome = $derived(page.url.searchParams.get('welcome') === 'true');
+  const inviteData = $derived(await getConsoleInviteData({}));
+  const { invitees, inviter, quota, unusedCodes } = $derived(inviteData);
   let copied = $state('');
 </script>
 
@@ -35,7 +38,7 @@
     <div class="grid-codes gap-x-xs gap-y-xs grid items-center">
       {#each unusedCodes as { code }}
         <p class="text-accent font-mono">{code}</p>
-        <form action="?/delete" method="POST">
+        <form {...deleteInviteCode}>
           <input type="hidden" name="code" value={code} />
           <button type="submit" class="text-error bg-error/20 hover:bg-error/30 block p-1">
             <DeleteIcon class="size-6" />
@@ -60,8 +63,8 @@
   {/if}
 
   {#if quota > 0}
-    <form action="?/create" method="POST">
-      <Button type="submit">创建邀请码({quota})</Button>
+    <form {...createInviteCode}>
+      <Button pending={createInviteCode.pending} type="submit">创建邀请码({quota})</Button>
     </form>
   {/if}
 </div>

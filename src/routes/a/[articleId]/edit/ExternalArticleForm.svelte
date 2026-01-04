@@ -3,7 +3,6 @@
   import Input from '$lib/component/Input.svelte';
   import { createOrUpdateExternalArticle } from '$remotes/articles.remote';
   import type { LoggedInUser } from '$lib/domain/entities/user';
-  import { createOrUpdateExternalArticleSchema } from '$remotes/schemas';
   import { catchError } from '$lib/errors';
   import type { ArticleContent } from '$lib/domain/entities/article';
   import { untrack } from 'svelte';
@@ -38,9 +37,10 @@
 </script>
 
 <form
-  {...createOrUpdateExternalArticle.preflight(createOrUpdateExternalArticleSchema).enhance(async ({ submit }) => {
+  {...createOrUpdateExternalArticle.enhance(async ({ form, submit }) => {
     try {
       await submit();
+      form.reset();
     } catch (e) {
       const err = catchError(e);
       formError = err.message;
