@@ -8,7 +8,7 @@
   import SettingIcon from '~icons/mdi/settings-outline';
   import { getUserPageData } from '$remotes/users.remote';
   import Action from '$lib/component/Action.svelte';
-  import { logout } from '$remotes/auth.remote.js';
+  import { logout } from '$remotes/auth.remote';
 
   const { params } = $props();
   const username = $derived(params.username);

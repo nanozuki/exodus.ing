@@ -3,7 +3,7 @@
   import type { ArticleListItem as ArticleItem } from '$lib/domain/entities/article';
   import Pager from '$lib/component/Pager.svelte';
   import type { Paginated } from '$lib/domain/values/page';
-  import { ARTICLE_PAGE_SIZE } from '$lib/domain/entities/article.js';
+  import { ARTICLE_PAGE_SIZE } from '$lib/domain/entities/article';
   import { twMerge } from 'tailwind-merge';
 
   interface Props {

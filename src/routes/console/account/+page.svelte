@@ -3,19 +3,19 @@
   import Input from '$lib/component/Input.svelte';
   import Dialog from '$lib/component/Dialog.svelte';
   import { updateUsername } from '$remotes/users.remote';
-  import { catchError } from '$lib/errors';
+  import { FormState } from '$lib/rune/FormState.svelte.js';
 
   const { data } = $props();
   const { user } = $derived(data);
   let open = $state(false);
-  let formError = $state<string | null>(null);
+
   let openDialog = () => {
-    formError = null;
     open = true;
   };
   let closeDialog = () => {
     open = false;
   };
+  const formState = new FormState(updateUsername, { afterSubmit: closeDialog });
 </script>
 
 <svelte:head>
@@ -35,26 +35,14 @@
         <h2 class="font-serif font-bold">修改用户名</h2>
         <p class="text-warn">用户名更改后，个人主页地址也变更，请谨慎修改。</p>
       </div>
-      <form
-        class="gap-y-m flex flex-col"
-        {...updateUsername.enhance(async ({ form, submit }) => {
-          formError = null;
-          try {
-            await submit();
-            closeDialog();
-            form.reset();
-          } catch (e) {
-            formError = catchError(e).message;
-          }
-        })}
-      >
+      <form class="gap-y-m flex flex-col" {...formState.props}>
         <Input
           type="text"
           name="username"
           label="用户名"
           value={user.username}
           issues={updateUsername.fields.username.issues()}
-          error={formError || undefined}
+          error={formState.error}
           required
         />
         <div class="gap-x-m flex flex-row">

@@ -3,9 +3,9 @@
   import Input from '$lib/component/Input.svelte';
   import { createOrUpdateExternalArticle } from '$remotes/articles.remote';
   import type { LoggedInUser } from '$lib/domain/entities/user';
-  import { catchError } from '$lib/errors';
   import type { ArticleContent } from '$lib/domain/entities/article';
   import { untrack } from 'svelte';
+  import { FormState } from '$lib/rune/FormState.svelte';
 
   type Props = {
     articleId?: string;
@@ -22,7 +22,7 @@
     fields.title.set(article.title);
   }
 
-  let formError = $state<string | null>(null);
+  const formState = new FormState(createOrUpdateExternalArticle);
   let hostname = $derived.by(() => {
     try {
       const url = fields.url.value();
@@ -36,18 +36,7 @@
   });
 </script>
 
-<form
-  {...createOrUpdateExternalArticle.enhance(async ({ form, submit }) => {
-    try {
-      await submit();
-      form.reset();
-    } catch (e) {
-      const err = catchError(e);
-      formError = err.message;
-    }
-  })}
-  class="gap-y-m flex flex-col"
->
+<form {...formState.props} class="gap-y-m flex flex-col">
   <input type="hidden" name="articleId" value={articleId} />
   <input type="hidden" name="replyToId" value={replyToId} />
   <Input {...fields.url.as('url')} label="文章链接" issues={fields.url.issues()} required />
@@ -58,8 +47,8 @@
       <p class="font-mono break-all">exodus-site-verification={user.verifyCode}</p>
     </div>
   {/if}
-  {#if formError}
-    <p class="text-error">{formError}</p>
+  {#if formState.error}
+    <p class="text-error">{formState.error}</p>
   {/if}
   <Button variant="primary" type="submit">发布</Button>
 </form>

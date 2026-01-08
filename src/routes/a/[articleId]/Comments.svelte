@@ -11,6 +11,7 @@
   import { addComment, editComment } from '$remotes/comments.remote';
   import type { RemoteFormIssue } from '@sveltejs/kit';
   import type { User } from '$lib/domain/entities/user';
+  import { FormState } from '$lib/rune/FormState.svelte';
 
   type CommentsProps = {
     articleId: string;
@@ -50,6 +51,9 @@
     document.getElementById('comment-input')?.focus();
   };
 
+  const addForm = new FormState(addComment);
+  const editForm = new FormState(editComment);
+
   // TODO: simplify the logic of two forms
 </script>
 
@@ -57,7 +61,7 @@
   <h2 class="pt-1 font-serif font-bold">评论</h2>
   {#if user}
     {#if formAction === 'new'}
-      <form {...addComment} class="gap-y-xs flex flex-col">
+      <form {...addForm.props} class="gap-y-xs flex flex-col">
         {#if replied}
           <div class="bg-overlay p-1">
             <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
@@ -74,6 +78,9 @@
           error={getIssuesMessage(addComment.fields.content.issues())}
           bind:value={content}
         />
+        {#if addForm.error}
+          <p class="text-error">{addForm.error}</p>
+        {/if}
         <div class="flex flex-row gap-x-2">
           {#if content.length > 0}
             <Button
@@ -89,14 +96,7 @@
         </div>
       </form>
     {:else if formAction === 'edit'}
-      <form
-        {...editComment.enhance(async ({ form, submit }) => {
-          await submit();
-          form.reset();
-          formAction = 'new';
-        })}
-        class="gap-y-xs flex flex-col"
-      >
+      <form {...editForm.props} class="gap-y-xs flex flex-col">
         {#if replied}
           <div class="bg-overlay p-1">
             <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
@@ -112,6 +112,9 @@
           error={getIssuesMessage(editComment.fields.content.issues())}
           bind:value={content}
         />
+        {#if editForm.error}
+          <p class="text-error">{editForm.error}</p>
+        {/if}
         <div class="flex flex-row gap-x-2">
           {#if content.length > 0}
             <Button

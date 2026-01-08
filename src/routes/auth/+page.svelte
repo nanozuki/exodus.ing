@@ -2,14 +2,14 @@
   import { page } from '$app/state';
   import Button from '$lib/component/Button.svelte';
   import Input from '$lib/component/Input.svelte';
-  import { catchError } from '$lib/errors';
+  import { FormState } from '$lib/rune/FormState.svelte';
   import { loginByGithub, registerByGithub } from '$remotes/auth.remote';
 
   let next = $derived(page.url.searchParams.get('next') || undefined);
   let username = $state('');
   let name = $state('');
-  let registerError = $state<string | null>(null);
-  let loginError = $state<string | null>(null);
+  const registerForm = new FormState(registerByGithub);
+  const loginForm = new FormState(loginByGithub);
 </script>
 
 <svelte:head>
@@ -18,19 +18,7 @@
 </svelte:head>
 
 <p class="font-serif text-2xl font-bold">注册</p>
-<form
-  {...registerByGithub.enhance(async ({ form, submit }) => {
-    registerError = null;
-    try {
-      await submit();
-      form.reset();
-    } catch (e) {
-      const err = catchError(e);
-      registerError = err.message;
-    }
-  })}
-  class="gap-y-m flex flex-col sm:max-w-[60%]"
->
+<form {...registerForm.props} class="gap-y-m flex flex-col sm:max-w-[60%]">
   <input type="hidden" name="next" value={next || ''} />
   <Input
     name="username"
@@ -49,7 +37,7 @@
     bind:value={name}
   />
   <div class="gap-y-2xs flex flex-col">
-    {#if registerError}<p class="text-error">{registerError}</p>{/if}
+    {#if registerForm.error}<p class="text-error">{registerForm.error}</p>{/if}
     <Button variant="primary" pending={registerByGithub.pending} id="register" type="submit">使用 GitHub 注册</Button>
   </div>
 </form>
@@ -57,20 +45,8 @@
 <div class="border-border border-t"></div>
 
 <p class="font-serif text-2xl font-bold">登录</p>
-<form
-  {...loginByGithub.enhance(async ({ form, submit }) => {
-    loginError = null;
-    try {
-      await submit();
-      form.reset();
-    } catch (e) {
-      const err = catchError(e);
-      loginError = err.message;
-    }
-  })}
-  class="gap-y-m flex flex-col sm:max-w-[60%]"
->
+<form {...loginForm.props} class="gap-y-m flex flex-col sm:max-w-[60%]">
   <input type="hidden" name="next" value={next || ''} />
-  {#if loginError}<p class="text-error">{loginError}</p>{/if}
+  {#if loginForm.error}<p class="text-error">{loginForm.error}</p>{/if}
   <Button variant="primary" pending={loginByGithub.pending} id="login" type="submit">使用 GitHub 登录</Button>
 </form>
