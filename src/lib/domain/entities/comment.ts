@@ -29,7 +29,7 @@ export interface CommentInput {
   articleId: string;
   userId: string;
   content: string;
-  replyTo?: string;
+  replyToId?: string;
 }
 
 export interface CommentPatch {

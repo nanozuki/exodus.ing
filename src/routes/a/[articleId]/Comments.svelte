@@ -8,8 +8,7 @@
   import UserBadge from '$lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
   import type { CommentView } from '$lib/domain/entities/comment';
-  import { addComment, editComment } from '$remotes/comments.remote';
-  import type { RemoteFormIssue } from '@sveltejs/kit';
+  import { postComment } from '$remotes/comments.remote';
   import type { User } from '$lib/domain/entities/user';
   import { FormState } from '$lib/rune/FormState.svelte';
 
@@ -18,118 +17,80 @@
     comments: CommentView[];
     user: User | null;
   };
+
   let { articleId, comments, user }: CommentsProps = $props();
   let authNext = $derived(encodeURIComponent(`/a/${articleId}#comment-section`));
 
-  let formAction = $state<'new' | 'edit'>('new');
   let editCommentId = $state<string | undefined>(undefined);
-  let replyTo = $state<string | undefined>(undefined);
-  let replied = $derived.by(() => {
-    return replyTo ? comments.find((comment: CommentView) => comment.id === replyTo) : undefined;
-  });
+  let replyToId = $state<string | undefined>(undefined);
   let content = $state<string>('');
-
-  const getIssuesMessage = (issues: RemoteFormIssue[] | undefined) => {
-    if (issues === undefined || issues.length === 0) {
-      return undefined;
-    }
-    return issues.map((issue) => issue.message).join(', ');
-  };
-
-  const reply = (commentId: string) => {
-    formAction = 'new';
-    replyTo = commentId;
+  const reply = (to: string) => {
+    replyToId = to;
+    editCommentId = undefined;
+    content = '';
     document.getElementById('comment-input')?.scrollIntoView();
     document.getElementById('comment-input')?.focus();
   };
   const edit = (comment: CommentView) => {
-    formAction = 'edit';
     editCommentId = comment.id;
-    replyTo = comment.replyTo?.id;
+    replyToId = comment.replyTo?.id;
     content = comment.content;
     document.getElementById('comment-input')?.scrollIntoView();
     document.getElementById('comment-input')?.focus();
   };
+  const reset = () => {
+    editCommentId = undefined;
+    replyToId = undefined;
+    content = '';
+  };
 
-  const addForm = new FormState(addComment);
-  const editForm = new FormState(editComment);
-
-  // TODO: simplify the logic of two forms
+  const form = new FormState(postComment, { afterSubmit: reset });
+  let replied = $derived.by(() => {
+    return replyToId ? comments.find((comment: CommentView) => comment.id === replyToId) : undefined;
+  });
 </script>
 
 <div id="comment-section" class="border-accent gap-y-m flex flex-col border-t-4">
   <h2 class="pt-1 font-serif font-bold">评论</h2>
+
+  <!-- Comment Form -->
   {#if user}
-    {#if formAction === 'new'}
-      <form {...addForm.props} class="gap-y-xs flex flex-col">
-        {#if replied}
-          <div class="bg-overlay p-1">
-            <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
-            <p class="text-subtle">{replied.content}</p>
-          </div>
-        {/if}
-        <input type="hidden" name="articleId" value={articleId} />
-        <input type="hidden" name="replyTo" value={replyTo} />
-        <InputTextArea
-          id="comment-input"
-          placeholder={'发表评论'}
-          name="content"
-          label={'新评论'}
-          error={getIssuesMessage(addComment.fields.content.issues())}
-          bind:value={content}
-        />
-        {#if addForm.error}
-          <p class="text-error">{addForm.error}</p>
-        {/if}
-        <div class="flex flex-row gap-x-2">
-          {#if content.length > 0}
-            <Button
-              variant="normal"
-              type="button"
-              onclick={() => {
-                content = '';
-                replyTo = undefined;
-              }}>{'取消'}</Button
-            >
-          {/if}
-          <Button variant="primary" pending={addComment.pending} type="submit">{'发表评论'}</Button>
-        </div>
-      </form>
-    {:else if formAction === 'edit'}
-      <form {...editForm.props} class="gap-y-xs flex flex-col">
-        {#if replied}
-          <div class="bg-overlay p-1">
-            <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
-            <p class="text-subtle">{replied.content}</p>
-          </div>
-        {/if}
+    <form {...form.props} class="gap-y-xs flex flex-col">
+      {#if editCommentId}
         <input type="hidden" name="commentId" value={editCommentId} />
-        <InputTextArea
-          id="comment-input"
-          placeholder={'编辑评论'}
-          name="content"
-          label={'编辑评论'}
-          error={getIssuesMessage(editComment.fields.content.issues())}
-          bind:value={content}
-        />
-        {#if editForm.error}
-          <p class="text-error">{editForm.error}</p>
-        {/if}
-        <div class="flex flex-row gap-x-2">
-          {#if content.length > 0}
-            <Button
-              variant="normal"
-              type="button"
-              onclick={() => {
-                content = '';
-                replyTo = undefined;
-              }}>{'取消'}</Button
-            >
+      {:else}
+        <input type="hidden" name="articleId" value={articleId} />
+        <input type="hidden" name="replyToId" value={replyToId} />
+      {/if}
+      <InputTextArea
+        id="comment-input"
+        placeholder={editCommentId ? '编辑评论' : '发表评论'}
+        name="content"
+        label={editCommentId ? '编辑评论' : '发表评论'}
+        issues={postComment.fields.content.issues()}
+        bind:value={content}
+      >
+        {#snippet addtion()}
+          {#if replied}
+            <div class="bg-overlay p-1">
+              <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
+              <p class="text-subtle">{replied.content}</p>
+            </div>
           {/if}
-          <Button variant="primary" type="submit">{'更新评论'}</Button>
-        </div>
-      </form>
-    {/if}
+        {/snippet}
+      </InputTextArea>
+      {#if form.error}
+        <p class="text-error">{form.error}</p>
+      {/if}
+      <div class="flex flex-row gap-x-2">
+        {#if content.length > 0}
+          <Button variant="normal" type="button" onclick={reset}>{'取消'}</Button>
+        {/if}
+        <Button variant="primary" pending={postComment.pending} type="submit"
+          >{editCommentId ? '更新评论' : '发表评论'}</Button
+        >
+      </div>
+    </form>
   {:else}
     <div class="bg-overlay p-m flex flex-row items-center justify-between">
       <p>登录后方可评论</p>
@@ -137,6 +98,7 @@
     </div>
   {/if}
 
+  <!-- Comments List -->
   {#if comments.length > 0}
     <h6 class="pt-1 font-bold">
       评论 {comments.length}

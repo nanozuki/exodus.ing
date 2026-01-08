@@ -24,7 +24,7 @@
     {#if description}<small class="text-subtle">{description}</small>{/if}
     {#if error}<small class="text-error">{error}</small>{/if}
     {#each issues as issue}
-      <small class="text-error">{issue}</small>
+      <small class="text-error">{issue.message}</small>
     {/each}
   </div>
 </div>
