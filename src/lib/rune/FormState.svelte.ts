@@ -5,7 +5,7 @@ type FormStateOpts = {
   afterSubmit?: () => void;
 };
 
-// FormState manage the props and error of a remote form
+// FormState manages the props and error of a remote form
 export class FormState<Input extends RemoteFormInput, Output> {
   error: string | undefined;
   props: ReturnType<RemoteForm<Input, Output>['enhance']>;
@@ -22,6 +22,7 @@ export class FormState<Input extends RemoteFormInput, Output> {
           this.opts.afterSubmit();
         }
         form.reset();
+        this.error = undefined;
       } catch (e) {
         const err = catchError(e);
         this.error = err.message;

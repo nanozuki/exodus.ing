@@ -48,19 +48,23 @@ const postCommentSchema = z.object({
 export const postComment = form(postCommentSchema, async ({ articleId, content, commentId, replyToId }) => {
   const { locals } = getRequestEvent();
   const user = locals.requireLoggedInUser('post comment');
+  let articleIdResult: string;
+  let commentIdResult: string;
   if (commentId) {
     const comment = await repositories.comment.getById(commentId);
     if (comment.author.id !== user.id) {
       return throwError('BAD_REQUEST', '只能编辑自己的评论');
     }
     await repositories.comment.update(commentId, { content: content });
-    articleId = comment.articleId;
+    articleIdResult = comment.articleId;
+    commentIdResult = commentId;
   } else {
     if (!articleId) {
       return throwError('BAD_REQUEST', '缺少文章ID');
     }
-    commentId = await repositories.comment.create({ userId: user.id, articleId, content, replyToId });
+    articleIdResult = articleId;
+    commentIdResult = await repositories.comment.create({ userId: user.id, articleId, content, replyToId });
   }
-  listCommentsOfArticle(articleId).refresh();
-  redirect(303, `/a/${articleId}#comment-${commentId}`);
+  listCommentsOfArticle(articleIdResult).refresh();
+  redirect(303, `/a/${articleIdResult}#comment-${commentIdResult}`);
 });

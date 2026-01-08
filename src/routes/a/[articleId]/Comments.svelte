@@ -70,7 +70,7 @@
         issues={postComment.fields.content.issues()}
         bind:value={content}
       >
-        {#snippet addtion()}
+        {#snippet addition()}
           {#if replied}
             <div class="bg-overlay p-1">
               <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>

@@ -3,7 +3,7 @@
   import Input from '$lib/component/Input.svelte';
   import Dialog from '$lib/component/Dialog.svelte';
   import { updateUsername } from '$remotes/users.remote';
-  import { FormState } from '$lib/rune/FormState.svelte.js';
+  import { FormState } from '$lib/rune/FormState.svelte';
 
   const { data } = $props();
   const { user } = $derived(data);

@@ -8,10 +8,10 @@
     description?: string;
     error?: string;
     issues?: RemoteFormIssue[];
-    addtion?: Snippet;
+    addition?: Snippet;
   }
 
-  let { name, label, description, value = $bindable(), error, issues, addtion, ...rest }: Props = $props();
+  let { name, label, description, value = $bindable(), error, issues, addition, ...rest }: Props = $props();
 </script>
 
 <div class="gap-y-xs flex w-full flex-col">
@@ -21,7 +21,7 @@
   {#each issues as issue}
     <small class="text-error">{issue.message}</small>
   {/each}
-  {#if addtion}{@render addtion()}{/if}
+  {#if addition}{@render addition()}{/if}
   <textarea
     class="bg-surface border-accent-alt focus-visible:border-accent h-[5em] border-2 p-1 focus-visible:outline-hidden"
     bind:value
