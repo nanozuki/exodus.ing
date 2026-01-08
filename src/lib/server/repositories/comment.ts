@@ -102,8 +102,8 @@ export class PgCommentRepository {
     return await wrap('comment.create', async () => {
       const id = await this.generateId();
       let path = [id];
-      if (input.replyTo) {
-        const replyTo = await this.db.select().from(tComment).where(eq(tComment.id, input.replyTo));
+      if (input.replyToId) {
+        const replyTo = await this.db.select().from(tComment).where(eq(tComment.id, input.replyToId));
         if (replyTo.length === 0) {
           return throwError('NOT_FOUND', { resource: '回复的评论' });
         }

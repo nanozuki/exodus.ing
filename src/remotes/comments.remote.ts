@@ -37,36 +37,34 @@ export const listCommentsOfUser = query(
   },
 );
 
-const addCommentSchema = z.object({
-  articleId: z.string(),
+const postCommentSchema = z.object({
+  articleId: z.string().optional(),
   content: z.string().min(1, '评论内容不能为空'),
-  replyTo: z.string().optional(),
+  commentId: z.string().optional(),
+  replyToId: z.string().optional(),
 });
 
-export const addComment = form(addCommentSchema, async (data) => {
+// Post a comment, create or update based on presence of commentId
+export const postComment = form(postCommentSchema, async ({ articleId, content, commentId, replyToId }) => {
   const { locals } = getRequestEvent();
-  const user = locals.requireLoggedInUser('add comment');
-  const commentId = await repositories.comment.create({
-    userId: user.id,
-    ...data,
-  });
-  listCommentsOfArticle(data.articleId).refresh();
-  redirect(303, `/a/${data.articleId}#comment-${commentId}`);
-});
-
-const editCommentSchema = z.object({
-  commentId: z.string(),
-  content: z.string().min(1, '评论内容不能为空'),
-});
-
-export const editComment = form(editCommentSchema, async ({ commentId, content }) => {
-  const { locals } = getRequestEvent();
-  const user = locals.requireLoggedInUser('edit comment');
-  const comment = await repositories.comment.getById(commentId);
-  if (comment.author.id !== user.id) {
-    return throwError('BAD_REQUEST', '只能编辑自己的评论');
+  const user = locals.requireLoggedInUser('post comment');
+  let articleIdResult: string;
+  let commentIdResult: string;
+  if (commentId) {
+    const comment = await repositories.comment.getById(commentId);
+    if (comment.author.id !== user.id) {
+      return throwError('BAD_REQUEST', '只能编辑自己的评论');
+    }
+    await repositories.comment.update(commentId, { content: content });
+    articleIdResult = comment.articleId;
+    commentIdResult = commentId;
+  } else {
+    if (!articleId) {
+      return throwError('BAD_REQUEST', '缺少文章ID');
+    }
+    articleIdResult = articleId;
+    commentIdResult = await repositories.comment.create({ userId: user.id, articleId, content, replyToId });
   }
-  await repositories.comment.update(commentId, { content: content });
-  listCommentsOfArticle(comment.articleId).refresh();
-  redirect(303, `/a/${comment.articleId}#comment-${commentId}`);
+  listCommentsOfArticle(articleIdResult).refresh();
+  redirect(303, `/a/${articleIdResult}#comment-${commentIdResult}`);
 });

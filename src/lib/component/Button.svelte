@@ -32,6 +32,11 @@
   });
 </script>
 
-<button {...rest} class={twMerge(colorClass, 'w-full border-2 px-4 py-1 font-semibold ' + classProp)} {disabled}>
+<button
+  {...rest}
+  class={twMerge(colorClass, 'w-full border-2 px-4 py-1 font-semibold ' + classProp)}
+  {disabled}
+  aria-busy={pending > 0}
+>
   {@render children()}
 </button>
