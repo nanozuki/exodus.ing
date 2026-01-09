@@ -1,6 +1,5 @@
 {
   "name": "exodus.ing",
-  "version": "1.250713",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -25,28 +24,28 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@flydotio/dockerfile": "^0.7.10",
-    "@iconify-json/material-symbols-light": "^1.2.50",
+    "@iconify-json/material-symbols-light": "^1.2.51",
     "@iconify-json/mdi": "^1.2.3",
     "@melt-ui/pp": "^0.3.2",
     "@melt-ui/svelte": "^0.86.6",
     "@playwright/test": "^1.57.0",
     "@sveltejs/adapter-node": "^5.4.0",
-    "@sveltejs/kit": "^2.49.2",
-    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@sveltejs/kit": "^2.49.4",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@tailwindcss/vite": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/svelte": "^5.3.0",
+    "@testing-library/svelte": "^5.3.1",
     "@types/eslint": "^9.6.1",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.0.6",
     "@types/pg": "^8.16.0",
-    "@vitest/browser-playwright": "^4.0.15",
+    "@vitest/browser-playwright": "^4.0.16",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-svelte": "^3.13.1",
-    "globals": "^16.5.0",
-    "jsdom": "^27.3.0",
+    "eslint-plugin-svelte": "^3.14.0",
+    "globals": "^17.0.0",
+    "jsdom": "^27.4.0",
     "playwright": "^1.57.0",
     "prettier": "^3.7.4",
     "prettier-plugin-svelte": "^3.4.1",
@@ -56,13 +55,13 @@
     "tailwindcss": "^4.1.18",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.1",
+    "typescript-eslint": "^8.52.0",
     "unplugin-icons": "^22.5.0",
     "vfile": "^6.0.3",
-    "vite": "^7.3.0",
-    "vitest": "^4.0.15",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.16",
     "vitest-browser-svelte": "^2.0.1",
-    "zod": "^4.2.1"
+    "zod": "^4.3.5"
   },
   "type": "module",
   "dependencies": {
@@ -84,7 +83,7 @@
     "unified": "^11.0.5",
     "vfile-matter": "^5.0.1"
   },
-  "packageManager": "pnpm@10.26.2",
+  "packageManager": "pnpm@10.28.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"

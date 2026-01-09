@@ -1,4 +1,4 @@
-import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
+import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial, jsonb } from 'drizzle-orm/pg-core';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ArticleContentType } from '$lib/domain/entities/article';
 
@@ -25,6 +25,47 @@ export const tSession = pgTable(
     expiresAt: timestamp('expires_at').notNull(),
   },
   (table) => [index('session_user_id_idx').on(table.userId), index('expires_at_idx').on(table.expiresAt)],
+);
+
+export const tUserAuth = pgTable(
+  'user_auth',
+  {
+    id: text('id').notNull().primaryKey(),
+    userId: text('user_id').notNull(),
+    provider: text('provider').notNull(),
+    providerUserId: text('provider_user_id').notNull(),
+    providerUsername: text('provider_username'),
+    providerEmail: text('provider_email'),
+    createdAt: timestamps.createdAt,
+  },
+  (table) => [
+    uniqueIndex('user_auth_provider_user_id_idx').on(table.provider, table.providerUserId),
+    index('user_auth_user_id_idx').on(table.userId),
+  ],
+);
+
+export const tPendingAuth = pgTable(
+  'pending_auth',
+  {
+    id: text('id').notNull().primaryKey(),
+    authType: text('auth_type').notNull(),
+    state: text('state'),
+    provider: text('provider'),
+    providerUserId: text('provider_user_id'),
+    providerUsername: text('provider_username'),
+    providerEmail: text('provider_email'),
+    challenge: text('challenge'),
+    payload: jsonb('payload'),
+    next: text('next'),
+    signUpUsername: text('sign_up_username'),
+    signUpName: text('sign_up_name'),
+    createdAt: timestamps.createdAt,
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (table) => [
+    uniqueIndex('pending_auth_state_idx').on(table.state),
+    index('pending_auth_expires_at_idx').on(table.expiresAt),
+  ],
 );
 
 export const tInviteCode = pgTable(
@@ -106,7 +147,9 @@ export const schema = {
   tBookmark,
   tComment,
   tInviteCode,
+  tPendingAuth,
   tSession,
+  tUserAuth,
   tUser,
 };
 
@@ -114,7 +157,9 @@ export type ArticleModel = typeof tArticle.$inferSelect;
 export type BookmarkModel = typeof tBookmark.$inferSelect;
 export type CommentModel = typeof tComment.$inferSelect;
 export type InviteCodeModel = typeof tInviteCode.$inferSelect;
+export type PendingAuthModel = typeof tPendingAuth.$inferSelect;
 export type SessionModel = typeof tSession.$inferSelect;
+export type UserAuthModel = typeof tUserAuth.$inferSelect;
 export type UserModel = typeof tUser.$inferSelect;
 export type UserRoleModel = typeof tUserRole.$inferSelect;
 
