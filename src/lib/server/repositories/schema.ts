@@ -54,7 +54,6 @@ export const tPendingAuth = pgTable(
     providerUserId: text('provider_user_id'),
     providerUsername: text('provider_username'),
     providerEmail: text('provider_email'),
-    challenge: text('challenge'),
     payload: jsonb('payload'),
     next: text('next'),
     signUpUsername: text('sign_up_username'),
