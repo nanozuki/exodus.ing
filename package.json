@@ -19,7 +19,9 @@
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio",
-    "db:export": "drizzle-kit export > src/lib/server/repositories/database.sql"
+    "db:export": "drizzle-kit export > src/lib/server/repositories/database.sql",
+    "db:create-dev": "pnpm dlx tsx src/scripts/create_dev_db.ts",
+    "db:create-template": "pnpm dlx tsx src/scripts/create_template_db.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

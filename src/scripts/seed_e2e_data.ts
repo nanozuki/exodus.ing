@@ -1,5 +1,3 @@
-import { getConfig } from '$lib/server/config';
-import { getDatabase } from '$lib/server/repositories';
 import {
   tArticle,
   tBookmark,
@@ -15,6 +13,10 @@ import { encodeIdPath, type IdPath } from '$lib/domain/values/id_path';
 import { Role } from '$lib/domain/entities/role';
 import type { ArticleContentType } from '$lib/domain/entities/article';
 import { sql } from 'drizzle-orm/sql';
+import { pathToFileURL } from 'node:url';
+import { schema } from '$lib/server/repositories/schema';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { buildDatabaseUrl, DB_NAME } from '$lib/server/repositories';
 
 type ArticleSeedInput = {
   id: string;
@@ -153,9 +155,8 @@ const markdownShowcaseZh = [
   '| 乙 | 2 |',
 ].join('\n');
 
-async function seedE2EData(): Promise<void> {
-  const config = getConfig();
-  const db = await getDatabase(config);
+export async function seedE2EData(databaseUrl: string): Promise<void> {
+  const db = drizzle(databaseUrl, { schema, logger: true });
 
   const users = {
     reader3: {
@@ -627,4 +628,7 @@ async function seedE2EData(): Promise<void> {
   console.log(`[SEED] inserted ${inviteCodes.length} invite codes`);
 }
 
-await seedE2EData();
+const entrypoint = process.argv[1];
+if (entrypoint && import.meta.url === pathToFileURL(entrypoint).href) {
+  await seedE2EData(buildDatabaseUrl(DB_NAME.app));
+}

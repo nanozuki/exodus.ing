@@ -26,7 +26,7 @@
 
 ## Implementation Steps
 
-### Build testing dataset
+### Build testing dataset (COMPLETED)
 
 All data models defined in `src/lib/server/repositories/schema.ts`
 
@@ -194,3 +194,7 @@ Create scripts to:
 2. I can run all E2E tests locally; each spec has a separate database and is easy to create/drop.
 3. All E2E tests run in CI and pass.
 4. Dependencies update weekly; auto-merge if all tests are green.
+
+## Future Improvements
+
+1. Automated generate src/lib/server/repositories/database.sql
