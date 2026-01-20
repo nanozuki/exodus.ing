@@ -1,5 +1,5 @@
 import type { User, UserInput, UserPatch } from '$lib/domain/entities/user';
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { tUser, type AppDatabase } from './schema';
 import { newNanoId, newVerifyCode, wrap } from './utils';
 
@@ -70,6 +70,22 @@ export class PgUserRepository {
         .from(tUser)
         .where(eq(tUser.githubId, githubId));
       return users.length !== 0 ? users[0] : null;
+    });
+  }
+
+  async listAll(): Promise<User[]> {
+    return await wrap('user.listAll', async () => {
+      return await this.db
+        .select({
+          id: tUser.id,
+          username: tUser.username,
+          githubId: tUser.githubId,
+          name: tUser.name,
+          aboutMe: tUser.aboutMe,
+          verifyCode: tUser.verifyCode,
+        })
+        .from(tUser)
+        .orderBy(asc(tUser.id));
     });
   }
 

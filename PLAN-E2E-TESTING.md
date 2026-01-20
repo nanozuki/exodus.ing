@@ -116,12 +116,24 @@ All data models defined in `src/lib/server/repositories/schema.ts`
 
 - No initial data required for sessions/auth flows
 
-### Create a “build template DB” script
+### Create a “build template DB” script (COMPLETED)
 
 Create scripts to:
 
 - `create-template-db`: drop and recreate template DB, seed dataset
 - `create-dev-db`: drop and recreate dev DB, clone from template
+
+### Add login simulation for testing (COMPLETED)
+
+- Add a button after "使用 GitHub 登录", label "模拟登录", variant="normal"
+- Click button to open a new window `/auth/testing?next=...`
+- `/auth/testing/+page.server.ts` blocks production (`import.meta.env.PROD`)
+- `/auth/testing/+page.svelte` lists all users with raw role keys in button labels
+- Clicking a user button creates a session cookie like `handleGithubCallback`
+- If `next` exists, redirect to `next`, otherwise redirect to `/`
+- Close the window after login completes
+
+This function is only available in dev/test environment
 
 ### Setup testing
 
