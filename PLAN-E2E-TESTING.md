@@ -33,6 +33,8 @@ All data models defined in `src/lib/server/repositories/schema.ts`
 #### Testing dataset should cover these features:
 
 - Article list pagination
+  - Check the article listing order
+  - Check first article's content
   - Page size is `ARTICLE_PAGE_SIZE`
 - Markdown rendering with all features and styles
   - markdown styles defined in `src/lib/component/markdown.css`

@@ -1,8 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { seedE2EData } from './seed_e2e_data';
 import { buildDatabaseUrl, DB_NAME } from '$lib/server/repositories';
-import { withDatabase } from './lib/db';
+import { withDatabase, seedE2EData } from './lib/db';
 
 export async function recreateTemplateDatabase(): Promise<void> {
   await withDatabase(DB_NAME.admin, async (client) => {
