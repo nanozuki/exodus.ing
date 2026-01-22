@@ -23,6 +23,6 @@
     {/each}
   </div>
   {#if count > ARTICLE_PAGE_SIZE}
-    <Pager class="bg-base" {count} perPage={ARTICLE_PAGE_SIZE} page={pageNumber} {pageLink} />
+    <Pager {count} pageSize={ARTICLE_PAGE_SIZE} page={pageNumber} {pageLink} />
   {/if}
 </div>
