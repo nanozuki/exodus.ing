@@ -26,6 +26,8 @@ Define the dynamically filled portion as [start, end]
   type PageItem = number | 'ellipsis';
   const { count, pageSize, page, siblingCount = 1, pageLink }: Props = $props();
   const totalPages = $derived(Math.ceil(count / pageSize));
+  const hasPrev = $derived(page > 1);
+  const hasNext = $derived(page < totalPages);
   const pageItems = $derived.by(() => {
     let start: number;
     let end: number;
@@ -65,8 +67,10 @@ Define the dynamically filled portion as [start, end]
 <nav class="gap-xs flex flex-row items-center" aria-label="pagination">
   <ButtonLink
     class="h-8 w-8 p-0.5"
-    variant={page === 1 ? 'disabled' : 'normal'}
-    href={page === 1 ? undefined : pageLink(page - 1)}
+    variant={hasPrev ? 'normal' : 'disabled'}
+    href={hasPrev ? pageLink(page - 1) : undefined}
+    aria-disabled={!hasPrev}
+    aria-label="Previous page"
   >
     <MdiChevronLeft class="size-6" />
   </ButtonLink>
@@ -80,12 +84,20 @@ Define the dynamically filled portion as [start, end]
         class="flex h-8 w-fit min-w-8 items-center justify-center p-0.5 font-normal"
         variant={item === page ? 'accent' : 'normal'}
         href={pageLink(item)}
+        aria-current={item === page ? 'page' : undefined}
+        aria-label={item === page ? `Current page, page ${item}` : `Go to page ${item}`}
       >
         {item}
       </ButtonLink>
     {/if}
   {/each}
-  <ButtonLink class="h-8 w-8 p-0.5" variant={page === totalPages ? 'disabled' : 'normal'} href={pageLink(page + 1)}>
+  <ButtonLink
+    class="h-8 w-8 p-0.5"
+    variant={hasNext ? 'normal' : 'disabled'}
+    href={hasNext ? pageLink(page + 1) : undefined}
+    aria-disabled={!hasNext}
+    aria-label="Next page"
+  >
     <MdiChevronRight class="size-6" />
   </ButtonLink>
 </nav>

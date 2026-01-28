@@ -32,27 +32,27 @@ All data models defined in `src/lib/server/repositories/schema.ts`
 
 #### Testing dataset should cover these features:
 
-- Article list pagination
-  - Check the article listing order
-  - Check first article's content
-  - Page size is `ARTICLE_PAGE_SIZE`
-- Markdown rendering with all features and styles
-  - markdown styles defined in `src/lib/component/markdown.css`
-  - include a full-featured markdown sample written in Chinese
-- External article content rendering (`contentType = external`)
-- User roles, `ArticleAuthor`, and no-role users
-- Bookmarks: user bookmarked list and pagination
-- Comments on articles, user comments list, and pagination
-- Article replies
-  - one article has multiple reply articles
-  - replies can be multiple levels deep
-- Comment replies
-  - one comment has multiple reply comments
-  - replies can be multiple levels deep
-- User invitations
-  - Some users are invited by site admin
-  - Some users are invited to be author by another author
-  - Some users create invite codes that are unused
+- [x] Article list pagination
+  - [x] Check the article listing order, pagination
+  - [x] Check an markdown article's list item rendering
+  - [x] Check an external article's list item rendering
+- [ ] Markdown rendering with all features and styles
+  - [ ] markdown styles defined in `src/lib/component/markdown.css`
+  - [ ] include a full-featured markdown sample written in Chinese
+- [ ] External article content rendering (`contentType = external`)
+- [ ] User roles, `ArticleAuthor`, and no-role users
+- [ ] Bookmarks: user bookmarked list and pagination
+- [ ] Comments on articles, user comments list, and pagination
+- [ ] Article replies
+  - [ ] one article has multiple reply articles
+  - [ ] replies can be multiple levels deep
+- [ ] Comment replies
+  - [ ] one comment has multiple reply comments
+  - [ ] replies can be multiple levels deep
+- [ ] User invitations
+  - [ ] Some users are invited by site admin
+  - [ ] Some users are invited to be author by another author
+  - [ ] Some users create invite codes that are unused
 
 #### Testing Dataset Design:
 
