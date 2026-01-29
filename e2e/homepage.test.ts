@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { ArticleSeed, getAuthor, testDataset } from '../src/lib/testing/data';
+import { articleSamples, ArticleSeed, getAuthor, testDataset } from '../src/lib/testing/data';
 
 async function checkAricleItem(page: Page, article: ArticleSeed) {
   const author = getAuthor(article);
@@ -13,7 +13,7 @@ async function checkAricleItem(page: Page, article: ArticleSeed) {
   await expect(articleItem.locator('span')).toContainText('2026-01-01');
 
   const metaNumbers: string[] = [article.replyCount, article.commentCount, article.bookmarkCount]
-    .filter((n) => n > 0)
+    .filter((n) => n && n > 0)
     .map(String);
   const mataItems = articleItem.locator('div.gap-x-2xs > div');
   await expect(mataItems).toHaveCount(metaNumbers.length + 1);
@@ -22,21 +22,20 @@ async function checkAricleItem(page: Page, article: ArticleSeed) {
   }
 }
 
-test('test', async ({ page }) => {
+test('homepage', async ({ page }) => {
   await page.goto('/');
 
   const { articles } = testDataset;
   const articleItems = page.locator('article');
 
-  const markdownSample = articles[20];
   await expect(articleItems).toHaveCount(20);
 
-  await checkAricleItem(page, markdownSample);
+  const { interactiveSample, externalSample } = articleSamples;
+  await checkAricleItem(page, interactiveSample);
 
-  await page.locator('nav').getByRole('button', { name: '2' }).click();
+  await page.locator('nav').getByRole('link', { name: '2' }).click();
   await expect(page).toHaveURL('/?page=2');
   await expect(articleItems).toHaveCount(articles.length - 20);
 
-  const externalSample = articles[0];
   await checkAricleItem(page, externalSample);
 });

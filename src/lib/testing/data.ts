@@ -764,3 +764,9 @@ export function getAuthor(article: ArticleSeed): UserSeed {
   }
   return author;
 }
+export const articleSamples = {
+  markdownSample: testDataset.articles[24],
+  commentSample: testDataset.articles[24],
+  interactiveSample: testDataset.articles[20],
+  externalSample: testDataset.articles[0],
+};

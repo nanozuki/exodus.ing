@@ -1,5 +1,5 @@
 import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial, jsonb } from 'drizzle-orm/pg-core';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ArticleContentType } from '$lib/domain/entities/article';
 
 const timestamps = {
