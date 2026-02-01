@@ -7,6 +7,10 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit(), Icons({ compiler: 'svelte', autoInstall: true })],
 
+  build: {
+    sourcemap: true,
+  },
+
   test: {
     expect: { requireAssertions: true },
 

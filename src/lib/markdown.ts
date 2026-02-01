@@ -65,13 +65,16 @@ export type CompiledArticle = {
 function remarkMeta() {
   return function (tree: Root, file: File) {
     matter(file);
-    for (const node of tree.children) {
+    // Find the first level 1 heading as the title, remove it and everything before it
+    for (let i = 0; i < tree.children.length; i++) {
+      const node = tree.children[i];
       if (node.type === 'heading' && node.depth === 1) {
         const textContent = node.children
           .filter((child) => child.type === 'text')
           .map((child) => child.value)
           .join('');
         file.data.title = textContent;
+        tree.children = tree.children.slice(i + 1);
         return;
       }
     }

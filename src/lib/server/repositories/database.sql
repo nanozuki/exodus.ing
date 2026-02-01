@@ -6,7 +6,10 @@ CREATE TABLE "article" (
 	"title" text NOT NULL,
 	"content" text NOT NULL,
 	"content_type" text NOT NULL,
-	"path" text NOT NULL
+	"path" text NOT NULL,
+	"reply_count" integer DEFAULT 0 NOT NULL,
+	"bookmark_count" integer DEFAULT 0 NOT NULL,
+	"comment_count" integer DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE "bookmark" (
@@ -34,6 +37,22 @@ CREATE TABLE "invite_code" (
 	CONSTRAINT "invite_code_code_unique" UNIQUE("code")
 );
 
+CREATE TABLE "pending_auth" (
+	"id" text PRIMARY KEY NOT NULL,
+	"auth_type" text NOT NULL,
+	"state" text,
+	"provider" text,
+	"provider_user_id" text,
+	"provider_username" text,
+	"provider_email" text,
+	"payload" jsonb,
+	"next" text,
+	"sign_up_username" text,
+	"sign_up_name" text,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"expires_at" timestamp NOT NULL
+);
+
 CREATE TABLE "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
@@ -54,6 +73,16 @@ CREATE TABLE "user" (
 	CONSTRAINT "user_name_unique" UNIQUE("name")
 );
 
+CREATE TABLE "user_auth" (
+	"id" text PRIMARY KEY NOT NULL,
+	"user_id" text NOT NULL,
+	"provider" text NOT NULL,
+	"provider_user_id" text NOT NULL,
+	"provider_username" text,
+	"provider_email" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+
 CREATE TABLE "user_role" (
 	"user_id" text NOT NULL,
 	"role_key" text NOT NULL,
@@ -71,6 +100,10 @@ CREATE INDEX "comment_article_id_idx" ON "comment" USING btree ("article_id");
 CREATE INDEX "comment_user_id_idx" ON "comment" USING btree ("user_id");
 CREATE INDEX "comment_path_idx" ON "comment" USING btree ("path");
 CREATE INDEX "invite_code_inviter_id_idx" ON "invite_code" USING btree ("inviter_id");
+CREATE UNIQUE INDEX "pending_auth_state_idx" ON "pending_auth" USING btree ("state");
+CREATE INDEX "pending_auth_expires_at_idx" ON "pending_auth" USING btree ("expires_at");
 CREATE INDEX "session_user_id_idx" ON "session" USING btree ("user_id");
 CREATE INDEX "expires_at_idx" ON "session" USING btree ("expires_at");
+CREATE UNIQUE INDEX "user_auth_provider_user_id_idx" ON "user_auth" USING btree ("provider","provider_user_id");
+CREATE INDEX "user_auth_user_id_idx" ON "user_auth" USING btree ("user_id");
 CREATE INDEX "user_role_inviter_id_idx" ON "user_role" USING btree ("inviter_id");

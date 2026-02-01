@@ -57,6 +57,7 @@
   ></textarea>
 {:else}
   <div class="editor border-border overflow-y-scroll border p-1">
+    {#if title}<h1 class="mb-2xl font-serif font-bold">{title}</h1>{/if}
     <Markdown {markup} />
   </div>
 {/if}

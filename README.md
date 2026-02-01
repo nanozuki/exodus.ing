@@ -24,7 +24,7 @@ Put the following environment variables in `.envrc` file:
 export EXODUSING_GITHUB_ID=<your-github-client-id>
 export EXODUSING_GITHUB_SECRET=<your-github-client-secret>
 export EXODUSING_HOST=http://localhost:5173
-export EXODUSING_DATABASE="postgres://postgres:mysecretpassword@localhost:5432/postgres?sslmode=disable"
+export EXODUSING_DATABASE="postgres://postgres:mysecretpassword@localhost:5432/exodus?sslmode=disable"
 ```
 
 And execute `direnv allow` to load the environment variables.

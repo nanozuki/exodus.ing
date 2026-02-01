@@ -31,6 +31,6 @@
     {/each}
   </ul>
   {#if count > COMMENT_PAGE_SIZE}
-    <Pager class="bg-base " {count} perPage={COMMENT_PAGE_SIZE} page={pageNumber} {pageLink} />
+    <Pager {count} pageSize={COMMENT_PAGE_SIZE} page={pageNumber} {pageLink} />
   {/if}
 </div>

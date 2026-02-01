@@ -13,7 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   ensureHost(event.request);
   const start = Date.now();
   await attachLocals(event);
-  const response = resolve(event);
+  const response = await resolve(event);
   const duration = Date.now() - start;
   console.log(`[REQUEST] ${event.url.pathname} executed in ${duration}ms`);
   return response;
