@@ -36,9 +36,9 @@ All data models defined in `src/lib/server/repositories/schema.ts`
   - [x] Check the article listing order, pagination
   - [x] Check an markdown article's list item rendering
   - [x] Check an external article's list item rendering
-- [ ] Markdown rendering with all features and styles
-  - [ ] markdown styles defined in `src/lib/component/markdown.css`
-  - [ ] include a full-featured markdown sample written in Chinese
+- [x] Markdown rendering with all features and styles
+  - [x] markdown styles defined in `src/lib/component/markdown.css`
+  - [x] include a full-featured markdown sample written in Chinese
 - [ ] External article content rendering (`contentType = external`)
 - [ ] User roles, `ArticleAuthor`, and no-role users
 - [ ] Bookmarks: user bookmarked list and pagination

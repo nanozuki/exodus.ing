@@ -22,11 +22,11 @@ test('markdown rendering', async ({ page }) => {
   await expect(markdown.locator('blockquote blockquote blockquote')).toContainText('Another nested blockquote level.');
 
   await expect(markdown.locator('img[alt="Sample image"]')).toBeVisible();
+  await expect(markdown.locator('p code')).toContainText('inline code');
   await expect(markdown.locator('pre code')).toContainText('const greeting = "Hello, Exodus";');
-  await expect(markdown.locator('code')).toContainText('inline code');
 
-  await expect(markdown.locator('ul > li')).toContainText('Unordered item one');
-  await expect(markdown.locator('ol > li')).toContainText('Ordered item one');
+  await expect(markdown.locator('ul > li').first()).toContainText('Unordered item one');
+  await expect(markdown.locator('ol > li').first()).toContainText('Ordered item one');
 
   await expect(markdown.locator('table')).toBeVisible();
   await expect(markdown.locator('th').first()).toHaveText('Name');

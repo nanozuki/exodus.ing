@@ -39,18 +39,17 @@
 </svelte:head>
 
 {#if article.contentType === 'markdown'}
-  <Markdown markup={article.markup} title={article.title}>
-    {#snippet header()}
-      <Title {article}>
-        <div class="text-accent-alt flex w-fit gap-x-2 leading-relaxed">
-          <ReplyBadge count={replies.length} />
-          <CommentBadge count={comments.length} />
-          <BookmarkBadge key="top" {articleId} status={bookmarkStatus} />
-          <EditBadge {user} {article} />
-        </div>
-      </Title>
-    {/snippet}
-  </Markdown>
+  <article>
+    <Title {article}>
+      <div class="text-accent-alt flex w-fit gap-x-2 leading-relaxed">
+        <ReplyBadge count={replies.length} />
+        <CommentBadge count={comments.length} />
+        <BookmarkBadge key="top" {articleId} status={bookmarkStatus} />
+        <EditBadge {user} {article} />
+      </div>
+    </Title>
+    <Markdown markup={article.markup}></Markdown>
+  </article>
 {:else}
   <article>
     <Title {article}></Title>

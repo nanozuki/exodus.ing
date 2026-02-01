@@ -6,7 +6,7 @@ import z from 'zod';
 export const getArticleBookmarkStatus = query(z.string(), async (articleId) => {
   const { locals } = getRequestEvent();
   const user = locals.loggedInUser;
-  return repositories.bookmark.getBookmarkStatus(articleId, user?.id);
+  return await repositories.bookmark.getBookmarkStatus(articleId, user?.id);
 });
 
 export const operateArticleBookmark = form(
