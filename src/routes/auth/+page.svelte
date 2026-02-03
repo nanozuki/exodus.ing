@@ -4,6 +4,7 @@
   import ButtonLink from '$lib/component/ButtonLink.svelte';
   import Input from '$lib/component/Input.svelte';
   import { FormState } from '$lib/rune/FormState.svelte';
+  import { notProd } from '$lib/testing/utils';
   import { loginByGithub, registerByGithub } from '$remotes/auth.remote';
 
   let next = $derived(page.url.searchParams.get('next') || undefined);
@@ -50,7 +51,7 @@
   <input type="hidden" name="next" value={next || ''} />
   {#if loginForm.error}<p class="text-error">{loginForm.error}</p>{/if}
   <Button variant="primary" pending={loginByGithub.pending} id="login" type="submit">使用 GitHub 登录</Button>
-  {#if !import.meta.env.PROD}
+  {#if notProd()}
     <ButtonLink class="text-center" variant="normal" href={`/auth/testing?next=${next || ''}`}>模拟登录</ButtonLink>
   {/if}
 </form>

@@ -4,7 +4,7 @@ const host = 'http://localhost:4173';
 
 export default defineConfig({
   webServer: {
-    command: 'pnpm run build && pnpm run preview',
+    command: 'pnpm run preview',
     url: host,
     env: {
       ...process.env,

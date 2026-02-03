@@ -2,17 +2,12 @@ import { form, getRequestEvent, query } from '$app/server';
 import { setAuthCookie } from '$lib/domain/entities/session';
 import { throwError } from '$lib/errors';
 import { repositories } from '$lib/server/registry';
+import { ensureNotProd } from '$lib/testing/utils';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 
-function ensureNotProd(): void {
-  if (import.meta.env.MODE !== 'test' && import.meta.env.PROD) {
-    throwError('FORBIDDEN', { operation: '模拟登录' });
-  }
-}
-
 export const listTestingUsers = query(async () => {
-  ensureNotProd();
+  ensureNotProd('模拟登录');
   const users = await repositories.user.listAll();
   const rolesList = await Promise.all(users.map((user) => repositories.role.getUserRoles(user.id)));
   const usersWithRoles = users.map((user, index) => ({
@@ -30,7 +25,7 @@ const simulateTestingLoginSchema = z.object({
 });
 
 export const simulateTestingLogin = form(simulateTestingLoginSchema, async ({ userId, next }) => {
-  ensureNotProd();
+  ensureNotProd('模拟登录');
   const user = await repositories.user.findById(userId);
   if (!user) {
     throwError('NOT_FOUND', { resource: '用户' });
