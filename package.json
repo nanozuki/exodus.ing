@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite build --mode staging && EXODUSING_HOST=http://localhost:4173 vite preview",
+    "preview": "vite build --mode preview && EXODUSING_HOST=http://localhost:4173 vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write .",
@@ -20,9 +20,9 @@
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio",
-    "db:export": "drizzle-kit export > src/lib/server/repositories/database.sql",
-    "db:create-dev": "pnpm dlx tsx src/scripts/create_dev_db.ts",
-    "db:create-template": "pnpm dlx tsx src/scripts/create_template_db.ts"
+    "db:export": "drizzle-kit export > scripts/database.sql",
+    "db:create-dev": "pnpm dlx tsx scripts/create_dev_db.ts",
+    "db:create-template": "pnpm dlx tsx scripts/create_template_db.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

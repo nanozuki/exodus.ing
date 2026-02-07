@@ -148,8 +148,9 @@ export const schema = {
   tInviteCode,
   tPendingAuth,
   tSession,
-  tUserAuth,
   tUser,
+  tUserAuth,
+  tUserRole,
 };
 
 export type ArticleModel = typeof tArticle.$inferSelect;

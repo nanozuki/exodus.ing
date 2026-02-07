@@ -1,21 +1,22 @@
 import { createAdapterSet, type AdapterSet } from '$lib/server/adapters';
-import { createRepositorySet, getDatabase, type RepositorySet } from '$lib/server/repositories';
+import { createRepositorySet, connectDatabase, type RepositorySet } from '$lib/server/repositories';
 import type { RequestEvent } from '@sveltejs/kit';
 import { type Permission } from '$lib/domain/entities/role';
 import { throwError } from '$lib/errors';
 import { userHasPermission, type LoggedInUser } from '$lib/domain/entities/user';
-import { getConfig } from './config';
+import { getConfig, type Config } from '$lib/server/config';
 import { AUTH_COOKIE_NAME, setAuthCookie } from '$lib/domain/entities/session';
 
-export async function buildServices(): Promise<void> {
-  const config = getConfig();
-  const db = await getDatabase(config);
+export async function buildServices(overlay?: Partial<Config>) {
+  const config = getConfig(overlay);
+  const db = connectDatabase(config.EXODUSING_DATABASE);
   repositories = createRepositorySet(db);
   adapters = createAdapterSet(config);
 }
 
 export let repositories: RepositorySet;
 export let adapters: AdapterSet;
+export let currentDatabaseUrl: string | undefined;
 
 async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
   const sessionId = event.cookies.get(AUTH_COOKIE_NAME);

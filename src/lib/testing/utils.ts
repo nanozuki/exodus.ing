@@ -5,7 +5,7 @@ export function notProd(): boolean {
     mode: import.meta.env.MODE,
     prod: import.meta.env.PROD,
   });
-  return import.meta.env.MODE === 'staging' || !import.meta.env.PROD;
+  return import.meta.env.MODE === 'preview' || !import.meta.env.PROD;
 }
 
 export function ensureNotProd(operation: string): void {
@@ -13,7 +13,7 @@ export function ensureNotProd(operation: string): void {
     mode: import.meta.env.MODE,
     prod: import.meta.env.PROD,
   });
-  if (import.meta.env.MODE !== 'staging' && import.meta.env.PROD) {
+  if (import.meta.env.MODE !== 'preview' && import.meta.env.PROD) {
     throwError('FORBIDDEN', { operation });
   }
 }

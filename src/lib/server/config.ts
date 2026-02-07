@@ -9,7 +9,7 @@ export type Config = {
   EXODUSING_DATABASE: string;
 };
 
-export function getConfig(): Config {
+export function getConfig(overlay?: Partial<Config>): Config {
   const getEnv = (key: string): string => {
     const value = process.env[key];
     if (typeof value !== 'string') {
@@ -24,6 +24,7 @@ export function getConfig(): Config {
     // EXODUSING_GOOGLE_SECRET: getEnv('EXODUSING_GOOGLE_SECRET'),
     EXODUSING_HOST: getEnv('EXODUSING_HOST'),
     EXODUSING_DATABASE: getEnv('EXODUSING_DATABASE'),
+    ...overlay,
   };
   return config;
 }
