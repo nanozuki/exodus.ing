@@ -2,6 +2,12 @@
 
 An article site for friends.
 
+## Architecture and Development Conventions
+
+Read [Architecture and Development Conventions](docs/architecture.md) for code
+placement, layer responsibilities, use-case contracts, remote-function
+co-location, and repository rules.
+
 ## Develop environment
 
 Construct the dev environment with the following steps.
