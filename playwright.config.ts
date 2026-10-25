@@ -8,9 +8,9 @@ export default defineConfig({
     url: host,
     env: {
       ...process.env,
-      EXODUSING_HOST: host,
+      APP_URL: host,
     },
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
   testDir: 'e2e',
   use: {

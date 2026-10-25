@@ -16,7 +16,7 @@
 - Test setup clones DB and drops it after each spec suite
 - Use TypeScript first; fish shell second
 - Scripts live in `src/scripts/`
-- Database connection uses `EXODUSING_DATABASE` from `src/lib/server/config.ts`
+- Database connection uses the split `PG*` settings from `src/lib/server/config.ts`
 
 ## Principles
 

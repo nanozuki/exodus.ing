@@ -8,25 +8,17 @@ import {
   tUser,
   tUserAuth,
   tUserRole,
-} from '$lib/server/repositories/schema';
+} from '../../lib/server/repositories/schema';
 import { sql } from 'drizzle-orm/sql';
-import { schema } from '$lib/server/repositories/schema';
+import { schema } from '../../lib/server/repositories/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { testDataset } from '$lib/testing/data';
-import { buildDatabaseUrl } from '$lib/server/repositories';
-import { Client } from 'pg';
+import { testDataset } from '../../lib/testing/data';
+import type { Client } from 'pg';
 
-export async function withDatabase<T>(dbName: string, fn: (client: Client) => Promise<T>): Promise<T> {
-  const client = new Client({ connectionString: buildDatabaseUrl(dbName) });
-  await client.connect();
-  const result = await fn(client);
-  await client.end();
-  return result;
-}
-
-export async function seedE2EData(databaseUrl: string): Promise<void> {
+/** Fill a freshly initialized database with the shared development and E2E dataset. */
+export async function seedE2EData(client: Client): Promise<void> {
   const { users, articles, comments, bookmarks, userRoles, inviteCodes } = testDataset;
-  const db = drizzle(databaseUrl, { schema, logger: true });
+  const db = drizzle(client, { schema });
   await db.transaction(async (tx) => {
     await tx.delete(tBookmark);
     await tx.delete(tComment);

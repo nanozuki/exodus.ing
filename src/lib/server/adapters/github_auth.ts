@@ -20,11 +20,7 @@ export class GitHubOAuth {
   private github: GitHub;
 
   constructor(config: Config) {
-    this.github = new GitHub(
-      config.EXODUSING_GITHUB_ID,
-      config.EXODUSING_GITHUB_SECRET,
-      `${config.EXODUSING_HOST}/auth/github/callback`,
-    );
+    this.github = new GitHub(config.githubClientId, config.githubClientSecret, `${config.appUrl}/auth/github/callback`);
   }
 
   createAuthUrl(cookies: Cookies, input: OAuthCookieDataInput): URL {

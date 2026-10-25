@@ -8,7 +8,7 @@ Read [Architecture and Development Conventions](docs/architecture.md) for code
 placement, layer responsibilities, use-case contracts, remote-function
 co-location, and repository rules.
 
-## Develop environment
+## Development environment
 
 Construct the dev environment with the following steps.
 
@@ -27,28 +27,68 @@ pnpm install
 Put the following environment variables in `.envrc` file:
 
 ```
-export EXODUSING_GITHUB_ID=<your-github-client-id>
-export EXODUSING_GITHUB_SECRET=<your-github-client-secret>
-export EXODUSING_HOST=http://localhost:5173
-export EXODUSING_DATABASE="postgres://postgres:mysecretpassword@localhost:5432/exodus?sslmode=disable"
+export GITHUB_CLIENT_ID=<your-github-client-id>
+export GITHUB_CLIENT_SECRET=<your-github-client-secret>
 ```
 
 And execute `direnv allow` to load the environment variables.
 
 ### Setup database
 
-Make sure you have docker installed, and use these commands to set up the database:
+PostgreSQL runs natively through Nix and Process Compose. No Docker setup is needed.
 
 ```shell
-just db-create
-pnpm run db:push
+pnpm dev                  # Ensure exodus-dev exists, then start Vite
+pnpm test:e2e             # Recreate exodus-e2e, then run Playwright
+pnpm pg:status            # Show local process status as JSON
+pnpm pg:stop              # Stop PostgreSQL, preserving data
+pnpm pg:reset dev         # Delete only exodus-dev
+pnpm pg:reset template    # Delete the template and every exodus-* database
+pnpm test:script          # Run database tooling regression tests
 ```
 
-## Run dev server
+The service runs in the background at `127.0.0.1:62545`, uses the current system
+username without a password, and stores data in `.direnv/pg`. The control socket
+is `.direnv/pg.sock`. Run `nix run .#pg -- attach` to open its TUI.
+
+The Nix devShell exports `APP_URL=http://localhost:5173` and the local
+PostgreSQL connection variables below. Application code has no local defaults;
+set these variables explicitly when running outside the devShell:
 
 ```shell
-pnpm run dev
+export PGHOST=127.0.0.1
+export PGPORT=62545
+export PGUSER="$(id -un)"
+export PGPASSWORD=""
+export PGDATABASE=exodus-dev
 ```
+
+`PGDATABASE` is the actual database name. Development and E2E commands
+set only this variable to `exodus-dev` and `exodus-e2e`, respectively. The internal
+CLI accepts suffixes: `tsx src/scripts/pg.ts start dev` ensures `exodus-dev` exists. Drizzle's
+`db:*` commands use the same configuration; for example,
+`PGDATABASE=exodus-dev pnpm db:studio`.
+
+Databases clone `exodus-template`, which contains the exported SQL schema and
+shared seed data. The template and its clones record a fingerprint of the schema,
+seed values, and initialization code. Outdated or incomplete databases produce an
+error; reset the named database and rerun the original command. After changing
+the schema or seed, reset `template` to delete the template and all `exodus-`
+databases, including development and test databases. The cluster stays running
+and unrelated databases are preserved. Reset
+only deletes state; the next ensure call recreates it.
+
+Tests can import `ensureDatabase(name)` from `src/scripts/lib/database.ts` to
+prepare an isolated database and call `resetDatabase(name)` for cleanup. Connect
+with `new Client({ database: "exodus-" + name })`; node-postgres reads the
+remaining connection settings directly from `PG*`. Use unique suffixes per concurrent worker or test case. `template` is reserved for resetting all project databases; the old `all` argument is unsupported;
+other names allow 1–56 lowercase ASCII letters, digits, underscores and hyphens,
+starting with a letter or digit. Resetting one database disconnects its clients.
+
+Failures propagate without automatic repair. Inspect `.direnv/pg-process-compose.log`
+and the process logs `.direnv/pg.log` and `.direnv/pg-init.log` for startup failures. Management operations serialize through
+`.direnv/pg-control.lock`; after a forcibly terminated script, check that no
+management command is running before manually removing a stale lock directory.
 
 ## Build
 

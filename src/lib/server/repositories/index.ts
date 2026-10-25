@@ -6,12 +6,12 @@ import { PgCommentRepository } from './comment';
 import { PgInviteCodeRepository } from './invite_code';
 import { PgUserRepository } from './user';
 import { PgRoleRepository } from './role';
-import { getConfig, type Config } from '$lib/server/config';
+import { type Config } from '$lib/server/config';
 import { PgSessionRepository } from './session';
 
 export async function getDatabase(config: Config): Promise<AppDatabase> {
   const start = Date.now();
-  const db = drizzle(config.EXODUSING_DATABASE, { schema, logger: true });
+  const db = drizzle({ connection: config.database, schema, logger: true });
   const duration = Date.now() - start;
   console.log(`[CONNECT-DATABASE] connected database in ${duration}ms`);
   return db;
@@ -27,18 +27,6 @@ export function createRepositorySet(db: AppDatabase) {
     user: new PgUserRepository(db),
     session: new PgSessionRepository(db),
   };
-}
-
-export const DB_NAME = {
-  template: 'exodus-template',
-  admin: 'postgres',
-  app: 'exodus',
-} as const;
-
-export function buildDatabaseUrl(dbName: string): string {
-  const url = new URL(getConfig().EXODUSING_DATABASE);
-  url.pathname = `/${dbName}`;
-  return url.toString();
 }
 
 export type RepositorySet = ReturnType<typeof createRepositorySet>;

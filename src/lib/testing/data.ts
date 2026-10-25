@@ -1,5 +1,5 @@
-import { Role } from '$lib/domain/entities/role';
-import { encodeIdPath, type IdPath } from '$lib/domain/values/id_path';
+import { Role } from '../domain/entities/role';
+import { encodeIdPath, type IdPath } from '../domain/values/id_path';
 import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '$lib/server/repositories/schema';
 
 export type UserSeed = typeof tUser.$inferInsert;

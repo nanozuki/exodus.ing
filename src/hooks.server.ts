@@ -3,7 +3,7 @@ import { buildServices, attachLocals, adapters, repositories } from '$lib/server
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 
 function ensureHost(request: Request) {
-  const host = getConfig().EXODUSING_HOST;
+  const host = getConfig().appUrl;
   if (!request.url.startsWith(host)) {
     throw redirect(303, host);
   }
