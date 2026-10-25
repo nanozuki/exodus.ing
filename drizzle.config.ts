@@ -6,6 +6,7 @@ export default defineConfig({
   verbose: true,
   dialect: 'postgresql',
   dbCredentials: {
+    ssl: process.env.PGSSLMODE === 'disable' ? false : undefined,
     host: process.env.PGHOST!,
     port: Number(process.env.PGPORT),
     user: process.env.PGUSER!,

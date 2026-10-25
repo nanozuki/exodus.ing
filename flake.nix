@@ -46,6 +46,14 @@
               enable = true;
               port = 62545;
               dataDir = ".direnv/pg";
+              superuser = "exodus";
+              createDatabase = false;
+              initialScript.before = pkgs.writeText "init-postgres.sql" "ALTER ROLE exodus WITH PASSWORD 'exodus';";
+              settings.hba_file = toString (pkgs.writeText "pg_hba.conf" ''
+                local all all trust
+                host all all 127.0.0.1/32 scram-sha-256
+                host all all ::1/128 scram-sha-256
+              '');
             };
           };
 
@@ -54,7 +62,9 @@
             PGHOST = config.process-compose.pg.services.postgres.pg.listen_addresses;
             PGPORT = toString config.process-compose.pg.services.postgres.pg.port;
             PGDATABASE = "exodus-dev";
-            PGPASSWORD = "";
+            PGUSER = "exodus";
+            PGPASSWORD = "exodus";
+            PGSSLMODE = "disable";
             packages = with pkgs; [
               flyctl
               git
@@ -67,7 +77,6 @@
             ];
             shellHook = ''
               export ESLINT_USE_FLAT_CONFIG="true"
-              export PGUSER="$(id -un)"
             '';
           };
         };

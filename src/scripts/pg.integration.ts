@@ -56,9 +56,15 @@ test('ensure clones seeded data, preserves changes, rejects outdated versions, a
     await ensureDatabase(other);
     await resetDatabase(other);
     assert.equal((await client.query("SELECT to_regclass('ensure_sentinel') AS name")).rows[0].name, 'ensure_sentinel');
-    await client.query("UPDATE _exodus_database_version SET fingerprint = 'outdated'");
+    assert.equal((await client.query("SELECT to_regclass('_exodus_database_version') AS name")).rows[0].name, null);
+    const versionFile = new URL('../../.direnv/pg_database_version', import.meta.url);
+    const versions = JSON.parse(await readFile(versionFile, 'utf8'));
+    assert.equal(versions[`exodus-${name}`], versions['exodus-template']);
+    versions[`exodus-${name}`] = 'outdated';
+    await writeFile(versionFile, JSON.stringify(versions));
     await assert.rejects(ensureDatabase(name), /pg:reset/);
-    await client.query('DROP TABLE _exodus_database_version');
+    delete versions[`exodus-${name}`];
+    await writeFile(versionFile, JSON.stringify(versions));
     await assert.rejects(ensureDatabase(name), /pg:reset/);
   } finally {
     await client.end();
@@ -108,6 +114,7 @@ test('template reset deletes all exodus databases, preserves unrelated databases
     await cp(new URL('./lib/', import.meta.url), join(root, 'src/scripts/lib'), { recursive: true });
     await cp(new URL('../lib/', import.meta.url), join(root, 'src/lib'), { recursive: true });
     await cp(new URL('../../flake.lock', import.meta.url), join(root, 'flake.lock'));
+    await cp(new URL('../../drizzle.config.ts', import.meta.url), join(root, 'drizzle.config.ts'));
     const flake = await readFile(new URL('../../flake.nix', import.meta.url), 'utf8');
     await writeFile(join(root, 'flake.nix'), flake.replace(/port = \d+;/, `port = ${port};`));
     await writeFile(join(root, 'package.json'), '{"type":"module"}');
@@ -127,13 +134,58 @@ test('template reset deletes all exodus databases, preserves unrelated databases
     await ensureDatabase('case-1');
     client = new Client({ database: 'postgres' });
     await client.connect();
+    assert.equal((await client.query('SELECT current_user')).rows[0].current_user, 'exodus');
+    const push = await exec('pnpm', ['exec', 'drizzle-kit', 'push', '--force'], {
+      cwd: root,
+      env: { ...process.env, PGDATABASE: 'exodus-dev' },
+      timeout: 120_000,
+    });
+    assert.match(push.stdout, /No changes detected/);
+    await ensureDatabase('dev');
+    const wrongPassword = new Client({ database: 'postgres', password: 'wrong-password' });
+    try {
+      await assert.rejects(wrongPassword.connect(), { code: '28P01' });
+    } finally {
+      await wrongPassword.end();
+    }
+    const versionFile = join(root, '.direnv/pg_database_version');
+    const databaseScript = join(root, 'src/scripts/lib/database.ts');
+    await writeFile(databaseScript, (await readFile(databaseScript, 'utf8')) + '\n// unrelated comment\n');
+    await ensureDatabase('dev');
+    for (const file of ['src/lib/server/repositories/database.sql', 'src/lib/testing/data.ts']) {
+      const path = join(root, file);
+      const original = await readFile(path);
+      try {
+        await writeFile(
+          path,
+          Buffer.concat([
+            original,
+            Buffer.from(file.endsWith('.sql') ? '\n-- checksum change\n' : '\n// checksum change\n'),
+          ]),
+        );
+        await assert.rejects(ensureDatabase('dev'), /pg:reset template/);
+      } finally {
+        await writeFile(path, original);
+      }
+    }
     await client.query('CREATE DATABASE "keep-me"');
     await client.query('CREATE DATABASE "exodus-quote""name"');
     await resetDatabase('template');
+    await assert.rejects(readFile(versionFile), { code: 'ENOENT' });
     const databases = (await client.query('SELECT datname FROM pg_database')).rows.map((row) => row.datname);
     assert.ok(databases.includes('keep-me'));
     assert.ok(databases.includes('postgres'));
     assert.equal(databases.filter((name: string) => name.startsWith('exodus-')).length, 0);
+    const sqlPath = join(root, 'src/lib/server/repositories/database.sql');
+    const originalSql = await readFile(sqlPath);
+    try {
+      await writeFile(sqlPath, Buffer.concat([originalSql, Buffer.from('\nINVALID SQL;\n')]));
+      await assert.rejects(ensureDatabase('broken'));
+    } finally {
+      await writeFile(sqlPath, originalSql);
+    }
+    await assert.rejects(ensureDatabase('broken'), /no completed initialization record/);
+    await resetDatabase('template');
     await ensureDatabase('dev');
     assert.equal((await client.query("SELECT 1 FROM pg_database WHERE datname = 'exodus-dev'")).rowCount, 1);
     await assert.rejects(resetDatabase('all'));

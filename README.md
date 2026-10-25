@@ -47,8 +47,8 @@ pnpm pg:reset template    # Delete the template and every exodus-* database
 pnpm test:script          # Run database tooling regression tests
 ```
 
-The service runs in the background at `127.0.0.1:62545`, uses the current system
-username without a password, and stores data in `.direnv/pg`. The control socket
+The service runs in the background at `127.0.0.1:62545`, uses username
+`exodus` and password `exodus`, and stores data in `.direnv/pg`. The control socket
 is `.direnv/pg.sock`. Run `nix run .#pg -- attach` to open its TUI.
 
 The Nix devShell exports `APP_URL=http://localhost:5173` and the local
@@ -58,8 +58,9 @@ set these variables explicitly when running outside the devShell:
 ```shell
 export PGHOST=127.0.0.1
 export PGPORT=62545
-export PGUSER="$(id -un)"
-export PGPASSWORD=""
+export PGUSER=exodus
+export PGPASSWORD=exodus
+export PGSSLMODE=disable
 export PGDATABASE=exodus-dev
 ```
 
@@ -70,13 +71,15 @@ CLI accepts suffixes: `tsx src/scripts/pg.ts start dev` ensures `exodus-dev` exi
 `PGDATABASE=exodus-dev pnpm db:studio`.
 
 Databases clone `exodus-template`, which contains the exported SQL schema and
-shared seed data. The template and its clones record a fingerprint of the schema,
-seed values, and initialization code. Outdated or incomplete databases produce an
+shared seed data. The file `.direnv/pg_database_version` records a fingerprint for the template
+and each clone, computed only from `database.sql` and `src/lib/testing/data.ts`.
+No version metadata is inserted into the databases. Outdated or incomplete databases produce an
 error; reset the named database and rerun the original command. After changing
 the schema or seed, reset `template` to delete the template and all `exodus-`
 databases, including development and test databases. The cluster stays running
-and unrelated databases are preserved. Reset
-only deletes state; the next ensure call recreates it.
+and unrelated databases are preserved. Resetting a single database removes its
+version entry; resetting the template removes the version file. Reset only deletes
+state; the next ensure call recreates it.
 
 Tests can import `ensureDatabase(name)` from `src/scripts/lib/database.ts` to
 prepare an isolated database and call `resetDatabase(name)` for cleanup. Connect
@@ -89,6 +92,13 @@ Failures propagate without automatic repair. Inspect `.direnv/pg-process-compose
 and the process logs `.direnv/pg.log` and `.direnv/pg-init.log` for startup failures. Management operations serialize through
 `.direnv/pg-control.lock`; after a forcibly terminated script, check that no
 management command is running before manually removing a stale lock directory.
+
+When upgrading an existing cluster created with the system username, changing the
+flake does not recreate its roles or reset its password. Migrate the existing
+role to `exodus` and set its password, or stop PostgreSQL and explicitly recreate
+`.direnv/pg` after preserving any data you need. An old template without a file
+version record requires `pnpm pg:reset template`, which deletes all `exodus-`
+databases.
 
 ## Build
 
