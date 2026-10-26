@@ -73,7 +73,7 @@ run concurrently with independent databases and application processes.
 
 ## External domain verification
 
-Use the owner-provided domain `crows.mod` for the external-article journey. Its
+Use the owner-provided domain `crows.moe` for the external-article journey. Its
 configured TXT record is:
 
 ```text

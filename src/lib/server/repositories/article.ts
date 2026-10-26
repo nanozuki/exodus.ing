@@ -16,7 +16,7 @@ import {
 } from '$lib/domain/values/id_path';
 import type { Paginated, Pagination } from '$lib/domain/values/page';
 import { throwError } from '$lib/errors';
-import { and, desc, eq, inArray, like, ne, sql } from 'drizzle-orm/sql';
+import { desc, eq, inArray, sql } from 'drizzle-orm/sql';
 import { tArticle, tBookmark, tUser, type AppDatabase } from './schema';
 import { newNanoId, wrap } from './utils';
 
@@ -186,11 +186,11 @@ export class PgArticleRepository {
     });
   }
 
+  /** Return the article's direct responses, including when the parent is itself a response. */
   async listReplies(articleId: string): Promise<ArticleCard[]> {
     return await wrap('article.listReplies', async () => {
-      const articles = await this.cardQuery().where(
-        and(ne(tArticle.id, articleId), like(tArticle.path, sql`${articleId} || '%'`)),
-      );
+      // Paths end in "parent/child/", so the third field from the end is the direct parent at any depth.
+      const articles = await this.cardQuery().where(eq(sql<string>`split_part(${tArticle.path}, '/', -3)`, articleId));
       return articles as ArticleCard[];
     });
   }
