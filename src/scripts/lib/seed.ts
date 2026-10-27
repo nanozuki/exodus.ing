@@ -8,11 +8,11 @@ import {
   tUser,
   tUserAuth,
   tUserRole,
-} from '$lib/server/db/schema';
+} from '../../lib/server/db/schema';
 import { sql } from 'drizzle-orm/sql';
-import { schema } from '$lib/server/db/schema';
+import { schema } from '../../lib/server/db/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { testDataset } from '$lib/testing/data';
+import { testDataset } from '../../lib/testing/data';
 import type { Client } from 'pg';
 
 // Replaces all application data in the supplied database; the caller retains ownership of the client.

@@ -65,6 +65,13 @@ recognize. Update or remove a comment when its explanation stops applying.
 
 Keep imports together, separated from the implementation by one blank line.
 
+Code executed outside SvelteKit/Vite uses relative paths for all local imports.
+This includes standalone scripts, tooling configuration, their integration tests,
+and shared modules loaded by those entry points. Apply this rule throughout their
+local dependency graph, including type-only imports, so the entry points work
+without generated `.svelte-kit` configuration or an alias setup step. This rule
+takes precedence over the application import convention below.
+
 For a target under `src/lib`, use a relative path when its file is in the same
 directory as the importing file; otherwise use `$lib/...`. A child directory is
 a different directory. For other local targets, use relative paths. Keep package

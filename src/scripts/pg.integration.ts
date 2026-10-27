@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Client } from 'pg';
 import { ensureDatabase, resetDatabase } from './lib/database';
-import { getConfig } from '$lib/server/config';
+import { getConfig } from '../lib/server/config';
 
 test('database names reject reserved names, SQL fragments, and PostgreSQL truncation', async () => {
   for (const name of ['', 'all', 'template', 'dev"; DROP DATABASE postgres;', 'a'.repeat(57)]) {

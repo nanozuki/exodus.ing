@@ -1,6 +1,6 @@
 import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial, jsonb } from 'drizzle-orm/pg-core';
 import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import type { ArticleContentType } from '$lib/models/article';
+import type { ArticleContentType } from '../../models/article';
 
 const timestamps = {
   createdAt: timestamp('created_at').defaultNow().notNull(),

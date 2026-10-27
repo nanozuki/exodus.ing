@@ -1,8 +1,8 @@
 // Importing this script immediately rewrites article interaction counts.
 
-import { getDatabase } from '$lib/server/db';
-import { getConfig } from '$lib/server/config';
-import { tArticle, tBookmark, tComment } from '$lib/server/db/schema';
+import { getDatabase } from '../lib/server/db';
+import { getConfig } from '../lib/server/config';
+import { tArticle, tBookmark, tComment } from '../lib/server/db/schema';
 import { eq, sql } from 'drizzle-orm/sql';
 
 // Each article commits independently; a failure leaves earlier updates applied.
