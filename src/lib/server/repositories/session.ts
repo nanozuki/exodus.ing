@@ -1,61 +1,32 @@
-import type { Session } from '$lib/domain/entities/session';
-import { eq, lt } from 'drizzle-orm/sql';
-import { tSession, type AppDatabase } from './schema';
-import { newSessionCode } from './utils';
+import type { Session } from '$lib/models/session';
+import { eq } from 'drizzle-orm';
+import { tSession, type AppDatabase } from '$lib/server/db/schema';
+import { wrap } from './utils';
 
-const EXPIRES_DURATION = 1000 * 60 * 60 * 24 * 30; // 30 days in milliseconds
-const REFRESH_THRESHOLD = 1000 * 60 * 60 * 24 * 20;
+export async function findSessionById(db: AppDatabase, sessionId: string): Promise<Session | null> {
+  return wrap(
+    'findSessionById',
+    async () => (await db.select().from(tSession).where(eq(tSession.id, sessionId)))[0] ?? null,
+  );
+}
 
-export type ValidateSessionResult = {
-  session: Session;
-  refresh: boolean;
-};
+export async function createSession(db: AppDatabase, session: Session): Promise<Session> {
+  return wrap('createSession', async () => (await db.insert(tSession).values(session).returning())[0]);
+}
 
-export class PgSessionRepository {
-  constructor(private db: AppDatabase) {}
+export interface UpdateSessionParams {
+  id: string;
+  expiresAt: Date;
+}
 
-  async create(userId: string): Promise<Session> {
-    const now = new Date();
-    const sessionId = newSessionCode();
-    const session: Session = {
-      id: sessionId,
-      userId,
-      expiresAt: new Date(now.getTime() + EXPIRES_DURATION),
-    };
-    await this.db.insert(tSession).values(session);
-    return session;
-  }
+export async function updateSession(db: AppDatabase, { id, expiresAt }: UpdateSessionParams): Promise<void> {
+  return wrap('updateSession', async () => {
+    await db.update(tSession).set({ expiresAt }).where(eq(tSession.id, id));
+  });
+}
 
-  async validateSession(sessionId: string): Promise<ValidateSessionResult | null> {
-    const now = new Date();
-    const sessions = await this.db.select().from(tSession).where(eq(tSession.id, sessionId));
-    if (sessions.length < 1) {
-      return null;
-    }
-    const session = sessions[0];
-    if (now.getTime() >= session.expiresAt.getTime()) {
-      await this.db.delete(tSession).where(eq(tSession.id, session.id));
-      return null;
-    }
-    const result = { session, refresh: false };
-    if (now.getTime() >= session.expiresAt.getTime() - REFRESH_THRESHOLD) {
-      session.expiresAt = new Date(now.getTime() + EXPIRES_DURATION);
-      await this.db.update(tSession).set({ expiresAt: session.expiresAt }).where(eq(tSession.id, session.id));
-      result.refresh = true;
-    }
-    return result;
-  }
-
-  async cleanAllExpired(): Promise<void> {
-    const now = new Date();
-    await this.db.delete(tSession).where(lt(tSession.expiresAt, now));
-  }
-
-  async invalidateSession(sessionId: string): Promise<void> {
-    await this.db.delete(tSession).where(eq(tSession.id, sessionId));
-  }
-
-  async invalidateAllSessions(userId: string): Promise<void> {
-    await this.db.delete(tSession).where(eq(tSession.userId, userId));
-  }
+export async function deleteSession(db: AppDatabase, sessionId: string): Promise<void> {
+  return wrap('deleteSession', async () => {
+    await db.delete(tSession).where(eq(tSession.id, sessionId));
+  });
 }

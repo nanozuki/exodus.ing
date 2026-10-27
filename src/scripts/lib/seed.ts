@@ -8,14 +8,14 @@ import {
   tUser,
   tUserAuth,
   tUserRole,
-} from '../../lib/server/repositories/schema';
+} from '$lib/server/db/schema';
 import { sql } from 'drizzle-orm/sql';
-import { schema } from '../../lib/server/repositories/schema';
+import { schema } from '$lib/server/db/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { testDataset } from '../../lib/testing/data';
+import { testDataset } from '$lib/testing/data';
 import type { Client } from 'pg';
 
-/** Fill a freshly initialized database with the shared development and E2E dataset. */
+// Replaces all application data in the supplied database; the caller retains ownership of the client.
 export async function seedE2EData(client: Client): Promise<void> {
   const { users, articles, comments, bookmarks, userRoles, inviteCodes } = testDataset;
   const db = drizzle(client, { schema });

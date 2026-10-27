@@ -2,11 +2,13 @@
   import { page } from '$app/state';
   import Button from '$lib/component/Button.svelte';
   import { FormState } from '$lib/rune/FormState.svelte';
-  import { listTestingUsers, simulateTestingLogin } from '$remotes/testing.remote';
+  import { loadPageData, simulateTestingLogin } from './page.remote';
 
   const nextParam = $derived(page.url.searchParams.get('next') || '/');
   const safeNext = $derived(nextParam.startsWith('/') ? nextParam : '/');
-  const { users } = $derived(await listTestingUsers());
+
+  const { users } = $derived(await loadPageData());
+
   const loginForm = new FormState(simulateTestingLogin);
 </script>
 

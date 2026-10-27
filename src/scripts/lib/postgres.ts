@@ -1,4 +1,5 @@
-/** Local PostgreSQL process lifecycle. All commands target this checkout's Nix service. */
+// Lifecycle commands target this checkout's cluster, independently of the caller's working directory.
+
 import { execFile } from 'node:child_process';
 import { mkdir, readFile, realpath, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -7,12 +8,12 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { Client } from 'pg';
 
 const exec = promisify(execFile);
-/** Checkout directory, independent of the caller's current directory. */
+
 const projectRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const stateDir = new URL('../../../.direnv/', import.meta.url);
 const lockDir = new URL('pg-control.lock/', stateDir);
 
-/** Serialize startup, database management, stop, and reset across local callers. Stale locks require manual removal. */
+// Not reentrant. Investigate and remove a stale lock manually before retrying.
 export async function withControlLock<T>(fn: () => Promise<T>): Promise<T> {
   await mkdir(stateDir, { recursive: true });
   const deadline = Date.now() + 120_000;
@@ -34,7 +35,6 @@ export async function withControlLock<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Run the pinned Process Compose wrapper with a bounded execution time. */
 async function processCompose(...args: string[]): Promise<string> {
   const { stdout } = await exec('nix', ['run', '.#pg', '--', ...args], {
     cwd: projectRoot,
@@ -44,9 +44,8 @@ async function processCompose(...args: string[]): Promise<string> {
   return stdout;
 }
 
-/** Read the local manager state, returning null only when its socket is absent or refused. */
+// Only an absent or refused manager socket returns null; other failures reject.
 export async function postgresStatus(): Promise<{ name: string; is_running: boolean; exit_code: number }[] | null> {
-  // Only an absent/refused socket means the manager is down. Nix and configuration errors propagate.
   try {
     return JSON.parse(await processCompose('process', 'list', '-o', 'json'));
   } catch (error) {
@@ -56,7 +55,7 @@ export async function postgresStatus(): Promise<{ name: string; is_running: bool
   }
 }
 
-/** Start the service if necessary and wait for SQL readiness. Call while holding the control lock. */
+// Call while holding the control lock; SQL readiness must belong to this checkout’s cluster.
 export async function ensurePostgres(): Promise<void> {
   const status = await postgresStatus();
   if (status === null) {
@@ -89,7 +88,7 @@ export async function ensurePostgres(): Promise<void> {
   }
 }
 
-/** Stop the manager and wait for this cluster's postmaster to exit before returning. Call under the control lock. */
+// Call under the control lock; return only after the local postmaster has exited.
 export async function stopPostgres(): Promise<void> {
   if (await postgresStatus()) await processCompose('down');
   const deadline = Date.now() + 30_000;

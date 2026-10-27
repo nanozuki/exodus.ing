@@ -9,7 +9,7 @@ import { unified } from 'unified';
 import { matter } from 'vfile-matter';
 import type { Root } from 'mdast';
 import type { VFile, Value } from 'vfile';
-import { throwError } from '$lib/errors';
+import { throwError } from './errors';
 
 interface FileData {
   matter?: Record<string, unknown>;
@@ -65,7 +65,7 @@ export type CompiledArticle = {
 function remarkMeta() {
   return function (tree: Root, file: File) {
     matter(file);
-    // Find the first level 1 heading as the title, remove it and everything before it
+    // Article pages render the title separately; the body starts after the first H1.
     for (let i = 0; i < tree.children.length; i++) {
       const node = tree.children[i];
       if (node.type === 'heading' && node.depth === 1) {

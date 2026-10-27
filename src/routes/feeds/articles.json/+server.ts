@@ -1,6 +1,7 @@
-import type { ArticleFeedsItem } from '$lib/domain/entities/article';
+import { listArticleFeeds } from '$lib/server/repositories/article';
+import type { ArticleFeedsItem } from '$lib/models/article';
 import { compileMarkdown } from '$lib/markdown';
-import { repositories } from '$lib/server/registry';
+import { db } from '$lib/server/registry';
 import { formatRFC3339 } from 'date-fns';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -28,9 +29,11 @@ interface FeedItem {
   title: string;
   content_html: string;
   summary?: string;
-  date_published: string; // RFC 3339 format
-  date_modified?: string; // RFC 3339 format
-  author?: Author; // for compatibility
+  // Both dates use RFC 3339.
+  date_published: string;
+  date_modified?: string;
+  // Keep the singular author field for older feed readers.
+  author?: Author;
   authors?: Author[];
 }
 
@@ -50,13 +53,13 @@ async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
     date_published: formatRFC3339(article.createdAt),
     date_modified: formatRFC3339(article.updatedAt),
     author: {
-      name: article.authorName,
-      url: `https://exodus.ing/u/@${article.authorUsername}`,
+      name: article.author.name,
+      url: `https://exodus.ing/u/@${article.author.username}`,
     },
     authors: [
       {
-        name: article.authorName,
-        url: `https://exodus.ing/u/@${article.authorUsername}`,
+        name: article.author.name,
+        url: `https://exodus.ing/u/@${article.author.username}`,
       },
     ],
   };
@@ -65,7 +68,7 @@ async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
 const FEED_ARTICLE_LIMIT = 30;
 
 export const GET: RequestHandler = async () => {
-  const articles = await repositories.article.listFeeds(FEED_ARTICLE_LIMIT);
+  const { items: articles } = await listArticleFeeds(db, { pageNumber: 1, pageSize: FEED_ARTICLE_LIMIT });
   const items: FeedItem[] = await Promise.all(articles.map((article) => convertToFeedItem(article)));
   const result = { ...feed, items };
   return Response.json(result, {

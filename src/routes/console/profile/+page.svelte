@@ -1,12 +1,13 @@
 <script lang="ts">
+  import { page } from '$app/state';
+  import { loadLayoutData } from '../layout.remote';
   import Button from '$lib/component/Button.svelte';
   import Input from '$lib/component/Input.svelte';
   import InputTextArea from '$lib/component/InputTextArea.svelte';
-  import { updateProfile } from '$remotes/users.remote';
+  import { updateProfile } from './page.remote';
   import { FormState } from '$lib/rune/FormState.svelte';
 
-  const { data } = $props();
-  const { user } = $derived(data);
+  const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
 
   const formState = new FormState(updateProfile);
 </script>

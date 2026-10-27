@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ArticleCard from '$lib/component/ArticleCard.svelte';
-  import Pager from '$lib/component/Pager.svelte';
-  import { type CommentListItem, COMMENT_PAGE_SIZE } from '$lib/domain/entities/comment';
-  import type { Paginated } from '$lib/domain/values/page';
+  import ArticleCard from './ArticleCard.svelte';
+  import Pager from './Pager.svelte';
+  import { type CommentListItem } from '$lib/models/comment';
+  import type { Paginated } from '$lib/models/page';
   import { format } from 'date-fns';
   import { twMerge } from 'tailwind-merge';
 
@@ -13,7 +13,7 @@
   }
 
   let { comments, pageLink, class: outerClass }: Props = $props();
-  let { pageNumber, count, items } = $derived(comments);
+  let { pageNumber, pageSize, count, items } = $derived(comments);
 </script>
 
 <div class={twMerge('gap-y-m flex flex-col', outerClass)}>
@@ -30,7 +30,7 @@
       </li>
     {/each}
   </ul>
-  {#if count > COMMENT_PAGE_SIZE}
-    <Pager {count} pageSize={COMMENT_PAGE_SIZE} page={pageNumber} {pageLink} />
+  {#if count > pageSize}
+    <Pager {count} {pageSize} page={pageNumber} {pageLink} />
   {/if}
 </div>

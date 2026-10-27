@@ -1,91 +1,84 @@
-import type {
-  InviteCode,
-  InviteCodeCard,
-  InviteCodeInput,
-  InviteQuotaAlgorithm,
-} from '$lib/domain/entities/invite_code';
-import { and, eq, isNull } from 'drizzle-orm/sql';
-import { tArticle, tInviteCode, tUserRole, type AppDatabase } from './schema';
-import { newCode, wrap } from './utils';
+import type { InviteCode, InviteCodeSummary, InviteStats } from '$lib/models/invite_code';
 import { throwError } from '$lib/errors';
+import { and, eq, isNull, sql } from 'drizzle-orm';
+import { tArticle, tInviteCode, tUserRole, type AppDatabase } from '$lib/server/db/schema';
+import { newCode, wrap } from './utils';
 
-export class PgInviteCodeRepository {
-  constructor(private db: AppDatabase) {}
+type QueryDatabase = Pick<AppDatabase, 'select'>;
 
-  async create(input: InviteCodeInput, algo: InviteQuotaAlgorithm): Promise<InviteCode> {
-    const { inviterId, roleKey } = input;
-    return await wrap('inviteCode.create', async () => {
-      return await this.db.transaction(
-        async (tx) => {
-          const articleCount = await tx.$count(tArticle, eq(tArticle.userId, inviterId));
-          const validCodeCount = await tx.$count(
-            tInviteCode,
-            and(eq(tInviteCode.inviterId, inviterId), isNull(tInviteCode.usedAt)),
-          );
-          const invitedCount = await tx.$count(tUserRole, eq(tUserRole.inviterId, inviterId));
-          const quota = algo({ articleCount, validCodeCount, invitedCount });
-          if (quota <= 0) {
-            return throwError('BAD_REQUEST', '邀请码配额已用完');
-          }
+async function statistics(db: QueryDatabase, userId: string): Promise<InviteStats> {
+  // Scalar subqueries share the statement's PostgreSQL snapshot.
+  const [result] = await db
+    .select({
+      articleCount: sql<number>`(select count(*)::integer from ${tArticle} where ${tArticle.userId} = ${userId})`,
+      validCodeCount: sql<number>`(select count(*)::integer from ${tInviteCode} where ${tInviteCode.inviterId} = ${userId} and ${tInviteCode.usedAt} is null)`,
+      invitedCount: sql<number>`(select count(*)::integer from ${tUserRole} where ${tUserRole.inviterId} = ${userId})`,
+    })
+    .from(sql`(select 1) as snapshot`);
+  return result;
+}
 
-          const code = newCode();
-          const inviteCode = {
-            code,
-            inviterId,
-            roleKey,
-            usedAt: null,
-          };
-          const ids = await tx.insert(tInviteCode).values(inviteCode).returning({ id: tInviteCode.id });
-          return { ...inviteCode, id: ids[0].id };
-        },
-        { isolationLevel: 'serializable' },
-      );
-    });
-  }
+export async function findInviteCodeByCode(db: AppDatabase, code: string): Promise<InviteCode | null> {
+  return wrap(
+    'findInviteCodeByCode',
+    async () => (await db.select().from(tInviteCode).where(eq(tInviteCode.code, code)))[0] ?? null,
+  );
+}
 
-  async findByCode(code: string): Promise<InviteCode | null> {
-    return await wrap('inviteCode.findByCode', async () => {
-      const inviteCodes = await this.db.select().from(tInviteCode).where(eq(tInviteCode.code, code));
-      return inviteCodes.length !== 0 ? inviteCodes[0] : null;
-    });
-  }
+export async function getUnusedInviteCodesOfUser(db: AppDatabase, userId: string): Promise<InviteCodeSummary[]> {
+  return wrap('getUnusedInviteCodesOfUser', () =>
+    db
+      .select({ code: tInviteCode.code, roleKey: tInviteCode.roleKey })
+      .from(tInviteCode)
+      .where(and(eq(tInviteCode.inviterId, userId), isNull(tInviteCode.usedAt))),
+  );
+}
 
-  async useCode(code: string): Promise<void> {
-    return await wrap('inviteCode.useCode', async () => {
-      const now = new Date();
-      await this.db
-        .update(tInviteCode)
-        .set({ usedAt: now })
-        .where(and(eq(tInviteCode.code, code), isNull(tInviteCode.usedAt)))
-        .execute();
-    });
-  }
+export async function getInviteStatsOfUser(db: AppDatabase, userId: string): Promise<InviteStats> {
+  return wrap('getInviteStatsOfUser', () => statistics(db, userId));
+}
 
-  async getUserUnusedCodes(userId: string): Promise<InviteCodeCard[]> {
-    return await wrap('inviteCode.getUserUnusedCodes', async () => {
-      const codes = await this.db
-        .select()
-        .from(tInviteCode)
-        .where(and(eq(tInviteCode.inviterId, userId), isNull(tInviteCode.usedAt)));
-      return codes.map(({ code, roleKey }) => ({ code, roleKey }));
-    });
-  }
+// Pass the statistics used to approve issuance; a stale snapshot rejects the write.
+export interface CreateInviteCodeParams {
+  inviterId: string;
+  roleKey: string;
+  expectedStats: InviteStats;
+}
 
-  async getUserInviteQuota(userId: string, algo: InviteQuotaAlgorithm): Promise<number> {
-    return await wrap('inviteCode.getUserInviteQuota', async () => {
-      const articleCount = await this.db.$count(tArticle, eq(tArticle.userId, userId));
-      const validCodeCount = await this.db.$count(
-        tInviteCode,
-        and(eq(tInviteCode.inviterId, userId), isNull(tInviteCode.usedAt)),
-      );
-      const invitedCount = await this.db.$count(tUserRole, eq(tUserRole.inviterId, userId));
-      return algo({ articleCount, validCodeCount, invitedCount });
-    });
-  }
+// Serialization failures propagate without retry; a new attempt requires fresh statistics.
+export async function createInviteCode(db: AppDatabase, params: CreateInviteCodeParams): Promise<InviteCode> {
+  return wrap('createInviteCode', () =>
+    db.transaction(
+      async (tx) => {
+        const current = await statistics(tx, params.inviterId);
+        if (
+          current.articleCount !== params.expectedStats.articleCount ||
+          current.validCodeCount !== params.expectedStats.validCodeCount ||
+          current.invitedCount !== params.expectedStats.invitedCount
+        )
+          return throwError('BAD_REQUEST', '邀请状态已变化，请重试');
+        return (
+          await tx
+            .insert(tInviteCode)
+            .values({ code: newCode(), inviterId: params.inviterId, roleKey: params.roleKey, usedAt: null })
+            .returning()
+        )[0];
+      },
+      { isolationLevel: 'serializable' },
+    ),
+  );
+}
 
-  async delete(userId: string, code: string): Promise<void> {
-    return await wrap('inviteCode.delete', async () => {
-      await this.db.delete(tInviteCode).where(and(eq(tInviteCode.inviterId, userId), eq(tInviteCode.code, code)));
-    });
-  }
+export interface DeleteInviteCodeParams {
+  inviterId: string;
+  code: string;
+}
+
+// Used codes are eligible for deletion too.
+export async function deleteInviteCode(db: AppDatabase, params: DeleteInviteCodeParams): Promise<void> {
+  return wrap('deleteInviteCode', async () => {
+    await db
+      .delete(tInviteCode)
+      .where(and(eq(tInviteCode.inviterId, params.inviterId), eq(tInviteCode.code, params.code)));
+  });
 }

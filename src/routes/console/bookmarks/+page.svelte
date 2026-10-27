@@ -1,10 +1,12 @@
 <script lang="ts">
   import ArticleList from '$lib/component/ArticleList.svelte';
   import { page } from '$app/state';
-  import { listBookmarkedArticles } from '$remotes/articles.remote';
+  import { loadPageData } from './page.remote';
 
   const currentPage = $derived(Math.max(1, parseInt(page.url.searchParams.get('page') || '1', 10) || 1));
-  const articles = $derived(await listBookmarkedArticles(currentPage));
+
+  const { articles } = $derived(await loadPageData({ page: currentPage }));
+
   const pageLink = (page: number) => `?page=${page}`;
 </script>
 

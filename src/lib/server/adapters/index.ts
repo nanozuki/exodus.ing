@@ -1,6 +1,6 @@
 import type { Config } from '$lib/server/config';
-import { GitHubOAuth } from '$lib/server/adapters/github_auth';
-import { resolveTxt } from '$lib/server/adapters/name_resolver';
+import { GitHubOAuth } from './github_auth';
+import { resolveTxt } from './name_resolver';
 
 export function createAdapterSet(config: Config) {
   return {

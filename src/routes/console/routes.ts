@@ -1,6 +1,8 @@
-import { Permission } from '$lib/domain/entities/role';
+import { userHasPermission, type LoggedInUser } from '$lib/models/user';
+import { Permission } from '$lib/models/role';
 
 export type ConsoleRoute = { route: string; title: string };
+
 export const consoleRoutes = {
   profile: { route: '/console/profile', title: '个人资料' },
   bookmarks: { route: '/console/bookmarks', title: '收藏' },
@@ -9,9 +11,9 @@ export const consoleRoutes = {
   beWriter: { route: '/console/be-writer', title: '成为作者' },
 };
 
-export async function getConsoleRoutes(locals: App.Locals): Promise<ConsoleRoute[]> {
+export function getConsoleRoutes(user: LoggedInUser): ConsoleRoute[] {
   const routes = [consoleRoutes.profile, consoleRoutes.bookmarks, consoleRoutes.account];
-  const isWriter = locals.hasPermission(Permission.CreateArticle);
+  const isWriter = userHasPermission(user, Permission.CreateArticle);
   if (!isWriter) {
     routes.push(consoleRoutes.beWriter);
   } else {

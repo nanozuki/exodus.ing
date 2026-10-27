@@ -4,26 +4,28 @@
   import { format, formatISO } from 'date-fns';
   import Replies from './Replies.svelte';
   import Comments from './Comments.svelte';
-  import { getArticleDetailById, listRepliesOfArticle } from '$remotes/articles.remote';
+  import { loadPageData } from './page.remote';
+  import { loadLayoutData } from '../../layout.remote';
   import ReplyBadge from './ReplyBadge.svelte';
   import CommentBadge from './CommentBadge.svelte';
-  import { listCommentsOfArticle } from '$remotes/comments.remote';
+  import { listCommentsOfArticle } from './Comments.remote';
   import BookmarkBadge from './BookmarkBadge.svelte';
   import EditBadge from './EditBadge.svelte';
-  import { getArticleBookmarkStatus } from '$remotes/bookmarks.remote';
+  import { getArticleBookmarkStatus } from './BookmarkBadge.remote';
   import Title from './Title.svelte';
 
-  let { data, params } = $props();
-  const user = $derived(data.user);
+  let { params } = $props();
+
+  const viewerQ = loadLayoutData();
+  const { user } = $derived(await viewerQ);
+
   const articleId = $derived(params.articleId);
 
-  // queries
-  const articleQ = $derived(getArticleDetailById(articleId));
-  const repliesQ = $derived(listRepliesOfArticle(articleId));
+  const pageQ = $derived(loadPageData({ articleId }));
   const commentsQ = $derived(listCommentsOfArticle(articleId));
   const bookmarkStatusQ = $derived(getArticleBookmarkStatus(articleId));
-  const article = $derived(await articleQ);
-  const replies = $derived(await repliesQ);
+
+  const { article, replies } = $derived(await pageQ);
   const comments = $derived(await commentsQ);
   const bookmarkStatus = $derived(await bookmarkStatusQ);
 </script>
@@ -32,8 +34,8 @@
   <title>{article.title} - EXODUS</title>
   <meta property="og:title" content={article.title} />
   <meta property="og:type" content="article" />
-  <meta property="og:description" content={`${article.authorUsername}, ${format(article.updatedAt, 'yyyy-MM-dd')}`} />
-  <meta property="article:author" content={article.authorUsername} />
+  <meta property="og:description" content={`${article.author.username}, ${format(article.updatedAt, 'yyyy-MM-dd')}`} />
+  <meta property="article:author" content={article.author.username} />
   <meta property="article:published_time" content={formatISO(article.createdAt)} />
   <meta property="article:modified_time" content={formatISO(article.updatedAt)} />
 </svelte:head>

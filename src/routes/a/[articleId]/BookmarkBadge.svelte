@@ -2,16 +2,18 @@
   import Action from '$lib/component/Action.svelte';
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
   import MdiBookmark from '~icons/mdi/bookmark';
-  import { operateArticleBookmark } from '$remotes/bookmarks.remote';
-  import type { BookmarkStatus } from '$lib/domain/entities/bookmark';
+  import { operateArticleBookmark } from './BookmarkBadge.remote';
+  import type { BookmarkState } from '$lib/models/bookmark';
 
   type BookmarkProps = {
     articleId: string;
     key: string;
-    status: BookmarkStatus;
+    status: BookmarkState;
   };
+
   const { articleId, key, status }: BookmarkProps = $props();
-  const { isBookmarked, bookmarkCount } = $derived(status);
+
+  const { bookmarked: isBookmarked, count: bookmarkCount } = $derived(status);
   const operateBookmark = $derived(operateArticleBookmark.for(key));
 </script>
 

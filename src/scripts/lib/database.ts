@@ -1,4 +1,3 @@
-/** Development/test database provisioning. Failures leave state intact for explicit developer reset. */
 import { createHash } from 'node:crypto';
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { Client } from 'pg';
@@ -9,7 +8,6 @@ const template = 'exodus-template';
 const versionFile = new URL('../../../.direnv/pg_database_version', import.meta.url);
 const temporaryVersionFile = new URL('../../../.direnv/pg_database_version.tmp', import.meta.url);
 
-/** Accept a suffix for an isolated database; template is reserved for management; the legacy all argument is unsupported. */
 function databaseName(name: string): string {
   if (!/^[a-z0-9][a-z0-9_-]{0,55}$/.test(name) || name === 'template' || name === 'all') {
     throw new Error(
@@ -81,12 +79,12 @@ function checkVersion(name: string, fingerprint: string, versions: Record<string
   }
 }
 
-/** Ensure the local server, seeded template and named clone exist; preserve existing data without changing connection environment variables. */
+// Existing databases are preserved. Provisioning failures leave partial state for explicit reset.
 export async function ensureDatabase(name: string): Promise<void> {
   const target = databaseName(name);
   return withControlLock(async () => {
     await ensurePostgres();
-    const schemaSql = await readFile(new URL('../../lib/server/repositories/database.sql', import.meta.url), 'utf8');
+    const schemaSql = await readFile(new URL('../../lib/server/db/database.sql', import.meta.url), 'utf8');
     const seedSource = await readFile(new URL('../../lib/testing/data.ts', import.meta.url));
     const fingerprint = createHash('sha256').update(schemaSql).update(seedSource).digest('hex');
     const versions = await readVersions();
@@ -116,7 +114,7 @@ export async function ensureDatabase(name: string): Promise<void> {
   });
 }
 
-/** Delete exodus-{name}; resetting template deletes every exodus- database while keeping the cluster running. */
+// Delete exodus-{name}; resetting template deletes every exodus- database while keeping the cluster running.
 export async function resetDatabase(name: string): Promise<void> {
   const target = name === 'template' ? template : databaseName(name);
   await withControlLock(async () => {

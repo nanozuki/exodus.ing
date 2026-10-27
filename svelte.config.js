@@ -6,9 +6,6 @@ const config = {
   preprocess: sequence([vitePreprocess(), preprocessMeltUI()]),
   kit: {
     adapter: adapter(),
-    alias: {
-      '$remotes/*': 'src/remotes/*',
-    },
     experimental: {
       remoteFunctions: true,
     },

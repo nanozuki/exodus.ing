@@ -1,9 +1,7 @@
-import type { Permission } from '$lib/domain/entities/role';
-import type { LoggedInUser } from '$lib/domain/entities/user';
+import type { Permission } from '$lib/models/role';
+import type { LoggedInUser } from '$lib/models/user';
 import type { AppError, ErrorTag } from '$lib/errors';
 
-// See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
 declare global {
   namespace App {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -14,9 +12,6 @@ declare global {
       hasPermission: (p: Permission) => boolean;
       requirePermission: (p: Permission, context: string) => LoggedInUser;
     }
-    // interface PageData {}
-    // interface PageState {}
-    // interface Platform {}
   }
 }
 

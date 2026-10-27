@@ -1,16 +1,3 @@
-<!--
-@component Pagination navigation using links. Always show first and last page, current page and siblingCount pages
-around current page. If there are enough pages, pager shows like:
-> [1] ['ellipsis'] [current-siblingCount, current+siblingCount], ['ellipsis'] [totalPages]
-Considering in this situation, there are "siblingCount * 2 + 3 (1, last, page)" pages shown, to prevent function
-regression, we don't show less pages than that. So:
-
-Define the dynamically filled portion as [start, end]
-- if totalPage <= siblingCount * 2 + 3, set start = 2, end = totalPages - 1
-- [start, end] = [page - siblingCount, page + siblingCount]
-  - if start <= 1: start => 2, end => end + (2 - start)
-  - if end >= totalPage: end => totalPage -1, start => start - (end - (totalPage -1))
--->
 <script lang="ts">
   import MdiChevronLeft from '~icons/mdi/chevron-left';
   import MdiChevronRight from '~icons/mdi/chevron-right';
@@ -23,11 +10,16 @@ Define the dynamically filled portion as [start, end]
     siblingCount?: number;
     pageLink: (page: number) => string;
   }
+
   type PageItem = number | 'ellipsis';
+
   const { count, pageSize, page, siblingCount = 1, pageLink }: Props = $props();
+
   const totalPages = $derived(Math.ceil(count / pageSize));
   const hasPrev = $derived(page > 1);
   const hasNext = $derived(page < totalPages);
+
+  // Shift the window at either end so navigation keeps a stable number of nearby pages.
   const pageItems = $derived.by(() => {
     let start: number;
     let end: number;

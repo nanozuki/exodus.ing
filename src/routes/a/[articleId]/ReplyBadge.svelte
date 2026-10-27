@@ -5,6 +5,7 @@
   interface ReplyBadgeProps {
     count: number;
   }
+
   const { count }: ReplyBadgeProps = $props();
 </script>
 

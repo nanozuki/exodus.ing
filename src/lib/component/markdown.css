@@ -63,7 +63,7 @@
     display: block;
     width: 100%;
   }
-  /* code and quote */
+
   blockquote {
     margin: 1rem 0;
     padding: 1rem;
@@ -101,7 +101,6 @@
     line-height: var(--leading-tight);
   }
 
-  /* table */
   table {
     border-collapse: collapse;
     margin-bottom: 1.25rem;
@@ -123,7 +122,6 @@
     background-color: var(--color-quote-odd);
   }
 
-  /* list */
   ul {
     padding-left: 2em;
     list-style-type: disc;

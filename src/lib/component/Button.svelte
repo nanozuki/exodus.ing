@@ -4,11 +4,13 @@
   import { twMerge } from 'tailwind-merge';
 
   type Variant = 'normal' | 'primary' | 'danger' | 'accent';
+
   interface ButtonProps extends HTMLButtonAttributes {
     variant?: Variant;
     pending?: number;
     children: Snippet;
   }
+
   const {
     variant = 'normal',
     pending = 0,
@@ -17,6 +19,7 @@
     disabled: disabledProp,
     ...rest
   }: ButtonProps = $props();
+
   const disabled = $derived(pending > 0 || disabledProp);
 
   const colorClasses = {
@@ -26,7 +29,6 @@
     accent: 'bg-accent/20 hover:bg-accent/30 text-accent font-semibold border-accent',
     disabled: 'bg-highlight-med text-muted border-muted cursor-not-allowed',
   };
-
   let colorClass = $derived.by(() => {
     if (disabled) return colorClasses.disabled;
     return colorClasses[variant];

@@ -1,9 +1,9 @@
 <script lang="ts">
   import Button from '$lib/component/Button.svelte';
   import Input from '$lib/component/Input.svelte';
-  import { createOrUpdateExternalArticle } from '$remotes/articles.remote';
-  import type { LoggedInUser } from '$lib/domain/entities/user';
-  import type { ArticleContent } from '$lib/domain/entities/article';
+  import { createOrUpdateExternalArticle } from './ExternalArticleForm.remote';
+  import type { LoggedInUser } from '$lib/models/user';
+  import type { ArticleContent } from '$lib/models/article';
   import { untrack } from 'svelte';
   import { FormState } from '$lib/rune/FormState.svelte';
 
@@ -15,7 +15,10 @@
   };
 
   const { article: articleProp, articleId, replyToId, user }: Props = $props();
+
   const fields = createOrUpdateExternalArticle.fields;
+
+  // Initialize once so a query refresh cannot overwrite unsaved form edits.
   const article = untrack(() => articleProp);
   if (article) {
     fields.url.set(article.content);
@@ -23,6 +26,7 @@
   }
 
   const formState = new FormState(createOrUpdateExternalArticle);
+
   let hostname = $derived.by(() => {
     try {
       const url = fields.url.value();

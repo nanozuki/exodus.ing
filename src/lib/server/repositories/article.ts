@@ -1,258 +1,227 @@
 import type {
   Article,
-  ArticleCard,
+  ArticleSummary,
   ArticleContent,
+  ArticleContentType,
   ArticleFeedsItem,
-  ArticleInput,
   ArticleListItem,
-  ArticlePatch,
-} from '$lib/domain/entities/article';
-import {
-  decodePathField,
-  encodeIdPath,
-  getPathParent,
-  type IdPath,
-  type PathEncoded,
-} from '$lib/domain/values/id_path';
-import type { Paginated, Pagination } from '$lib/domain/values/page';
+} from '$lib/models/article';
+import { decodePathField, encodeIdPath, getPathParent } from '$lib/models/id_path';
+import type { Pagination, Paginated } from '$lib/models/page';
 import { throwError } from '$lib/errors';
-import { desc, eq, inArray, sql } from 'drizzle-orm/sql';
-import { tArticle, tBookmark, tUser, type AppDatabase } from './schema';
+import { desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
+import { tArticle, tBookmark, tUser, type AppDatabase } from '$lib/server/db/schema';
 import { newNanoId, wrap } from './utils';
 
-interface WaitReplyToArticle extends ArticleCard {
-  path: IdPath;
-  replyTo?: ArticleCard;
+type QueryDatabase = Parameters<Parameters<AppDatabase['transaction']>[0]>[0];
+
+const author = { id: tUser.id, username: tUser.username, name: tUser.name };
+const summary = { id: tArticle.id, title: tArticle.title, author };
+const record = {
+  ...summary,
+  path: tArticle.path,
+  createdAt: tArticle.createdAt,
+  updatedAt: tArticle.updatedAt,
+  contentType: tArticle.contentType,
+  content: tArticle.content,
+};
+const listItem = {
+  ...record,
+  replyCount: tArticle.replyCount,
+  bookmarkCount: tArticle.bookmarkCount,
+  commentCount: tArticle.commentCount,
+};
+
+const snapshot = { isolationLevel: 'repeatable read', accessMode: 'read only' } as const;
+
+async function populateParents<T extends Article>(db: QueryDatabase, items: T[]): Promise<T[]> {
+  const ids = [...new Set(items.map((item) => getPathParent(item.path)).filter((id): id is string => !!id))];
+  if (!ids.length) return items;
+  const parents = await db
+    .select(summary)
+    .from(tArticle)
+    .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+    .where(inArray(tArticle.id, ids));
+  const byId = new Map(parents.map((parent) => [parent.id, parent]));
+  for (const item of items) {
+    const parentId = getPathParent(item.path);
+    if (parentId)
+      item.replyTo =
+        byId.get(parentId) ??
+        throwError('INTERNAL_SERVER_ERROR', `Can't find article ${item.id}'s replyTo ${parentId}`);
+  }
+  return items;
 }
 
-export class PgArticleRepository {
-  constructor(private db: AppDatabase) {}
+async function readArticle(db: QueryDatabase, articleId: string): Promise<Article> {
+  const rows = await db
+    .select(record)
+    .from(tArticle)
+    .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+    .where(eq(tArticle.id, articleId));
+  if (!rows.length) return throwError('NOT_FOUND', { resource: '文章' });
+  return (await populateParents(db, rows.map(decodePathField)))[0];
+}
 
-  private selectCard = {
-    id: tArticle.id,
-    title: tArticle.title,
-    authorId: tArticle.userId,
-    authorUsername: tUser.username,
-    authorName: tUser.name,
-  };
-  private selectListItem = {
-    ...this.selectCard,
-    path: tArticle.path,
-    createdAt: tArticle.createdAt,
-    updatedAt: tArticle.updatedAt,
-    contentType: tArticle.contentType,
-    content: tArticle.content,
-    replyCount: tArticle.replyCount,
-    bookmarkCount: tArticle.bookmarkCount,
-    commentCount: tArticle.commentCount,
-  };
-  private selectModel = {
-    ...this.selectListItem,
-    content: tArticle.content,
-  };
+// Author and parent projections reflect one consistent snapshot.
+export async function getArticleById(db: AppDatabase, articleId: string): Promise<Article> {
+  return wrap('getArticleById', () => db.transaction((tx) => readArticle(tx, articleId), snapshot));
+}
 
-  private modelQuery() {
-    return this.db.select(this.selectModel).from(tArticle).innerJoin(tUser, eq(tArticle.userId, tUser.id)).$dynamic();
-  }
+// This read remains available even when the stored author relationship is missing.
+export async function getArticleContentById(db: AppDatabase, articleId: string): Promise<ArticleContent> {
+  return wrap(
+    'getArticleContentById',
+    async () =>
+      (
+        await db
+          .select({
+            id: tArticle.id,
+            title: tArticle.title,
+            content: tArticle.content,
+            contentType: tArticle.contentType,
+          })
+          .from(tArticle)
+          .where(eq(tArticle.id, articleId))
+      )[0] ?? throwError('NOT_FOUND', { resource: '文章' }),
+  );
+}
 
-  private listItemQuery(page: Pagination) {
-    return this.db
-      .select(this.selectListItem)
-      .from(tArticle)
-      .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+export async function getArticleSummaryById(db: AppDatabase, articleId: string): Promise<ArticleSummary> {
+  return wrap(
+    'getArticleSummaryById',
+    async () =>
+      (
+        await db
+          .select(summary)
+          .from(tArticle)
+          .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+          .where(eq(tArticle.id, articleId))
+      )[0] ?? throwError('NOT_FOUND', { resource: '文章' }),
+  );
+}
+
+async function list(
+  db: AppDatabase,
+  page: Pagination,
+  condition?: SQL,
+  bookmarked = false,
+): Promise<Paginated<ArticleListItem>> {
+  return db.transaction(async (tx) => {
+    const count = await tx.$count(bookmarked ? tBookmark : tArticle, condition);
+    const query = tx.select(listItem).from(tArticle).innerJoin(tUser, eq(tArticle.userId, tUser.id)).$dynamic();
+    const rows = await (bookmarked ? query.innerJoin(tBookmark, eq(tBookmark.articleId, tArticle.id)) : query)
+      .where(condition)
       .orderBy(desc(tArticle.createdAt))
       .limit(page.pageSize)
-      .offset(page.pageSize * (page.pageNumber - 1))
-      .$dynamic();
-  }
+      .offset((page.pageNumber - 1) * page.pageSize);
+    return { ...page, count, items: await populateParents(tx, rows.map(decodePathField)) };
+  }, snapshot);
+}
 
-  private cardQuery() {
-    return this.db.select(this.selectCard).from(tArticle).innerJoin(tUser, eq(tArticle.userId, tUser.id)).$dynamic();
-  }
+// Pages are creation-descending; their rows, total and parent projections share a snapshot.
+export async function listArticles(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleListItem>> {
+  return wrap('listArticles', () => list(db, page));
+}
 
-  private async populateReplyTo(articles: WaitReplyToArticle[]) {
-    const datas = new Map<string, WaitReplyToArticle>();
-    const wantedIdSet = new Set<string>();
-    for (const article of articles) {
-      datas.set(article.id, article);
-      const pathDepth = article.path.length;
-      if (pathDepth > 1) {
-        wantedIdSet.add(article.path[pathDepth - 2]);
-      }
-    }
-    const wantedIds = Array.from(wantedIdSet);
-    const cards = await this.cardQuery().where(inArray(tArticle.id, wantedIds));
-    const replyToMap = new Map<string, ArticleCard>();
-    for (const card of cards) {
-      replyToMap.set(card.id, card);
-    }
-    for (const article of articles) {
-      const parentId = getPathParent(article.path);
-      if (parentId) {
-        article.replyTo = replyToMap.get(parentId);
-        if (!article.replyTo) {
-          throwError('INTERNAL_SERVER_ERROR', `Can't find artile ${article.id}'s replyTo ${parentId}`);
-        }
-      }
-    }
-  }
+export async function listArticlesOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise<Paginated<ArticleListItem>> {
+  return wrap('listArticlesOfUser', () => list(db, page, eq(tArticle.userId, userId)));
+}
 
-  async getById(articleId: string): Promise<Article> {
-    return await wrap('article.getById', async () => {
-      const rows: PathEncoded<Article>[] = await this.modelQuery().where(eq(tArticle.id, articleId));
-      const articles = rows.map(decodePathField);
-      if (articles.length === 0) {
-        return throwError('NOT_FOUND', { resource: '文章' });
-      }
-      await this.populateReplyTo(articles);
-      return articles[0];
-    });
-  }
+// A duplicate bookmark relationship can repeat an article within the results.
+export async function listBookmarkedArticlesOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise<Paginated<ArticleListItem>> {
+  return wrap('listBookmarkedArticlesOfUser', () => list(db, page, eq(tBookmark.userId, userId), true));
+}
 
-  async getContentById(articleId: string): Promise<ArticleContent> {
-    return await wrap('article.getContentById', async () => {
-      const rows = await this.db
-        .select({
-          id: tArticle.id,
-          title: tArticle.title,
-          content: tArticle.content,
-          contentType: tArticle.contentType,
-        })
-        .from(tArticle)
-        .where(eq(tArticle.id, articleId));
-      if (rows.length === 0) {
-        return throwError('NOT_FOUND', { resource: '文章' });
-      }
-      return rows[0];
-    });
-  }
+// Trailing-slash paths put the direct parent in the third segment from the end.
+export async function getRepliesOfArticle(db: AppDatabase, articleId: string): Promise<ArticleSummary[]> {
+  return wrap('getRepliesOfArticle', () =>
+    db
+      .select(summary)
+      .from(tArticle)
+      .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+      .where(eq(sql<string>`split_part(${tArticle.path}, '/', -3)`, articleId)),
+  );
+}
 
-  async getCardById(articleId: string): Promise<ArticleCard> {
-    return await wrap('article.getCardById', async () => {
-      const rows = await this.cardQuery().where(eq(tArticle.id, articleId));
-      if (rows.length === 0) {
-        return throwError('NOT_FOUND', { resource: '文章' });
-      }
-      return rows[0];
-    });
-  }
+export async function listArticleFeeds(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleFeedsItem>> {
+  return wrap('listArticleFeeds', () =>
+    db.transaction(
+      async (tx) => ({
+        ...page,
+        count: await tx.$count(tArticle),
+        items: await tx
+          .select({
+            ...summary,
+            createdAt: tArticle.createdAt,
+            updatedAt: tArticle.updatedAt,
+            contentType: tArticle.contentType,
+            content: tArticle.content,
+          })
+          .from(tArticle)
+          .innerJoin(tUser, eq(tArticle.userId, tUser.id))
+          .orderBy(desc(tArticle.updatedAt))
+          .limit(page.pageSize)
+          .offset((page.pageNumber - 1) * page.pageSize),
+      }),
+      snapshot,
+    ),
+  );
+}
 
-  async list(page: Pagination): Promise<Paginated<ArticleListItem>> {
-    return await wrap('article.list', async () => {
-      const count = await this.db.$count(tArticle);
-      const rows = await this.listItemQuery(page);
-      const articles = rows.map(decodePathField);
-      await this.populateReplyTo(articles as WaitReplyToArticle[]);
-      return {
-        pageNumber: page.pageNumber,
-        count,
-        items: articles,
-      };
-    });
-  }
+export interface CreateArticleParams {
+  title: string;
+  authorId: string;
+  contentType: ArticleContentType;
+  content: string;
+  replyToId?: string;
+}
 
-  async listFeeds(last: number): Promise<ArticleFeedsItem[]> {
-    return await wrap('article.listFeeds', async () => {
-      const articles = await this.db
-        .select({
-          id: tArticle.id,
-          createdAt: tArticle.createdAt,
-          updatedAt: tArticle.updatedAt,
-          title: tArticle.title,
-          authorName: tUser.name,
-          authorUsername: tUser.username,
-          contentType: tArticle.contentType,
-          content: tArticle.content,
-        })
-        .from(tArticle)
-        .innerJoin(tUser, eq(tArticle.userId, tUser.id))
-        .orderBy(desc(tArticle.updatedAt))
-        .limit(last);
-      return articles;
-    });
-  }
-
-  async listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>> {
-    return await wrap('article.listByUserId', async () => {
-      const count = await this.db.$count(tArticle, eq(tArticle.userId, userId));
-      const rows = await this.listItemQuery(page).where(eq(tArticle.userId, userId));
-      const articles = rows.map(decodePathField);
-      await this.populateReplyTo(articles as WaitReplyToArticle[]);
-      return {
-        pageNumber: page.pageNumber,
-        count,
-        items: articles,
-      };
-    });
-  }
-
-  /** Return the article's direct responses, including when the parent is itself a response. */
-  async listReplies(articleId: string): Promise<ArticleCard[]> {
-    return await wrap('article.listReplies', async () => {
-      // Paths end in "parent/child/", so the third field from the end is the direct parent at any depth.
-      const articles = await this.cardQuery().where(eq(sql<string>`split_part(${tArticle.path}, '/', -3)`, articleId));
-      return articles as ArticleCard[];
-    });
-  }
-
-  async listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>> {
-    return await wrap('article.listUserBookmarks', async () => {
-      const count = await this.db.$count(tBookmark, eq(tBookmark.userId, userId));
-      const rows = await this.listItemQuery(page)
-        .innerJoin(tBookmark, eq(tArticle.id, tBookmark.articleId))
-        .where(eq(tBookmark.userId, userId));
-      const articles = rows.map(decodePathField);
-      await this.populateReplyTo(articles);
-      return {
-        pageNumber: page.pageNumber,
-        count,
-        items: articles,
-      };
-    });
-  }
-
-  private async generateId(): Promise<string> {
-    return await wrap('article.generateId', async () => {
+export async function createArticle(db: AppDatabase, params: CreateArticleParams): Promise<Article> {
+  return wrap('createArticle', () =>
+    db.transaction(async (tx) => {
       let id = newNanoId();
-      const count = () => this.db.$count(tArticle, eq(tArticle.id, id));
-      while ((await count()) > 0) {
-        id = newNanoId();
-      }
-      return id;
-    });
-  }
-
-  async create(input: ArticleInput): Promise<string> {
-    return await wrap('article.create', async () => {
-      const articleId = await this.generateId();
-      let path = [articleId];
-      if (input.replyToId) {
-        const parentArticle = await this.getById(input.replyToId);
-        path = [...parentArticle.path, articleId];
-      }
+      while (await tx.$count(tArticle, eq(tArticle.id, id))) id = newNanoId();
+      const path = params.replyToId ? [...(await readArticle(tx, params.replyToId)).path, id] : [id];
       const now = new Date();
-      const article = {
-        ...input,
-        id: articleId,
+      await tx.insert(tArticle).values({
+        id,
+        userId: params.authorId,
+        title: params.title,
+        contentType: params.contentType,
+        content: params.content,
         path: encodeIdPath(path),
-        userId: input.authorId,
         createdAt: now,
         updatedAt: now,
-      };
-      await this.db.transaction(async (tx) => {
-        if (input.replyToId) {
-          await tx
-            .update(tArticle)
-            .set({ replyCount: sql`${tArticle.replyCount} + 1` })
-            .where(eq(tArticle.id, input.replyToId));
-        }
-        await tx.insert(tArticle).values(article);
       });
-      return articleId;
-    });
-  }
+      if (params.replyToId)
+        await tx
+          .update(tArticle)
+          .set({ replyCount: sql`${tArticle.replyCount} + 1` })
+          .where(eq(tArticle.id, params.replyToId));
+      // Map before commit so a missing author/parent rolls back the insert and counters.
+      return readArticle(tx, id);
+    }),
+  );
+}
 
-  async update(articleId: string, patch: Partial<ArticlePatch>): Promise<void> {
-    await wrap('article.update', () => this.db.update(tArticle).set(patch).where(eq(tArticle.id, articleId)));
-  }
+export interface UpdateArticleParams {
+  id: string;
+  title?: string;
+  content?: string;
+}
+
+// This operation leaves updatedAt unchanged.
+export async function updateArticle(db: AppDatabase, { id, ...patch }: UpdateArticleParams): Promise<void> {
+  return wrap('updateArticle', async () => {
+    await db.update(tArticle).set(patch).where(eq(tArticle.id, id));
+  });
 }

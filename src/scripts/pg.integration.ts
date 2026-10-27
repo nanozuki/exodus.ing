@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Client } from 'pg';
 import { ensureDatabase, resetDatabase } from './lib/database';
-import { getConfig } from '../lib/server/config';
+import { getConfig } from '$lib/server/config';
 
 test('database names reject reserved names, SQL fragments, and PostgreSQL truncation', async () => {
   for (const name of ['', 'all', 'template', 'dev"; DROP DATABASE postgres;', 'a'.repeat(57)]) {
@@ -152,7 +152,7 @@ test('template reset deletes all exodus databases, preserves unrelated databases
     const databaseScript = join(root, 'src/scripts/lib/database.ts');
     await writeFile(databaseScript, (await readFile(databaseScript, 'utf8')) + '\n// unrelated comment\n');
     await ensureDatabase('dev');
-    for (const file of ['src/lib/server/repositories/database.sql', 'src/lib/testing/data.ts']) {
+    for (const file of ['src/lib/server/db/database.sql', 'src/lib/testing/data.ts']) {
       const path = join(root, file);
       const original = await readFile(path);
       try {
@@ -176,7 +176,7 @@ test('template reset deletes all exodus databases, preserves unrelated databases
     assert.ok(databases.includes('keep-me'));
     assert.ok(databases.includes('postgres'));
     assert.equal(databases.filter((name: string) => name.startsWith('exodus-')).length, 0);
-    const sqlPath = join(root, 'src/lib/server/repositories/database.sql');
+    const sqlPath = join(root, 'src/lib/server/db/database.sql');
     const originalSql = await readFile(sqlPath);
     try {
       await writeFile(sqlPath, Buffer.concat([originalSql, Buffer.from('\nINVALID SQL;\n')]));

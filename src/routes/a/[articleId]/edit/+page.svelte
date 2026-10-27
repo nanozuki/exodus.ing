@@ -3,25 +3,31 @@
   import Button from '$lib/component/Button.svelte';
   import ButtonLink from '$lib/component/ButtonLink.svelte';
   import MarkdownEditor from './MarkdownEditor.svelte';
-  import { createOrUpdateMarkdownArticle, getArticleCardById, getArticleContentById } from '$remotes/articles.remote';
+  import { createOrUpdateMarkdownArticle, loadPageData } from './page.remote';
+  import { page } from '$app/state';
   import ExternalArticleForm from './ExternalArticleForm.svelte';
 
-  const { data } = $props();
-  const { articleId, replyToId, user } = $derived(data);
-  const articleQ = $derived(articleId ? getArticleContentById(articleId) : undefined);
-  const replyToQ = $derived(replyToId ? getArticleCardById(replyToId) : undefined);
-  const article = $derived(articleQ ? await articleQ : undefined);
-  const replyTo = $derived(replyToQ ? await replyToQ : undefined);
-  const contentType = $derived(article ? article.contentType : data.contentType);
+  const { params } = $props();
+
+  const { articleId, replyToId, user, article, replyTo, contentType } = $derived(
+    await loadPageData({
+      articleId: params.articleId,
+      replyTo: page.url.searchParams.get('replyTo'),
+      contentType: page.url.searchParams.get('contentType'),
+    }),
+  );
+
   const replyQuery = $derived(replyToId ? `&replyTo=${encodeURIComponent(replyToId)}` : '');
 
   let title: string = $derived(article?.title ?? '');
   let content: string = $derived(article?.content ?? '');
   let valid: boolean = $state(false);
   let pending = $derived(createOrUpdateMarkdownArticle.pending);
+
   const onValidateChange = (isValid: boolean) => {
     valid = isValid;
   };
+
   const onTitleChange = (newTitle: string) => {
     title = newTitle;
   };

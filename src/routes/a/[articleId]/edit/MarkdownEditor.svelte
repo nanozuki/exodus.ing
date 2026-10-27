@@ -10,7 +10,9 @@
   }
 
   let { content = $bindable(''), onValidateChange, onTitleChange }: Props = $props();
+
   let mode: 'editor' | 'previewer' = $state('editor');
+
   const compilation = resource(
     () => content,
     async (content) => {

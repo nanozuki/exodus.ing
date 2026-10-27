@@ -1,20 +1,21 @@
 <script lang="ts">
   import '../app.css';
-
+  import { loadLayoutData } from './layout.remote';
   import { navigating, page } from '$app/state';
   import Logo from '$lib/component/Logo.svelte';
   import Loading from '$lib/component/Loading.svelte';
   import UserBadge from '$lib/component/UserBadge.svelte';
 
-  let { children, data } = $props();
-  let { user } = $derived(data);
+  let { children } = $props();
+
+  const { user } = $derived(await loadLayoutData());
+
   let current = $derived.by(() => {
     let url = page.url;
     return encodeURIComponent(url.toString().replace(`${url.protocol}//${url.host}`, ''));
   });
 </script>
 
-<!-- web fonts -->
 <svelte:head>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
@@ -34,7 +35,7 @@
       {/if}
     </a>
     {#if user}
-      <UserBadge name={user.name} username={user.username} />
+      <UserBadge {user} />
     {:else}
       <a class="text-accent" href={`/auth?next=${current}`}>注册/登录</a>
     {/if}

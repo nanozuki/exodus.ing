@@ -2,17 +2,18 @@
   import Action from '$lib/component/Action.svelte';
   import MdiReplyOutline from '~icons/mdi/reply-outline';
   import { consoleRoutes } from '../../console/routes';
-  import { Permission } from '$lib/domain/entities/role';
-  import type { ArticleCard } from '$lib/domain/entities/article';
-  import { userHasPermission, type LoggedInUser } from '$lib/domain/entities/user';
+  import { Permission } from '$lib/models/role';
+  import type { ArticleSummary } from '$lib/models/article';
+  import { userHasPermission, type LoggedInUser } from '$lib/models/user';
 
   type Props = {
     articleId: string;
-    replies: ArticleCard[];
+    replies: ArticleSummary[];
     user: LoggedInUser | null;
   };
 
   const { articleId, replies, user }: Props = $props();
+
   const canReply = $derived(userHasPermission(user, Permission.CreateArticle));
   let replyUrl = $derived(encodeURI(`/a/new/edit?replyTo=${articleId}`));
   let authNext = $derived(encodeURIComponent(`/a/new/edit?replyTo=${articleId}`));
@@ -49,8 +50,8 @@
         <a class="hover:text-primary mr-2 font-serif text-2xl font-bold" href={`/a/${reply.id}`}>
           {reply.title}
         </a>
-        <a class="text-accent hover:text-accent-alt font-semibold" href={`/u/@${reply.authorUsername}`}>
-          {reply.authorName}
+        <a class="text-accent hover:text-accent-alt font-semibold" href={`/u/@${reply.author.username}`}>
+          {reply.author.name}
         </a>
       </p>
     {/each}

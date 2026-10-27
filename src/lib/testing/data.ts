@@ -1,12 +1,17 @@
-import { Role } from '../domain/entities/role';
-import { encodeIdPath, type IdPath } from '../domain/values/id_path';
-import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '$lib/server/repositories/schema';
+import { Role } from '$lib/models/role';
+import { encodeIdPath, type IdPath } from '$lib/models/id_path';
+import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '$lib/server/db/schema';
 
 export type UserSeed = typeof tUser.$inferInsert;
+
 export type ArticleSeed = typeof tArticle.$inferInsert;
+
 export type BookmarkSeed = typeof tBookmark.$inferInsert;
+
 export type CommentSeed = typeof tComment.$inferInsert;
+
 export type UserRoleSeed = typeof tUserRole.$inferInsert;
+
 export type InviteCodeSeed = typeof tInviteCode.$inferInsert;
 
 type TestDataset = {
@@ -29,8 +34,6 @@ const { nextTime, nextTimestamps } = (() => {
     },
   };
 })();
-
-// --- Relation and Utils Data ---
 
 const userIds: Record<string, string> = {
   author1: 'user_author_1',
@@ -212,8 +215,6 @@ const commentRelations: { id: string; articleId: string; replyToId?: string }[] 
   { id: 'C27', articleId: 'A08' },
   { id: 'C28', articleId: 'A09' },
 ];
-
-// --- Utils Calculation Functions ---
 
 const articleMarkdown = (articleId: string) => {
   const content = articleMarkdowns[articleId];
@@ -757,6 +758,7 @@ function buildTestDataset(): TestDataset {
 }
 
 export const testDataset = buildTestDataset();
+
 export function getAuthor(article: ArticleSeed): UserSeed {
   const author = testDataset.users.find((user) => user.id === article.userId);
   if (!author) {
@@ -764,6 +766,7 @@ export function getAuthor(article: ArticleSeed): UserSeed {
   }
   return author;
 }
+
 export const articleSamples = {
   markdownSample: testDataset.articles[24],
   commentSample: testDataset.articles[24],

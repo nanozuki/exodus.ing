@@ -1,10 +1,9 @@
 <script lang="ts">
   import ArticleList from '$lib/component/ArticleList.svelte';
-  import { listArticles } from '$remotes/articles.remote';
+  import { loadPageData } from './page.remote';
+  import { page } from '$app/state';
 
-  const { data } = $props();
-  let { page } = $derived(data);
-  const articles = $derived(await listArticles(page));
+  const { articles } = $derived(await loadPageData({ page: page.url.searchParams.get('page') }));
 
   const pageLink = (page: number) => `?page=${page}`;
 </script>

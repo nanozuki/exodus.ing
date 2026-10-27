@@ -21,7 +21,7 @@
     "pg:status": "tsx src/scripts/pg.ts status",
     "pg:stop": "tsx src/scripts/pg.ts stop",
     "pg:reset": "tsx src/scripts/pg.ts reset",
-    "db:export": "drizzle-kit export > src/lib/server/repositories/database.sql",
+    "db:export": "drizzle-kit export > src/lib/server/db/database.sql",
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio"

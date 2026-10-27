@@ -1,48 +1,75 @@
-import type { BookmarkStatus } from '$lib/domain/entities/bookmark';
-import { and, eq, sql } from 'drizzle-orm/sql';
-import { tArticle, tBookmark, type AppDatabase } from './schema';
+import type { BookmarkState } from '$lib/models/bookmark';
+import { and, eq, sql } from 'drizzle-orm';
+import { tArticle, tBookmark, type AppDatabase } from '$lib/server/db/schema';
 import { wrap } from './utils';
 
-export class PgBookmarkRepository {
-  constructor(private db: AppDatabase) {}
+type QueryDatabase = Pick<AppDatabase, 'select'>;
 
-  async getBookmarkStatus(articleId: string, userId?: string): Promise<BookmarkStatus> {
-    return await wrap('bookmark.getBookmarkStatus', async () => {
-      const [bookmarked, bookmarkCount] = await Promise.all([
-        userId
-          ? await this.db.$count(tBookmark, and(eq(tBookmark.articleId, articleId), eq(tBookmark.userId, userId)))
-          : 0,
-        this.db.$count(tBookmark, eq(tBookmark.articleId, articleId)),
-      ]);
-      return {
-        isBookmarked: bookmarked > 0,
-        bookmarkCount: bookmarkCount,
-      };
-    });
-  }
+async function state(
+  db: QueryDatabase,
+  { articleId, userId }: GetBookmarkStateOfArticleParams,
+): Promise<BookmarkState> {
+  const [row] = await db
+    .select({
+      count: sql<number>`count(*)::integer`,
+      bookmarked:
+        userId === undefined
+          ? sql<null>`null`
+          : sql<boolean>`coalesce(bool_or(${tBookmark.userId} = ${userId}), false)`,
+    })
+    .from(tBookmark)
+    .where(eq(tBookmark.articleId, articleId));
+  return { articleId, ...row };
+}
 
-  async create(articleId: string, userId: string): Promise<void> {
-    await wrap('bookmark.create', async () => {
-      const bookmark = { userId, articleId, createdAt: new Date() };
-      await this.db.transaction(async (tx) => {
-        await tx.insert(tBookmark).values(bookmark);
+export interface GetBookmarkStateOfArticleParams {
+  articleId: string;
+  userId?: string;
+}
+
+export async function getBookmarkStateOfArticle(
+  db: AppDatabase,
+  params: GetBookmarkStateOfArticleParams,
+): Promise<BookmarkState> {
+  return wrap('getBookmarkStateOfArticle', () => state(db, params));
+}
+
+export interface CreateBookmarkParams {
+  articleId: string;
+  userId: string;
+}
+
+export async function createBookmark(db: AppDatabase, params: CreateBookmarkParams): Promise<BookmarkState> {
+  return wrap('createBookmark', () =>
+    db.transaction(async (tx) => {
+      await tx.insert(tBookmark).values({ ...params, createdAt: new Date() });
+      await tx
+        .update(tArticle)
+        .set({ bookmarkCount: sql`${tArticle.bookmarkCount} + 1` })
+        .where(eq(tArticle.id, params.articleId));
+      return state(tx, params);
+    }),
+  );
+}
+
+export interface DeleteBookmarkParams {
+  articleId: string;
+  userId: string;
+}
+
+export async function deleteBookmark(db: AppDatabase, params: DeleteBookmarkParams): Promise<void> {
+  return wrap('deleteBookmark', () =>
+    db.transaction(async (tx) => {
+      // Duplicate relationships and repeated removals require counting rows actually deleted.
+      const deleted = await tx
+        .delete(tBookmark)
+        .where(and(eq(tBookmark.userId, params.userId), eq(tBookmark.articleId, params.articleId)))
+        .returning({ articleId: tBookmark.articleId });
+      if (deleted.length)
         await tx
           .update(tArticle)
-          .set({ bookmarkCount: sql`${tArticle.bookmarkCount} + 1` })
-          .where(eq(tArticle.id, articleId));
-      });
-    });
-  }
-
-  async delete(articleId: string, userId: string): Promise<void> {
-    await wrap('bookmark.delete', async () => {
-      await this.db.transaction(async (tx) => {
-        await tx.delete(tBookmark).where(and(eq(tBookmark.userId, userId), eq(tBookmark.articleId, articleId)));
-        await tx
-          .update(tArticle)
-          .set({ bookmarkCount: sql`${tArticle.bookmarkCount} - 1` })
-          .where(eq(tArticle.id, articleId));
-      });
-    });
-  }
+          .set({ bookmarkCount: sql`${tArticle.bookmarkCount} - ${deleted.length}` })
+          .where(eq(tArticle.id, params.articleId));
+    }),
+  );
 }

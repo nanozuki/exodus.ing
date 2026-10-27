@@ -1,11 +1,8 @@
-/** Server configuration shared with Drizzle and database management scripts. */
-import { throwError } from '../errors';
+import { throwError } from '$lib/errors';
 
 export type Config = {
   githubClientId: string;
   githubClientSecret: string;
-  // googleClientId: string;
-  // googleClientSecret: string;
   appUrl: string;
   database: {
     host: string;
@@ -16,7 +13,6 @@ export type Config = {
   };
 };
 
-/** Read application settings and PostgreSQL connection settings from the environment. */
 export function getConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const getEnv = (key: string): string => {
     const value = env[key];
@@ -28,8 +24,6 @@ export function getConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const config: Config = {
     githubClientId: getEnv('GITHUB_CLIENT_ID'),
     githubClientSecret: getEnv('GITHUB_CLIENT_SECRET'),
-    // googleClientId: getEnv('GOOGLE_CLIENT_ID'),
-    // googleClientSecret: getEnv('GOOGLE_CLIENT_SECRET'),
     appUrl: getEnv('APP_URL'),
     database: {
       host: getEnv('PGHOST'),

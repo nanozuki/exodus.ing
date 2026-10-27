@@ -3,41 +3,41 @@
 @layer base {
   :root {
     /* Rosé Pine, Dawn light theme: r g b */
-    --palette-base: 250 244 237; /* #faf4ed */
-    --palette-surface: 255 250 243; /* #fffaf3 */
-    --palette-overlay: 242 233 222; /* #f2e9e1 */
-    --palette-muted: 152 147 165; /* #9893a5 */
-    --palette-subtle: 121 117 147; /* #797593 */
-    --palette-text: 87 82 121; /* #575279 */
-    --palette-love: 180 99 122; /* #b4637a */
-    --palette-gold: 234 157 52; /* #ea9d34 */
-    --palette-rose: 215 130 126; /* #d7827e */
-    --palette-pine: 40 105 131; /* #286983 */
-    --palette-foam: 86 148 159; /* #56949f */
-    --palette-iris: 144 122 169; /* #907aa9 */
-    --palette-highlight-low: 244 237 232; /* #f4ede8 */
-    --palette-highlight-med: 223 218 217; /* #dfdad9 */
-    --palette-highlight-high: 206 202 205; /* #cecacd */
+    --palette-base: 250 244 237;
+    --palette-surface: 255 250 243;
+    --palette-overlay: 242 233 222;
+    --palette-muted: 152 147 165;
+    --palette-subtle: 121 117 147;
+    --palette-text: 87 82 121;
+    --palette-love: 180 99 122;
+    --palette-gold: 234 157 52;
+    --palette-rose: 215 130 126;
+    --palette-pine: 40 105 131;
+    --palette-foam: 86 148 159;
+    --palette-iris: 144 122 169;
+    --palette-highlight-low: 244 237 232;
+    --palette-highlight-med: 223 218 217;
+    --palette-highlight-high: 206 202 205;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
       /* Rosé Pine, dark theme: r g b */
-      --palette-base: 25 23 36; /* #191724 */
-      --palette-surface: 31 29 46; /* #1f1d2e */
-      --palette-overlay: 38 35 58; /* #26233a */
-      --palette-muted: 110 106 134; /* #6e6a86 */
-      --palette-subtle: 144 140 170; /* #908caa */
-      --palette-text: 224 222 244; /* #e0def4 */
-      --palette-love: 235 111 146; /* #eb6f92 */
-      --palette-gold: 246 193 119; /* #f6c177 */
-      --palette-rose: 235 188 186; /* #ebbcba */
-      --palette-pine: 49 116 143; /* #31748f */
-      --palette-foam: 156 207 216; /* #9ccfd8 */
-      --palette-iris: 196 167 231; /* #c4a7e7 */
-      --palette-highlight-low: 33 32 46; /* #21202e */
-      --palette-highlight-med: 64 61 82; /* #403d52 */
-      --palette-highlight-high: 82 79 103; /* #524f67 */
+      --palette-base: 25 23 36;
+      --palette-surface: 31 29 46;
+      --palette-overlay: 38 35 58;
+      --palette-muted: 110 106 134;
+      --palette-subtle: 144 140 170;
+      --palette-text: 224 222 244;
+      --palette-love: 235 111 146;
+      --palette-gold: 246 193 119;
+      --palette-rose: 235 188 186;
+      --palette-pine: 49 116 143;
+      --palette-foam: 156 207 216;
+      --palette-iris: 196 167 231;
+      --palette-highlight-low: 33 32 46;
+      --palette-highlight-med: 64 61 82;
+      --palette-highlight-high: 82 79 103;
     }
   }
 }
@@ -79,13 +79,13 @@
   --font-title: Sofia Sans Extra Condensed, sans-serif;
 
   --text-*: initial;
-  --text-sm: 0.875rem; /* 14px */
-  --text-base: 1rem; /* 16px */
-  --text-lg: 1.125rem; /* 18px */
-  --text-xl: 1.25rem; /* 20px */
-  --text-2xl: 1.5rem; /* 24px */
-  --text-3xl: 1.75rem; /* 28px */
-  --text-4xl: 2rem; /* 32px */
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.75rem;
+  --text-4xl: 2rem;
 
   --leading-single: 1;
 
@@ -94,14 +94,14 @@
   --spacing-page-horizontal: 1.5rem;
   --breakpoint-page: 43rem;
 
-  --spacing-2xs: 0.25rem; /* 4px */
-  --spacing-xs: 0.5rem; /* 8px */
-  --spacing-s: 0.75rem; /* 12px */
-  --spacing-m: 1rem; /* 16px */
-  --spacing-l: 1.5rem; /* 24px */
-  --spacing-xl: 2rem; /* 32px */
-  --spacing-2xl: 3rem; /* 48px */
-  --spacing-3xl: 4rem; /* 64px */
-  --spacing-4xl: 6rem; /* 96px */
-  --spacing-5xl: 8rem; /* 128px */
+  --spacing-2xs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-s: 0.75rem;
+  --spacing-m: 1rem;
+  --spacing-l: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  --spacing-4xl: 6rem;
+  --spacing-5xl: 8rem;
 }
