@@ -1,7 +1,8 @@
 # src
 
-Define application HTML, theme tokens, ambient request interfaces, server request lifecycle, and the current arithmetic
-smoke tests. Child directories own domain logic, server services, routes, and database tooling.
+Define application HTML, theme tokens, ambient request interfaces, and the server
+request lifecycle. Child directories own models, server use cases and
+infrastructure, routes, and database tooling.
 
 ## Files
 
@@ -128,8 +129,8 @@ requireLoggedInUser, hasPermission, and requirePermission. Declare both virtual:
 components. These wildcard module declarations are TypeScript ambient APIs, not shape name patterns. No runtime effect.
 
 ```typescript
-import type { Permission } from '$lib/domain/entities/role';
-import type { LoggedInUser } from '$lib/domain/entities/user';
+import type { Permission } from '$lib/models/role';
+import type { LoggedInUser } from '$lib/models/user';
 import type { AppError, ErrorTag } from '$lib/errors';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -171,11 +172,6 @@ SvelteKit HTML template: Chinese language, viewport, icons, manifest, JSON Feed 
 framework head/body placeholders, and hover data preloading. Feed discovery is hardcoded to
 https://exodus.ing/feeds/articles.json. Substitution belongs to SvelteKit; no exported names.
 
-### `src/demo.spec.ts`
-
-Implicit Vitest registration: one sum-test suite asserts 1 + 2 equals 3. No exports, application I/O, or domain behavior
-is exercised.
-
 ### `src/error.html`
 
 Fallback HTML error template outside normal application rendering: substitute status/message into title/body, provide a
@@ -191,7 +187,7 @@ export declare const handle: Handle;
 ```
 
 Read APP_URL through configuration for every request. If the full request URL does not start with that string, redirect
-303 to APP_URL. Otherwise attach authentication locals, resolve the request, and log pathname and elapsed milliseconds
+303 to APP_URL. Otherwise use `attachLocals` from `src/lib/server/auth.ts` to attach authentication locals, resolve the request, and log pathname and elapsed milliseconds
 on success. This is a string-prefix comparison, not parsed-origin equality.
 
 #### `init`
@@ -200,10 +196,5 @@ on success. This is a string-prefix comparison, not parsed-origin equality.
 export declare const init: ServerInit;
 ```
 
-Build services when either exported service binding is falsy. This is startup work; importing the hooks only registers
+Build services when either exported `db` or `adapters` binding is falsy. This is startup work; importing the hooks only registers
 these entry points.
-
-### `src/index.test.ts`
-
-Implicit Vitest registration: one sum-test suite asserts 1 + 2 equals 3. No exports, application I/O, or domain behavior
-is exercised.

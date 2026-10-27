@@ -37,11 +37,11 @@ render the children snippet. processing changes colors only; it does not disable
 #### `default`
 
 ```typescript
-declare const component: Component<{ article: ArticleCard }>;
+declare const component: Component<{ article: ArticleSummary }>;
 export default component;
 ```
 
-Render links to the current author profile and article using the supplied public projection; perform no query.
+Render links to the current author profile and article using the supplied ArticleSummary. Pass its nested author UserSummary to UserBadge; perform no query.
 
 ### `src/lib/component/ArticleList.svelte`
 
@@ -58,8 +58,7 @@ declare const component: Component<Props>;
 export default component;
 ```
 
-Render items in supplied order. When count exceeds ARTICLE_PAGE_SIZE (20), show Pager using pageNumber and the caller’s
-pageLink.
+Render items in supplied order. When count exceeds the returned pageSize, show Pager using the paginated result’s count, pageSize, and pageNumber and the caller’s pageLink.
 
 ### `src/lib/component/ArticleListItem.svelte`
 
@@ -74,7 +73,7 @@ declare const component: Component<ArticleHeaderProps>;
 export default component;
 ```
 
-Render an article link, author, created date, optional direct parent, and positive interaction counts. External records
+Render an article link, author, created date, optional direct parent, and positive interaction counts. Pass article.author and any direct parent’s author UserSummary to UserBadge. External records
 also show a separate original-URL link opening with noopener/noreferrer.
 
 ### `src/lib/component/Button.svelte`
@@ -129,8 +128,7 @@ declare const component: Component<Props>;
 export default component;
 ```
 
-Render supplied article groups and comment text/update timestamps in supplied order. Show Pager when count exceeds
-COMMENT_PAGE_SIZE (20), using record count and pageNumber.
+Render supplied article groups and comment text/update timestamps in supplied order. Show Pager when count exceeds the returned pageSize, using the paginated result’s count, pageSize, and pageNumber.
 
 ### `src/lib/component/Dialog.svelte`
 
@@ -261,15 +259,14 @@ validation is added.
 
 ```typescript
 interface UserBadgeProps {
-  name: string;
-  username: string;
+  user: UserSummary;
 }
 
 declare const component: Component<UserBadgeProps>;
 export default component;
 ```
 
-Render the display name linked to `/u/@<username>` without encoding or data lookup.
+Render user.name linked to `/u/@<user.username>` without encoding or data lookup. Accept the shared UserSummary projection from article authors, invitation relations, or a fuller User/LoggedInUser value; display requires no additional user lookup.
 
 ### `src/lib/component/markdown.css`
 

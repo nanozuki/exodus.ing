@@ -46,7 +46,7 @@ declare const config: import('drizzle-kit').Config;
 export default config;
 ```
 
-Use PostgreSQL schema.ts, migrations output, verbose/strict schema operations, and environment PG credentials. Convert
+Use PostgreSQL `src/lib/server/db/schema.ts`, migrations output, verbose/strict schema operations, and environment PG credentials. Convert
 PGPORT with Number. Set SSL false only when PGSSLMODE=disable, otherwise leave it unspecified. Import-time effect: read
 the environment while constructing the config; schema tools perform database actions later.
 
@@ -80,7 +80,8 @@ from external runtime configuration.
 Package/tool entry point: ESM application with pinned pnpm package-manager version. dev ensures the dev database before
 starting Vite with exodus-dev. build uses Vite; preview supplies its local APP_URL. check/check:e2e sync generated
 SvelteKit types before checking. test runs unit, script-integration, then browser suites; database
-export/push/pull/studio and explicit pg lifecycle commands remain distinct. Observed side effect: the script named lint
+export/push/pull/studio and explicit pg lifecycle commands remain distinct. `db:export` writes to
+`src/lib/server/db/database.sql`; provisioning and schema tools use the extracted db module. Observed side effect: the script named lint
 runs Prettier with --check --write before ESLint, so it can modify files. Dependency versions remain authoritative in
 this file and the lockfile.
 
@@ -114,8 +115,8 @@ declare const config: import('@sveltejs/kit').Config;
 export default config;
 ```
 
-Configure Vite preprocessing followed by Melt UI preprocessing, the Node deployment adapter, $remotes/_ alias to
-src/remotes/_, experimental remote functions, and asynchronous component compilation. Tool evaluation constructs
+Configure Vite preprocessing followed by Melt UI preprocessing, the Node deployment adapter, experimental remote functions, and asynchronous component compilation.
+Remote imports use their owning page/component paths; no `$remotes` alias remains. Tool evaluation constructs
 preprocessors/adapter, not application services.
 
 ### `tsconfig.json`
@@ -135,7 +136,8 @@ export default config;
 
 Configure Tailwind, SvelteKit, and auto-installed Svelte icons; emit build sourcemaps. Require assertions in tests. The
 client project runs \*.svelte.test/spec files in headless Chromium, excluding server modules; the server project runs
-other src test/spec files in Node. This file does not register vitest-setup-client.ts as setupFiles.
+other src test/spec files in Node, including repository integration and use-case unit tests. Repository suites
+use explicitly bounded setup/test timeouts sufficient for local database provisioning. This file does not register vitest-setup-client.ts as setupFiles.
 
 ### `vitest-setup-client.ts`
 

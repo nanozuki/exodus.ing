@@ -15,7 +15,7 @@ export declare function ensureDatabase(name: string): Promise<void>;
 
 Accept a 1–56 character lowercase ASCII suffix beginning with a letter or digit, using letters/digits/underscore/hyphen;
 reject template and all. Under the checkout control lock, ensure PostgreSQL, then serialize database management with a
-PostgreSQL session advisory lock. Fingerprint database.sql and testing/data.ts with SHA-256. Initialize exodus-template
+PostgreSQL session advisory lock. Fingerprint `src/lib/server/db/database.sql` and `src/lib/testing/data.ts` with SHA-256. Initialize exodus-template
 from template0, execute schema, seed it, and publish a version only after completion. Clone a missing `exodus-<name>`
 from the seeded template. Preserve existing clones and reject outdated or missing initialization records with explicit
 reset guidance. Do not alter connection environment variables. Clients and locks are released on exit paths; partial
@@ -89,7 +89,7 @@ Data deletion is not this operation’s responsibility.
 export declare function seedE2EData(client: Client): Promise<void>;
 ```
 
-Use the supplied connected pg Client to delete existing rows from all application tables and insert the shared test
+Use table/schema declarations from `src/lib/server/db/schema.ts`. Use the supplied connected pg Client to delete existing rows from all application tables and insert the shared test
 dataset in one transaction, including user roles. Reset the invitation sequence to the maximum inserted ID. Preserve the
 caller’s ownership of the Client; transaction failures roll back and propagate. Log inserted collection counts. Despite
 use for fresh templates, calling it on an existing database replaces that database’s application data.

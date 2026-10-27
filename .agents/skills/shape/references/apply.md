@@ -7,10 +7,14 @@ needed to interpret their interfaces. Compare the target with current code and
 project conventions. Identify missing contracts, ambiguous ownership, conflicting
 commitments, and proposed interface changes.
 
-Complete this step when each planned code change has an approved contract and
-its responsibility boundary is clear. For a gap or conflict, present the concrete
-contract proposal or decision needed and wait for confirmation of that part.
-Continue independent work already covered by approved contracts.
+Complete this step when each planned covered code change has an approved
+contract and its responsibility boundary is clear. For a gap or conflict,
+present the concrete contract proposal or decision needed and wait for
+confirmation of that part. Continue independent work already covered by
+approved contracts.
+
+Apply the README's [testing boundary](../README.md#tests-and-shared-test-infrastructure)
+when identifying which changes need file and declaration contracts.
 
 ## Implement
 

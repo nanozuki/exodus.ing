@@ -117,13 +117,6 @@ Lowercase the title, replace runs outside ASCII a–z/0–9 with hyphens, strip 
 strip a resulting trailing hyphen, then prefix e2e-. Reject an empty slug. The result fits the provisioning 56-character
 suffix limit; collision detection belongs to global setup.
 
-### `e2e/support/suite-lock.integration.ts`
-
-Implicit node:test registration: verify overlapping runs preserve the original lock and traces, listing releases its own
-lock on exit, and discovery inherits ownership while setup failure still releases the owner’s lock. Tests invoke
-Playwright configuration and use temporary probe files; they are not ordinary browser journeys. Inspected but not
-executed during this derivation.
-
 ### `e2e/support/suite-lock.ts`
 
 #### `acquireSuiteLock`

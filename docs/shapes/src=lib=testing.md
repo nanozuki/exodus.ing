@@ -1,7 +1,8 @@
 # src/lib/testing
 
 Provide the deterministic shared dataset used by local provisioning and browser journeys, including relationships and
-derived interaction counts.
+derived interaction counts. Schema-derived seed types import `src/lib/server/db/schema.ts`; shared roles and
+path helpers import `src/lib/models`.
 
 ## Files
 

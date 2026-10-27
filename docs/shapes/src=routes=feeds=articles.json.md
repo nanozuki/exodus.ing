@@ -54,8 +54,9 @@ https://exodus.ing and language is zh-CN, independently of APP_URL.
 export declare const GET: RequestHandler;
 ```
 
-Read at most 30 articles ordered by updatedAt descending. Convert Markdown through compileMarkdown (retaining its H1),
-or construct an external-content notice/link without fetching the page. Include both author and authors, RFC3339
+Call `listArticleFeeds(db, { pageNumber: 1, pageSize: 30 })` and consume its `items` to read at most 30 articles ordered
+by updatedAt descending. Convert Markdown through compileMarkdown (retaining its H1),
+or construct an external-content notice/link without fetching the page. Map the ArticleFeedsItem.author UserSummary into the feed-local Author structure using its name and profile URL. Include both author and authors, RFC3339
 timestamps, and external_url only for external records. Return application/feed+json with
 `Cache-Control: public, max-age=7200`. Read/conversion failures propagate. External URL HTML interpolation is not
 separately escaped.

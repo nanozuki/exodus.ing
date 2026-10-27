@@ -13,8 +13,8 @@ requested destination.
 export declare function GET(request: RequestEvent): Promise<Response>;
 ```
 
-Complete adapter callback verification; look up GitHub identity and create a new User when missing, using requested
-signup username/name or provider defaults. Reject usernames beginning with @; otherwise rely on storage constraints for
-uniqueness. Create a session, set the auth cookie, and respond 302 to next when it starts with `/`, otherwise `/`. This
+Read and validate callback request/state data with `readGitHubCallbackData`, then obtain the trusted provider identity
+through `adapters.githubOAuth.getUser(code)`. Call `loginWithGitHub({ db, now, generateSessionId }, { githubUser, signUp })`, injecting the clock and session-ID adapter functions with the trusted provider identity and signup hints. That use case handles account lookup/creation and session creation. Set the auth
+cookie with `setAuthCookie`, then respond 302 to next when it starts with `/`, otherwise `/`. This
 accepts protocol-relative URLs. Convert failures through catchError/throwAppError. User creation and session creation
 are not one transaction.

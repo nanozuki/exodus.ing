@@ -1,551 +1,555 @@
 # src/lib/server/repositories
 
-Declare PostgreSQL storage structures and database types, construct repository services, and expose article, bookmark,
-comment, invitation, role, session, and user persistence. Repository operations own their transactions; acting-user
-authorization belongs to callers.
+Provide database reads, writes, model mapping, and internal transactions for articles, bookmarks, comments, invitations, roles, sessions, and users. Consumers pass `AppDatabase` from `src/lib/server/db/schema.ts` directly to standalone exported functions. There are no repository classes, repository sets, or global database reads.
+
+Repository operations return models from `src/lib/models/`, or compositions of
+those models. Operation-specific object parameters are exported as `XxxParams`
+beside their function; inputs need not be models. Shared model values may also
+serve directly as inputs. Use cases own permissions, business decisions, quota calculation, and session lifetime policy. Repositories own SQL, consistency, generated storage identifiers, and persistence timestamps. Do not access request context, cookies, DNS, or frontend state.
+
+Every exported database operation wraps its complete body with `wrap`, using its exact exported function name as the operation label. Throw expected HTTP errors inside that wrapper; it preserves those errors and normalizes unexpected failures. All internal helpers execute within their owning operation's wrapper. Do not query at import time.
+
+Required singular reads throw `NOT_FOUND`; optional reads return `null`. Complete collections return all matches, including `[]`; paginated collections use the one-based `Pagination`/`Paginated<T>` contract,
+return the requested `pageNumber` and `pageSize`, and return empty `items` when
+appropriate. Empty relationship collections do not establish whether their owner exists. Updates and deletes perform no additional existence checks.
+
+All transaction contexts remain internal. Related writes and reads governing them use one transaction. Related result/count queries use a consistent snapshot, including paginated lists and invite statistics. Separate calls made by a use case or remote do not share a transaction. Preserve current table constraints and identifier formats.
 
 ## Files
 
 ### `src/lib/server/repositories/article.ts`
 
-#### `PgArticleRepository`
+Read article models and projections; insert/update persisted articles and their direct-parent reply count.
+
+#### `getArticleById`
 
 ```typescript
-export declare class PgArticleRepository {
-  constructor(db: AppDatabase);
-  getById(articleId: string): Promise<Article>;
-  getContentById(articleId: string): Promise<ArticleContent>;
-  getCardById(articleId: string): Promise<ArticleCard>;
-  list(page: Pagination): Promise<Paginated<ArticleListItem>>;
-  listFeeds(last: number): Promise<ArticleFeedsItem[]>;
-  listByUserId(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
-  listReplies(articleId: string): Promise<ArticleCard[]>;
-  listUserBookmarks(userId: string, page: Pagination): Promise<Paginated<ArticleListItem>>;
-  create(input: ArticleInput): Promise<string>;
-  update(articleId: string, patch: Partial<ArticlePatch>): Promise<void>;
+export declare function getArticleById(db: AppDatabase, articleId: string): Promise<Article>;
+```
+
+Map the current author to `UserSummary`, decode the ancestry path, and attach its direct parent summary. Missing article throws `NOT_FOUND`; a stored path referencing an unavailable parent is an `INTERNAL_SERVER_ERROR`. Related mapping reads use a consistent snapshot.
+
+#### `getArticleContentById`
+
+```typescript
+export declare function getArticleContentById(db: AppDatabase, articleId: string): Promise<ArticleContent>;
+```
+
+Read editable content without requiring an author join. Missing article throws `NOT_FOUND`.
+
+#### `getArticleSummaryById`
+
+```typescript
+export declare function getArticleSummaryById(db: AppDatabase, articleId: string): Promise<ArticleSummary>;
+```
+
+Map the current author to `UserSummary`; missing result throws `NOT_FOUND`.
+
+#### `listArticles`
+
+```typescript
+export declare function listArticles(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleListItem>>;
+```
+
+Order by creation time descending, decode paths, and populate parent summaries. Return the total count and requested page from a consistent snapshot.
+
+#### `listArticlesOfUser`
+
+```typescript
+export declare function listArticlesOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise<Paginated<ArticleListItem>>;
+```
+
+Apply the same mapping, ordering, and snapshot rules as `listArticles`, restricted to the author.
+
+#### `listBookmarkedArticlesOfUser`
+
+```typescript
+export declare function listBookmarkedArticlesOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise<Paginated<ArticleListItem>>;
+```
+
+Apply the article list mapping and creation-descending ordering. Count bookmark relationships; existing duplicate relationships may duplicate returned rows, preserving the unchanged schema behavior.
+
+#### `getRepliesOfArticle`
+
+```typescript
+export declare function getRepliesOfArticle(db: AppDatabase, articleId: string): Promise<ArticleSummary[]>;
+```
+
+Return every direct response at any ancestry depth, without truncation. Result order is unspecified.
+
+#### `listArticleFeeds`
+
+```typescript
+export declare function listArticleFeeds(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleFeedsItem>>;
+```
+
+Return a page ordered by update time descending and a consistent total. The feed route requests its existing limit as the first page and consumes `items`.
+
+#### `CreateArticleParams`
+
+```typescript
+export interface CreateArticleParams {
+  title: string;
+  authorId: string;
+  contentType: ArticleContentType;
+  content: string;
+  replyToId?: string;
 }
 ```
 
-All public methods use the shared database error wrapper. The constructor retains the supplied database; it performs no
-query.
+Supply the author, content, and optional direct parent for a new article.
 
-- `getById`, `getCardById`, and `getContentById` throw NOT_FOUND when absent. Full/card reads join the current author;
-  content reads do not. Full reads decode paths and attach the direct parent card; a missing referenced parent throws
-  INTERNAL_SERVER_ERROR.
-- `list`, `listByUserId`, and `listUserBookmarks` return one-based pages ordered by article creation descending. Counts
-  and rows use separate statements without a shared snapshot. Bookmark counts count relationship rows, and duplicate
-  bookmarks can duplicate results. Empty pages have empty items; parent cards are populated where needed.
-- `listFeeds(last)` returns at most `last` records ordered by update time descending. `listReplies` returns all direct
-  responses at any depth; no result ordering is specified by its query.
-- `create` generates a unique six-character ID through a read/check loop, captures current time, and stores root-to-self
-  ancestry. Parent lookup happens before the transaction. Insertion and direct-parent reply-count increment share a
-  transaction. Return the new ID.
-- `update` accepts a partial title/content patch and performs an update without checking existence, authorization, or
-  content type. It does not explicitly advance `updatedAt`.
+#### `createArticle`
 
-No public operation checks the acting user’s permissions; remotes own those checks.
+```typescript
+export declare function createArticle(db: AppDatabase, params: CreateArticleParams): Promise<Article>;
+```
+
+Generate a unique six-character storage ID and capture the persistence timestamp. Read any parent and its ancestry inside the transaction that inserts the article and increments that direct parent’s reply count. A missing parent throws `NOT_FOUND`. Complete author lookup and result mapping within that same transaction before commit, then return the mapped article; authorization and content policy belong to use cases.
+
+#### `UpdateArticleParams`
+
+```typescript
+export interface UpdateArticleParams {
+  id: string;
+  title?: string;
+  content?: string;
+}
+```
+
+Identify the article and supplied editable fields. Omitted fields remain
+unchanged; content type and reply ancestry are immutable through this operation.
+These parameters do not provide authorization or existence guarantees.
+
+#### `updateArticle`
+
+```typescript
+export declare function updateArticle(db: AppDatabase, params: UpdateArticleParams): Promise<void>;
+```
+
+Update the supplied title/content fields by ID without checking existence. Preserve the current behavior of not explicitly advancing `updatedAt`.
 
 ### `src/lib/server/repositories/bookmark.ts`
 
-#### `PgBookmarkRepository`
+Read bookmark state and keep relationship changes consistent with the article’s persisted bookmark count.
+
+#### `GetBookmarkStateOfArticleParams`
 
 ```typescript
-export declare class PgBookmarkRepository {
-  constructor(db: AppDatabase);
-  getBookmarkStatus(articleId: string, userId?: string): Promise<BookmarkStatus>;
-  create(articleId: string, userId: string): Promise<void>;
-  delete(articleId: string, userId: string): Promise<void>;
+export interface GetBookmarkStateOfArticleParams {
+  articleId: string;
+  userId?: string;
 }
 ```
 
-All methods use the shared database error wrapper; authorization belongs to the remote.
+Omit the user ID to request anonymous bookmark state.
 
-- `getBookmarkStatus` returns whether the supplied user has any matching row, plus the actual relationship-row count for
-  the article. Without userId, isBookmarked is false. Reads do not promise a shared snapshot.
-- `create` inserts one relationship and increments the article’s persisted bookmark count in one transaction, using the
-  current time. It does not check for an existing bookmark or article.
-- `delete` deletes all matching rows and decrements the persisted count once in a transaction, including when no row was
-  deleted.
+#### `getBookmarkStateOfArticle`
 
-Observed limitation: writes are not idempotent, duplicates are permitted by the current schema, and the persisted count
-can diverge from relationship rows.
+```typescript
+export declare function getBookmarkStateOfArticle(
+  db: AppDatabase,
+  params: GetBookmarkStateOfArticleParams,
+): Promise<BookmarkState>;
+```
+
+Return the requested `articleId`, actual relationship-row count, and viewer
+bookmark state from one consistent snapshot. An omitted user gives
+`bookmarked: null`; an authenticated user gets a boolean indicating whether any
+matching relationship exists. Absence of rows gives count zero.
+
+#### `CreateBookmarkParams`
+
+```typescript
+export interface CreateBookmarkParams {
+  articleId: string;
+  userId: string;
+}
+```
+
+Identify the user–article relationship to insert.
+
+#### `createBookmark`
+
+```typescript
+export declare function createBookmark(db: AppDatabase, params: CreateBookmarkParams): Promise<BookmarkState>;
+```
+
+Insert one relationship with the persistence timestamp and increment the
+article count in one transaction. Read and return the updated `BookmarkState`
+for the supplied article and user within that same transaction before commit;
+`count` counts actual relationship rows and `bookmarked` is true. Preserve current
+duplicate-insertion semantics and do not add an existence check or a unique
+constraint in this refactor.
+
+#### `DeleteBookmarkParams`
+
+```typescript
+export interface DeleteBookmarkParams {
+  articleId: string;
+  userId: string;
+}
+```
+
+Identify all user–article relationships to delete.
+
+#### `deleteBookmark`
+
+```typescript
+export declare function deleteBookmark(db: AppDatabase, params: DeleteBookmarkParams): Promise<void>;
+```
+
+Delete all matching user/article relationships in one transaction and decrement the article’s persisted count by the number of rows actually deleted. Deleting zero rows leaves the count unchanged. This intentionally fixes the prior unconditional single decrement.
 
 ### `src/lib/server/repositories/comment.ts`
 
-#### `PgCommentRepository`
+Read comment records and per-user grouped projections; insert/update comments while preserving article counts.
+
+#### `getCommentsOfArticle`
 
 ```typescript
-export declare class PgCommentRepository {
-  constructor(db: AppDatabase);
-  listByArticle(articleId: string): Promise<Comment[]>;
-  listByUser(userId: string, page: Pagination): Promise<Paginated<CommentListItem>>;
-  getById(commentId: string): Promise<Comment>;
-  create(input: CommentInput): Promise<string>;
-  update(commentId: string, patch: Partial<CommentPatch>): Promise<void>;
+export declare function getCommentsOfArticle(db: AppDatabase, articleId: string): Promise<Comment[]>;
+```
+
+Return all comments ordered by creation ascending, join their authors, and decode ancestry paths. Never truncate the complete collection.
+
+#### `listCommentsOfUser`
+
+```typescript
+export declare function listCommentsOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise<Paginated<CommentListItem>>;
+```
+
+Page raw comments by update time descending, then group each page by article. `count` is the number of raw matching comments, not groups; a group can recur on another page. Read count and rows consistently.
+
+#### `getCommentById`
+
+```typescript
+export declare function getCommentById(db: AppDatabase, commentId: string): Promise<Comment>;
+```
+
+Join the author and decode the ancestry path; missing comment throws `NOT_FOUND`.
+
+#### `CreateCommentParams`
+
+```typescript
+export interface CreateCommentParams {
+  articleId: string;
+  userId: string;
+  content: string;
+  replyToId?: string;
 }
 ```
 
-All public methods use the shared database error wrapper; authorization belongs to callers.
+Supply the discussion, author, text, and optional parent comment.
 
-- `listByArticle` returns all matching comments ordered by creation ascending, with current author data and decoded
-  paths.
-- `listByUser` pages individual comments ordered by update time descending, then groups that page by article. Count is
-  the total comment count, and group order follows the first encountered comment. Count and row reads have no shared
-  snapshot.
-- `getById` throws NOT_FOUND when missing and returns the decoded comment with its author.
-- `create` generates a unique six-character ID. If replying, read the target and extend its path, or throw NOT_FOUND. It
-  does not require the target to belong to the supplied article. Insert and article-comment-count increment share a
-  transaction; parent lookup precedes it. Return the new ID.
-- `update` writes content and the current updatedAt without verifying existence. A partial patch without content still
-  supplies undefined content to the query builder.
-
-Observed gap: cross-article reply targets and missing owning articles are not explicitly rejected by this repository.
-
-### `src/lib/server/repositories/database.sql`
-
-Implicit entry point: provisioning executes this SQL in a newly created template database. It creates the same nine
-tables, keys, defaults, and indexes described by schema.ts. Statements are unconditional CREATE statements, not an
-idempotent migration or an upgrade path. It contains no foreign keys; existing databases are not automatically upgraded.
-
-### `src/lib/server/repositories/index.ts`
-
-#### `getDatabase`
+#### `createComment`
 
 ```typescript
-export declare function getDatabase(config: Config): Promise<AppDatabase>;
+export declare function createComment(db: AppDatabase, params: CreateCommentParams): Promise<Comment>;
 ```
 
-Construct a node-postgres Drizzle database using `config.database`, the exported schema, and SQL logging. Log
-construction duration; this function does not explicitly issue a readiness query or expose pool cleanup.
+Generate a unique six-character ID and persistence timestamp. Read any reply parent in the same transaction as insertion and article comment-count increment; missing reply parent throws `NOT_FOUND`. Complete author lookup and result mapping within that same transaction before commit, then return the mapped comment. Preserve current reply-path behavior; this refactor does not introduce new cross-article reply validation.
 
-#### `createRepositorySet`
+#### `UpdateCommentParams`
 
 ```typescript
-export declare function createRepositorySet(db: AppDatabase): {
-  article: PgArticleRepository;
-  bookmark: PgBookmarkRepository;
-  comment: PgCommentRepository;
-  inviteCode: PgInviteCodeRepository;
-  role: PgRoleRepository;
-  user: PgUserRepository;
-  session: PgSessionRepository;
-};
+export interface UpdateCommentParams {
+  id: string;
+  content?: string;
+}
 ```
 
-Construct one instance of every repository class against the same database. Sharing a database does not make separate
-operations transactional.
+Identify the existing comment and supplied content update. Article, author, and
+ancestry remain unchanged.
 
-#### `RepositorySet`
+#### `updateComment`
 
 ```typescript
-export type RepositorySet = ReturnType<typeof createRepositorySet>;
+export declare function updateComment(db: AppDatabase, params: UpdateCommentParams): Promise<void>;
 ```
+
+Update supplied content and advance `updatedAt` using the persistence clock, without checking existence.
 
 ### `src/lib/server/repositories/invite_code.ts`
 
-#### `PgInviteCodeRepository`
+Persist invitation codes and expose consistent quota inputs. Quota arithmetic belongs to the invitation use case.
+
+#### `findInviteCodeByCode`
 
 ```typescript
-export declare class PgInviteCodeRepository {
-  constructor(db: AppDatabase);
-  create(input: InviteCodeInput, algo: InviteQuotaAlgorithm): Promise<InviteCode>;
-  findByCode(code: string): Promise<InviteCode | null>;
-  useCode(code: string): Promise<void>;
-  getUserUnusedCodes(userId: string): Promise<InviteCodeCard[]>;
-  getUserInviteQuota(userId: string, algo: InviteQuotaAlgorithm): Promise<number>;
-  delete(userId: string, code: string): Promise<void>;
+export declare function findInviteCodeByCode(db: AppDatabase, code: string): Promise<InviteCode | null>;
+```
+
+#### `getUnusedInviteCodesOfUser`
+
+```typescript
+export declare function getUnusedInviteCodesOfUser(db: AppDatabase, userId: string): Promise<InviteCodeSummary[]>;
+```
+
+Return every unused code/role projection for the inviter; ordering is unspecified.
+
+#### `getInviteStatsOfUser`
+
+```typescript
+export declare function getInviteStatsOfUser(db: AppDatabase, userId: string): Promise<InviteStats>;
+```
+
+Read authored article count, unused invitation count, and invited role-row count from one consistent snapshot. Do not calculate quota.
+
+#### `CreateInviteCodeParams`
+
+```typescript
+export interface CreateInviteCodeParams {
+  inviterId: string;
+  roleKey: string;
+  expectedStats: InviteStats;
 }
 ```
 
-All methods use the shared database error wrapper.
+`expectedStats` is the consistent invitation-statistics snapshot on which the
+use case approved creation. The repository atomically compares current
+statistics with this snapshot before inserting. It is a concurrency precondition,
+not a quota policy callback.
 
-- `create` counts authored articles, unused codes, and invited-role rows in one serializable transaction, passes them to
-  the supplied algorithm, and rejects nonpositive quota with BAD_REQUEST. Insert a new random 16-character code and
-  return the complete invitation. Serialization failures are surfaced, without automatic retry.
-- `findByCode` returns null when absent. `useCode` timestamps an unused matching row and silently succeeds when no row
-  matches; it returns no claim/result indicator.
-- `getUserUnusedCodes` returns code/role projections for unused invitations without a specified order.
-- `getUserInviteQuota` reads its three counts separately and computes quota without a shared transaction.
-- `delete` scopes deletion by inviter ID and code, including used codes, and performs no existence check.
+#### `createInviteCode`
 
-Code consumption and assigning the invited role are separate operations; this class does not provide atomic redemption.
+```typescript
+export declare function createInviteCode(db: AppDatabase, params: CreateInviteCodeParams): Promise<InviteCode>;
+```
+
+Inside a serializable transaction, read all three statistics and require equality with `params.expectedStats`, then generate a 16-character code and insert the unused invitation. A changed snapshot throws `BAD_REQUEST` with retry guidance before writing. The caller computes and checks quota before passing the snapshot; this operation does not receive or execute a quota algorithm. Serialization failures remain normalized database failures with no automatic retry.
+
+#### `DeleteInviteCodeParams`
+
+```typescript
+export interface DeleteInviteCodeParams {
+  inviterId: string;
+  code: string;
+}
+```
+
+Scope deletion to the supplied inviter; these parameters do not authorize the
+actor.
+
+#### `deleteInviteCode`
+
+```typescript
+export declare function deleteInviteCode(db: AppDatabase, params: DeleteInviteCodeParams): Promise<void>;
+```
+
+Scope deletion by inviter and code, including used codes, without checking existence.
 
 ### `src/lib/server/repositories/role.ts`
 
-#### `PgRoleRepository`
+Read assigned roles and invitation relationships, and atomically persist invitation redemption.
+
+#### `getRolesOfUser`
 
 ```typescript
-export declare class PgRoleRepository {
-  constructor(db: AppDatabase);
-  specifyRoleByOther(userId: string, role: Role, inviterId: string): Promise<void>;
-  getUserRoles(userId: string): Promise<Role[]>;
-  getInviter(userId: string): Promise<Relation | undefined>;
-  getInvitees(userId: string): Promise<Relation[]>;
+export declare function getRolesOfUser(db: AppDatabase, userId: string): Promise<Role[]>;
+```
+
+Return all assigned role keys without runtime validation or specified ordering, retaining the existing storage contract.
+
+#### `findInviterOfUser`
+
+```typescript
+export declare function findInviterOfUser(db: AppDatabase, userId: string): Promise<Relation | null>;
+```
+
+Return the first matching inviter as `Relation.user: UserSummary` with its
+invitation time, or `null`. No choice ordering is guaranteed when several role rows match; callers normalize any existing UI-level optionality.
+
+#### `getInviteesOfUser`
+
+```typescript
+export declare function getInviteesOfUser(db: AppDatabase, userId: string): Promise<Relation[]>;
+```
+
+Return role-based invitee relationships with `user: UserSummary`, ordered by
+invitation time descending. Several roles may produce several rows for the same user.
+
+#### `CreateRoleOfUserByInviteCodeParams`
+
+```typescript
+export interface CreateRoleOfUserByInviteCodeParams {
+  code: string;
+  userId: string;
+  usedAt: Date;
 }
 ```
 
-All methods use the shared database error wrapper.
+Supply the code, authenticated recipient, and one instant for both code
+consumption and any newly assigned role.
 
-- `specifyRoleByOther` returns without change when the user/role pair exists; otherwise insert it with inviter and
-  current invitedAt. The check and insert are separate statements, so concurrent insertion can fail at the primary key.
-- `getUserRoles` casts stored role keys to Role without runtime validation or specified ordering.
-- `getInviter` returns the first matching inviter projection, or undefined. Its query has no explicit ordering if
-  multiple role rows match.
-- `getInvitees` returns matching role-based relationships by invitedAt descending; multiple role rows could represent
-  the same user.
-
-### `src/lib/server/repositories/schema.ts`
-
-These declarations specify table builders and inferred public row types. The shared timestamps fields default to now and
-are required. Tables have no declared foreign keys. Columns are mutable through Drizzle query APIs; row/insert shapes
-come from the corresponding $inferSelect/$inferInsert members.
-
-Supporting types and declarations used by the public signatures below (not additional exports):
+#### `createRoleOfUserByInviteCode`
 
 ```typescript
-const timestamps = {
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-};
+export declare function createRoleOfUserByInviteCode(
+  db: AppDatabase,
+  params: CreateRoleOfUserByInviteCodeParams,
+): Promise<UserRole>;
 ```
 
-#### `tUser`
-
-```typescript
-export const tUser = pgTable('user', {
-  id: text('id').notNull().primaryKey(),
-  ...timestamps,
-  username: text('username').notNull().unique(),
-  githubId: integer('github_id').unique(),
-  name: text('name').notNull().unique(),
-  aboutMe: text('about_me').notNull(),
-  verifyCode: text('verify_code').notNull(),
-});
-```
-
-Username, GitHub ID, and display name are unique; GitHub ID is nullable.
-
-#### `tSession`
-
-```typescript
-export const tSession = pgTable(
-  'session',
-  {
-    id: text('id').notNull().primaryKey(),
-    userId: text('user_id').notNull(),
-    expiresAt: timestamp('expires_at').notNull(),
-  },
-  (table) => [index('session_user_id_idx').on(table.userId), index('expires_at_idx').on(table.expiresAt)],
-);
-```
-
-#### `tUserAuth`
-
-```typescript
-export const tUserAuth = pgTable(
-  'user_auth',
-  {
-    id: text('id').notNull().primaryKey(),
-    userId: text('user_id').notNull(),
-    provider: text('provider').notNull(),
-    providerUserId: text('provider_user_id').notNull(),
-    providerUsername: text('provider_username'),
-    providerEmail: text('provider_email'),
-    createdAt: timestamps.createdAt,
-  },
-  (table) => [
-    uniqueIndex('user_auth_provider_user_id_idx').on(table.provider, table.providerUserId),
-    index('user_auth_user_id_idx').on(table.userId),
-  ],
-);
-```
-
-#### `tPendingAuth`
-
-```typescript
-export const tPendingAuth = pgTable(
-  'pending_auth',
-  {
-    id: text('id').notNull().primaryKey(),
-    authType: text('auth_type').notNull(),
-    state: text('state'),
-    provider: text('provider'),
-    providerUserId: text('provider_user_id'),
-    providerUsername: text('provider_username'),
-    providerEmail: text('provider_email'),
-    payload: jsonb('payload'),
-    next: text('next'),
-    signUpUsername: text('sign_up_username'),
-    signUpName: text('sign_up_name'),
-    createdAt: timestamps.createdAt,
-    expiresAt: timestamp('expires_at').notNull(),
-  },
-  (table) => [
-    uniqueIndex('pending_auth_state_idx').on(table.state),
-    index('pending_auth_expires_at_idx').on(table.expiresAt),
-  ],
-);
-```
-
-Nullable provider and signup/state fields support pending authentication data. Expiry is required; state is uniquely
-indexed.
-
-#### `tInviteCode`
-
-```typescript
-export const tInviteCode = pgTable(
-  'invite_code',
-  {
-    id: serial('id').primaryKey(),
-    code: text('code').notNull().unique(),
-    roleKey: text('role_key').notNull(),
-    inviterId: text('inviter_id').notNull(),
-    usedAt: timestamp('used_at'),
-  },
-  (table) => [index('invite_code_inviter_id_idx').on(table.inviterId)],
-);
-```
-
-#### `tArticle`
-
-```typescript
-export const tArticle = pgTable(
-  'article',
-  {
-    id: text('id').notNull().primaryKey(),
-    ...timestamps,
-    userId: text('user_id').notNull(),
-    title: text('title').notNull(),
-    content: text('content').notNull(),
-    contentType: text('content_type').$type<ArticleContentType>().notNull(),
-    path: text('path').notNull(),
-    replyCount: integer('reply_count').default(0).notNull(),
-    bookmarkCount: integer('bookmark_count').default(0).notNull(),
-    commentCount: integer('comment_count').default(0).notNull(),
-  },
-  (table) => [
-    uniqueIndex('article_title_idx').on(table.title, table.userId),
-    index('article_user_id_idx').on(table.userId),
-    index('article_path_idx').on(table.path),
-  ],
-);
-```
-
-Title is unique per user. Interaction counts default to zero. Paths are stored as trailing-slash strings; the database
-does not validate ancestry or contentType values.
-
-#### `tComment`
-
-```typescript
-export const tComment = pgTable(
-  'comment',
-  {
-    id: text('id').notNull().primaryKey(),
-    path: text('path').notNull(),
-    ...timestamps,
-    userId: text('user_id').notNull(),
-    articleId: text('article_id').notNull(),
-    content: text('content').notNull(),
-  },
-  (table) => [
-    index('comment_article_id_idx').on(table.articleId),
-    index('comment_user_id_idx').on(table.userId),
-    index('comment_path_idx').on(table.path),
-  ],
-);
-```
-
-#### `tBookmark`
-
-```typescript
-export const tBookmark = pgTable(
-  'bookmark',
-  {
-    userId: text('user_id').notNull(),
-    articleId: text('article_id').notNull(),
-    createdAt: timestamps.createdAt,
-  },
-  (table) => [index('bookmark_user_id_idx').on(table.userId), index('bookmark_article_id_idx').on(table.articleId)],
-);
-```
-
-Indexes support user/article lookup; there is no primary key or unique pair constraint.
-
-#### `tUserRole`
-
-```typescript
-export const tUserRole = pgTable(
-  'user_role',
-  {
-    userId: text('user_id').notNull(),
-    roleKey: text('role_key').notNull(),
-    invitedAt: timestamp('invited_at').defaultNow().notNull(),
-    inviterId: text('inviter_id'),
-  },
-  (table) => [
-    primaryKey({ columns: [table.userId, table.roleKey] }),
-    index('user_role_inviter_id_idx').on(table.inviterId),
-  ],
-);
-```
-
-The primary key is (userId, roleKey); inviter is nullable. This table is exported but omitted from the `schema` object.
-
-#### `schema`
-
-```typescript
-export const schema = {
-  tArticle,
-  tBookmark,
-  tComment,
-  tInviteCode,
-  tPendingAuth,
-  tSession,
-  tUserAuth,
-  tUser,
-};
-```
-
-Contains the eight listed tables and omits tUserRole. Repositories still import tUserRole directly.
-
-#### `ArticleModel`
-
-```typescript
-export type ArticleModel = typeof tArticle.$inferSelect;
-```
-
-#### `BookmarkModel`
-
-```typescript
-export type BookmarkModel = typeof tBookmark.$inferSelect;
-```
-
-#### `CommentModel`
-
-```typescript
-export type CommentModel = typeof tComment.$inferSelect;
-```
-
-#### `InviteCodeModel`
-
-```typescript
-export type InviteCodeModel = typeof tInviteCode.$inferSelect;
-```
-
-#### `PendingAuthModel`
-
-```typescript
-export type PendingAuthModel = typeof tPendingAuth.$inferSelect;
-```
-
-#### `SessionModel`
-
-```typescript
-export type SessionModel = typeof tSession.$inferSelect;
-```
-
-#### `UserAuthModel`
-
-```typescript
-export type UserAuthModel = typeof tUserAuth.$inferSelect;
-```
-
-#### `UserModel`
-
-```typescript
-export type UserModel = typeof tUser.$inferSelect;
-```
-
-#### `UserRoleModel`
-
-```typescript
-export type UserRoleModel = typeof tUserRole.$inferSelect;
-```
-
-#### `AppDatabase`
-
-```typescript
-export type AppDatabase = NodePgDatabase<typeof schema>;
-```
-
-Use the node-postgres Drizzle database parameterized by the exported schema. Transaction contexts remain internal to
-repository operations.
+Within one transaction, lock and require the matching unused code, create its user-role relationship if absent, and set `usedAt` to the supplied instant. Missing or already used codes throw `BAD_REQUEST`. If the user already has the role, retain and return that relationship and still consume the code, preserving current behavior. The role and inviter are read from the code. A failed role write leaves the code unused; concurrent attempts cannot both redeem it. This replaces the separate code-consumption and role-grant writes.
 
 ### `src/lib/server/repositories/session.ts`
 
-#### `ValidateSessionResult`
+Persist supplied session data. Use cases own ID generation, current-time reads, expiration decisions, and renewal policy.
+
+#### `findSessionById`
 
 ```typescript
-export type ValidateSessionResult = {
-  session: Session;
-  refresh: boolean;
-};
+export declare function findSessionById(db: AppDatabase, sessionId: string): Promise<Session | null>;
 ```
 
-#### `PgSessionRepository`
+#### `createSession`
 
 ```typescript
-export declare class PgSessionRepository {
-  constructor(db: AppDatabase);
-  create(userId: string): Promise<Session>;
-  validateSession(sessionId: string): Promise<ValidateSessionResult | null>;
-  cleanAllExpired(): Promise<void>;
-  invalidateSession(sessionId: string): Promise<void>;
-  invalidateAllSessions(userId: string): Promise<void>;
+export declare function createSession(db: AppDatabase, session: Session): Promise<Session>;
+```
+
+Persist and return the supplied ID, user, and expiration without applying lifetime policy.
+
+#### `UpdateSessionParams`
+
+```typescript
+export interface UpdateSessionParams {
+  id: string;
+  expiresAt: Date;
 }
 ```
 
-The constructor retains the database. These public methods currently do not use the shared database error wrapper, so
-database errors propagate directly.
+Supply the new expiration for an existing session. Lifetime and renewal policy
+remain in the use case.
 
-- `create` inserts a generated 32-character ID with expiry 30 days after the current instant; return the stored session.
-- `validateSession` returns null when missing. At or after expiry, delete the session and return null. When current time
-  reaches expiry minus 20 days, extend expiry to 30 days from now and return refresh=true; otherwise refresh=false. The
-  read/update/delete operations are separate statements.
-- `cleanAllExpired` deletes expirations strictly earlier than now, whereas validation expires at equality as well.
-- `invalidateSession` and `invalidateAllSessions` delete matching rows without requiring their existence.
+#### `updateSession`
 
-The repository does not set cookies; the registry refreshes cookies from its result.
+```typescript
+export declare function updateSession(db: AppDatabase, params: UpdateSessionParams): Promise<void>;
+```
+
+Update expiration by session ID without checking existence.
+
+#### `deleteSession`
+
+```typescript
+export declare function deleteSession(db: AppDatabase, sessionId: string): Promise<void>;
+```
+
+Delete by session ID without checking existence. This is also the persistence step for expiration detected by a use case.
 
 ### `src/lib/server/repositories/user.ts`
 
-#### `PgUserRepository`
+Read user identity/profile data and persist supplied profile changes.
+
+#### `findUserById`
 
 ```typescript
-export declare class PgUserRepository {
-  constructor(db: AppDatabase);
-  findById(id: string): Promise<User | null>;
-  findByUsername(username: string): Promise<User | null>;
-  findByName(name: string): Promise<User | null>;
-  findByGitHubId(githubId: number): Promise<User | null>;
-  listAll(): Promise<User[]>;
-  create(input: UserInput): Promise<User>;
-  update(userId: string, patch: Partial<UserPatch>): Promise<void>;
+export declare function findUserById(db: AppDatabase, id: string): Promise<User | null>;
+```
+
+Retain legacy lookup behavior: an ID of exactly 16 characters is shortened to its first six characters before querying.
+
+#### `findUserByUsername`
+
+```typescript
+export declare function findUserByUsername(db: AppDatabase, username: string): Promise<User | null>;
+```
+
+Perform an exact optional lookup.
+
+#### `findUserByName`
+
+```typescript
+export declare function findUserByName(db: AppDatabase, name: string): Promise<User | null>;
+```
+
+Perform an exact optional lookup.
+
+#### `findUserByGitHubId`
+
+```typescript
+export declare function findUserByGitHubId(db: AppDatabase, githubId: number): Promise<User | null>;
+```
+
+Perform an exact optional lookup.
+
+#### `getUsers`
+
+```typescript
+export declare function getUsers(db: AppDatabase): Promise<User[]>;
+```
+
+Return every user ordered by ID ascending, without truncation.
+
+#### `CreateUserParams`
+
+```typescript
+export interface CreateUserParams {
+  username: string;
+  githubId: number | null;
+  name: string;
+  aboutMe: string;
 }
 ```
 
-The constructor retains the database; authorization and input validation belong to callers.
+Supply the identity and profile fields for a new user.
 
-- `findById` returns null when absent and shortens exactly 16-character IDs to their first six characters for legacy
-  compatibility. This lookup bypasses the shared database wrapper.
-- `findByUsername` and `findByName` perform exact optional lookups and return null when absent. `findByGitHubId` is also
-  optional. These methods use the wrapper, as do list/create/update database operations.
-- `listAll` returns every user ordered by ID ascending.
-- `create` generates a unique six-character ID and a 32-character verification code, sets both timestamps to now, and
-  inserts the supplied identity/profile. Its declared return type is User; the returned object also contains timestamps
-  and roles=[] at runtime. Database uniqueness errors are wrapped.
-- `update` applies a partial UserPatch without checking existence or explicitly updating updatedAt.
+#### `createUser`
+
+```typescript
+export declare function createUser(db: AppDatabase, params: CreateUserParams): Promise<User>;
+```
+
+Generate a unique six-character ID and a 32-character verification code, capture persistence timestamps, and insert the identity/profile. Return the public `User` model. Normalize uniqueness failures through `wrap`.
+
+#### `UpdateUserParams`
+
+```typescript
+export interface UpdateUserParams {
+  id: string;
+  username?: string;
+  name?: string;
+  aboutMe?: string;
+}
+```
+
+Identify the user and supplied editable fields. Omitted fields remain
+unchanged; GitHub identity and verification code are not editable through this
+operation.
+
+#### `updateUser`
+
+```typescript
+export declare function updateUser(db: AppDatabase, params: UpdateUserParams): Promise<void>;
+```
+
+Apply supplied username/name/about-me fields without existence checks or an explicit `updatedAt` change. Username rules and acting-user authorization belong to callers.
 
 ### `src/lib/server/repositories/utils.ts`
+
+Shared operation wrapping and storage identifier generation. These helpers are module collaboration exports, not database operations themselves.
 
 #### `wrap`
 
 ```typescript
-export declare function wrap<T>(method: string, fn: () => Promise<T>): Promise<T>;
+export declare function wrap<T>(operation: string, fn: () => Promise<T>): Promise<T>;
 ```
 
-Time and log successful operations. Preserve SvelteKit HTTP errors; convert ordinary Errors to DATABASE_ERROR with the
-operation and message, and other thrown values using JSON.stringify. Failures during serialization can escape directly.
+Time and log successful operations. Preserve HTTP errors; normalize ordinary errors to `DATABASE_ERROR` with the operation name and message, and other thrown values using JSON serialization. Preserve current serialization failure behavior.
 
 #### `newNanoId`
 
@@ -553,7 +557,7 @@ operation and message, and other thrown values using JSON.stringify. Failures du
 export declare function newNanoId(): string;
 ```
 
-Generate six characters from lowercase ASCII letters and digits. Collision checking belongs to callers.
+Generate six lowercase alphanumeric characters. Uniqueness checking belongs to the owning insert operation.
 
 #### `newCode`
 
@@ -561,7 +565,7 @@ Generate six characters from lowercase ASCII letters and digits. Collision check
 export declare function newCode(): string;
 ```
 
-Generate a 16-character lowercase alphanumeric code without querying uniqueness.
+Generate 16 lowercase alphanumeric characters for invitation storage.
 
 #### `newVerifyCode`
 
@@ -569,12 +573,4 @@ Generate a 16-character lowercase alphanumeric code without querying uniqueness.
 export declare function newVerifyCode(): string;
 ```
 
-Generate a 32-character lowercase alphanumeric verification code.
-
-#### `newSessionCode`
-
-```typescript
-export declare function newSessionCode(): string;
-```
-
-Generate a 32-character lowercase alphanumeric session ID.
+Generate 32 lowercase alphanumeric characters for a user’s verification code.

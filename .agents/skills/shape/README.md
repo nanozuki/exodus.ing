@@ -1,25 +1,4 @@
-# shape-driven development
-
-## Purpose and intended outcome
-
-shape is a user-approved directory design contract. The programmer controls code
-organization, responsibilities, public interfaces, and observable behavior
-through shape; the agent implements code within those commitments.
-
-Development is shape-first: agree on the contract, then make the code conform.
-Ultimately, shape should become the primary “code” the programmer works with. It
-must expose enough structure to review design changes while leaving internal
-algorithms and mechanisms to the agent.
-
-Keep shape close to the actual code structure. A reader should see which files
-belong to a module, what names they expose, how to use them, and what properties
-implementations must preserve. Write what a consumer of the module needs to
-know.
-
-A future checker should extract file paths and exported names from the source
-AST, match each to shape, and resolve shape declarations back to source. This
-should reveal missing, stale, or structurally inconsistent declarations. Name
-coverage and behavioral conformance are separate concerns.
+# Shape contract reference
 
 ## Modules, storage, and naming
 
@@ -41,30 +20,43 @@ inside an eligible directory remain eligible. Exclude the selected shape root
 itself from source inventory.
 
 Inventory every remaining directory in scope, including directories containing
-only subdirectories or non-code files. Code files include application and test
-source, type declarations, stylesheets, templates, SQL, and build/tooling
-definitions or configuration. Prose, lockfiles, icons, and other static assets
-are not code files. Describe a non-code resource in its consuming code's
-contract only when that dependency affects the code's interface or behavior.
+only subdirectories, excluded tests, or non-code files. Covered code files
+include application source, type declarations, stylesheets, templates, SQL, and
+build/tooling definitions or configuration, subject to the testing boundary
+below. Prose, lockfiles, icons, and other static assets are not code files.
+Describe a non-code resource in its consuming code's contract only when that
+dependency affects the code's interface or behavior.
+
+### Tests and shared test infrastructure
+
+Tests verify the observable behavior promised by shape. Read them as evidence
+when deriving or checking contracts; keep individual test cases and their
+implementation out of shape.
+
+Exclude dedicated test files and embedded test-case code from file and public
+declaration coverage. Determine their role from the project's conventions and
+contents. Shared testing libraries, setup, fixtures, and test configuration
+remain covered code; describe their public interfaces and behavior normally.
+Inspect files within test directories rather than excluding an entire directory
+such as `e2e/` or `testing/`, which may also contain shared infrastructure.
 
 ### Storage location
 
 Store shape inside the project at `<project-root>/docs/shapes/`, or outside its
 codebase at `$XDG_DATA_HOME/shapes/<project-key>/<worktree-key>/`.
 
-Use `$HOME/.local/share` when `XDG_DATA_HOME` is unset. `project-key` follows
-`{md5-of-project-root-path}-{project-name}`: combine the MD5 hash of the project
-root's absolute path with the project name. `worktree-key` is the worktree name
-used directly, including for the primary checkout.
+Use `$HOME/.local/share` when `XDG_DATA_HOME` is unset. Resolve the project root
+to an absolute physical path without a trailing slash. `project-key` is
+`{md5-of-project-root-path}-{project-name}`: hash the path's UTF-8 bytes, without
+a newline, as lowercase MD5; use the root directory's basename as `project-name`.
+Use the checkout directory's basename as `worktree-key`, including for the
+primary checkout. For a project without Git, use the project root's basename.
 
 Look for in-project shape first. Once in-project shape exists, use it
 exclusively and stop looking in external locations. Report incomplete local
 coverage as a gap. Search external storage only when no in-project shape exists.
 When establishing the first contracts, use the location specified by the user;
 otherwise ask them to choose local or external storage explicitly.
-
-Version management, state files, draft archives, and persisted check reports are
-deferred until actual use establishes what is needed.
 
 ### Flat filenames
 
@@ -100,9 +92,10 @@ covers root-level source and tooling files. A route directory such as
 
 ### Directories without code
 
-When an eligible directory has no direct code files, write its directory heading
-followed only by the exact line `no code files`. Omit a module description and
-file/declaration sections; its child directories are still assessed separately.
+When an eligible directory has no direct covered code files, including one
+containing only excluded tests, write its directory heading followed only by
+the exact line `no code files`. Omit a module description and file/declaration
+sections; its child directories are still assessed separately.
 For example, `static.md` can contain:
 
 ```markdown
@@ -111,7 +104,7 @@ For example, `static.md` can contain:
 no code files
 ```
 
-Use the remaining format only for directories containing code.
+Use the remaining format only for directories containing covered code.
 
 ### Module description
 
@@ -128,9 +121,7 @@ heading containing its complete project-relative pathname. These headings
 declare file membership. Keep each pathname explicit, with its filename and
 extension, so people can search it and a checker can match it.
 
-Use these sections as the coverage declaration rather than maintaining a second
-list. A separate registry remains optional; its need and format can be decided
-from actual use.
+These sections are the file-coverage declaration.
 
 ### Public declarations
 
@@ -226,5 +217,5 @@ import time.
 
 ## Workflow
 
-For apply, derive, and check workflows and their approval rules, use
+For design, apply, derive, and check workflows and their approval rules, use
 [SKILL.md](SKILL.md).

@@ -1,12 +1,18 @@
 # Architecture and Development Conventions
 
+Use this document to decide responsibility and dependency boundaries. Before
+changing a module's interfaces or behavior, read its directory contract in
+[shapes/](shapes/) for the concrete design.
+
 ## Responsibilities and Placement
 
 | Area             | Responsibility                                                                                      | Location                                          |
 | ---------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | Models           | Shared business data and business functions without external dependencies.                          | `src/lib/models/`                                 |
+| Database         | Connection construction, schema definitions, and storage row types.                                 | `src/lib/server/db/`                              |
 | Repositories     | Database reads, writes, result mapping, and internal transactions.                                  | `src/lib/server/repositories/`                    |
 | Use cases        | Business functions that require external capabilities and run on the server.                        | `src/lib/server/use-cases/`                       |
+| Adapters         | Request-independent implementations of external capabilities.                                       | `src/lib/server/adapters/`                        |
 | Remote functions | Adapt frontend component inputs and outputs, and organize component-specific data and interactions. | Beside the page, layout, or component they serve. |
 
 ### Business Function Boundaries
@@ -65,46 +71,27 @@ For example:
   clock's current time, and decides whether to delete or renew it through
   repository operations. The expiration comparison stays in this operation.
 
-### Request and Component Adaptation
-
-Keep SvelteKit request and response handling at the request boundary: remote
-functions for component calls, and hooks or route handlers for other entry
-points. This includes `getRequestEvent()`, cookies, redirects, input parsing,
-serialization, and remote-query refreshes. These entry points call use cases with
-explicit dependencies and parameters, leaving use cases independent of pages
-and request context.
-
-Remote functions may directly call or compose repository functions and use cases.
-Call a repository directly when only data access and result mapping are needed;
-use a use case when business decisions or workflows require external
-capabilities. A single repository call can still require a use case. Keep
-component-specific aggregation, display state, and form feedback in the remote.
-
-For example:
-
-- **Article list:** the remote parses pagination input, calls a repository, and
-  adapts its result for the component.
-- **Page aggregation:** the remote combines independent queries and use-case
-  results with page-specific display state.
-- **Article edit form:** the remote parses form fields, obtains the authenticated
-  actor from trusted request context, and calls the editing use case. It then
-  refreshes queries or redirects to the article.
-- **Domain verification:** the remote parses a URL; a use case queries DNS and
-  checks the returned TXT records against the verification code in that
-  operation.
-
 ### Data and Type Placement
 
 Group model types by business concept. Models may represent records, projections,
-aggregates, or compositions of other models.
+aggregates, or compositions of other models. Use `Summary` for general summary
+projections, such as `ArticleSummary` and `UserSummary`; reserve presentation
+names such as `Card` for components. Projections serving a specific role retain
+descriptive names such as `ArticleListItem` and `ArticleContent`.
 
-Define operation-specific dependency, parameter, and result types beside their use case, and
-page- or component-specific types beside their remote function. Prefer existing
-models, or compositions of them, for complex use-case results.
+Place a type used by only one function beside that function. Operation-specific
+parameters may be declared inline; when defining a separate parameter type, name
+it `XxxParams` and place it beside the repository function or use case that owns
+it. Define operation-specific dependency and result types beside their use case,
+and page- or component-specific types beside their remote function. Prefer
+existing models, or compositions of them, for complex use-case results.
 
-For example, `ArticleCard` is a reusable projection and invite statistics are an
-aggregate; editing-operation parameters belong beside the editing use case; a
-page's tabs and selected tab belong beside its remote function.
+For example, invite statistics are an aggregate; `CreateArticleParams` belongs
+beside the repository's `createArticle` function; a page's tabs and selected tab
+belong beside its remote function.
+
+Name Drizzle-inferred storage types `XxxRow`, such as `ArticleRow`, and keep them
+in the database module. Repositories map these storage records into models.
 
 ## Use Cases
 
@@ -114,21 +101,38 @@ Both `deps` and `params` are objects. Here, `Result` is a placeholder for the
 operation's successful return type.
 
 - `deps` declares only the external capabilities the operation needs, such as
-  `db`, a DNS resolver, or a clock. Prefer a database dependency over an injected
-  repository set; import repository functions and pass them the database. Acquire
+  `db`, a DNS resolver, or a clock. Repositories are application functions:
+  import them and pass the database instead of injecting a repository set. Acquire
   dependencies through this argument rather than a global service registry.
 - `params` contains the data for this invocation, including an authenticated
   actor when needed.
 
-For example, an article-editing operation can use
-`editArticle({ db }, { actor, articleId, content })`; domain verification can use
-`verifyDomainOwnership({ resolveTxt }, { url, verificationCode })`.
-
 When an operation needs the current time, accept a clock such as
-`deps.now: () => Date`. Read it once when related decisions need the same instant,
-and use that value throughout the operation.
+`deps.now: () => Date`. Request entry points supply the clock adapter's `now`;
+tests can supply a fixed clock. Read it once when related decisions need the same
+instant, and use that value throughout the operation. Persistence timestamps
+managed by database defaults or repository writes remain persistence concerns.
 
-## Remote File Placement
+## Request Boundaries and Remote Functions
+
+Keep SvelteKit request and response handling at the request boundary: remote
+functions for component calls, and hooks or route handlers for other entry
+points. This includes `getRequestEvent()`, cookies, redirects, input parsing,
+serialization, and remote-query refreshes. Entry points supply explicit
+dependencies and parameters to use cases.
+
+Remotes may directly call or compose repositories and use cases. Call a
+repository when only data access and result mapping are needed; call a use case
+when business decisions or workflows require external capabilities. A single
+repository call can still require a use case. Keep component-specific
+aggregation, display state, and form feedback in the remote.
+
+For example, an article list remote parses pagination and calls a repository.
+An edit remote parses form fields, obtains the trusted actor, calls an editing
+use case, then maps its validation result or redirects. For domain verification,
+the remote parses the URL; the use case resolves DNS and checks the TXT records.
+
+### File Placement
 
 | Consumer                           | Remote file                                                                                        |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -142,6 +146,23 @@ a component belong to that component's remote file. Locate shared remote
 functions by feature ownership so components can use them without depending on
 an unrelated page.
 
+### Initial Data and Pagination
+
+Expose page and layout initial data through remote queries named `loadPageData`
+and `loadLayoutData` in their respective remote files. Components consume these
+queries for server rendering and client navigation; application data does not
+use page or layout `load` exports. Pass route parameters, search parameters, or
+the pathname explicitly when a query depends on them, and validate them as
+untrusted inputs. Obtain the authenticated actor from trusted request context.
+
+Each protected remote operation enforces its own authorization. A layout query
+does not authorize later operations. Keep session validation and cookie refresh
+in hooks, and refresh affected remote query data after mutations.
+
+Choose pagination size directly in the owning remote function. Pass it to the
+repository as pagination input and return the effective size to consumers through
+`Paginated<T>`. Its fields are defined in the [models contract](shapes/src=lib=models.md).
+
 ## Repositories
 
 ### Function Contract
@@ -154,11 +175,18 @@ query-building helpers, and database initialization are outside their scope.
 
 ### Public Data Shapes
 
-Use existing or explicitly user-approved models for exported operation inputs
-and results. Before introducing or changing a public data shape, discuss its
-purpose and structure with the user. This applies equally to named types,
-anonymous object types, and shapes derived with utilities such as `Pick` or
-`Omit`. Internal implementation types may be defined locally.
+Repository operations act on models. Return domain models or combinations of
+models, including projections, aggregates, arrays, and paginated results. The
+`void` results of update and delete operations follow the contracts below.
+
+Inputs describe an operation's needs and need not be models; use the
+[type placement rules](#data-and-type-placement).
+
+For a proposed public shape change, follow the shape skill's
+[approval boundary](../.agents/skills/shape/SKILL.md#approval-boundary).
+Existing approval covers implementation of the agreed contract. This applies
+equally to named types, anonymous object types, and shapes derived with `Pick`
+or `Omit`. Internal implementation types may be defined locally.
 
 ### Operation Names and Contracts
 
@@ -195,8 +223,7 @@ entity is absent. Complete-collection operations must not silently truncate
 results with a limit.
 
 Use these action prefixes and contracts for every new or modified exported
-database operation. Discuss operations that do not fit with the user before
-implementing them.
+database operation. Propose exceptions through the same approval boundary.
 
 ### Transactions and Consistency
 
@@ -223,3 +250,9 @@ separate wrapping.
 
 Throw expected HTTP errors inside `wrap`; let the helper preserve those errors
 and normalize unexpected failures.
+
+## Testing
+
+Repository and use-case tests verify the observable behavior promised by their
+shape contracts. For which testing files belong in shape, follow the skill's
+[testing boundary](../.agents/skills/shape/README.md#tests-and-shared-test-infrastructure).
