@@ -37,7 +37,14 @@ test('application configuration reads explicit environment values without local 
     user: env.PGUSER,
     password: env.PGPASSWORD,
     database: env.PGDATABASE,
+    enableChannelBinding: false,
   });
+
+  for (const mode of ['prefer', 'require', 'disable']) {
+    const configured = getConfig({ ...env, PGCHANNELBINDING: mode });
+    assert.equal(configured.database.enableChannelBinding, mode !== 'disable');
+  }
+
   const missingHost: NodeJS.ProcessEnv = { ...env };
   delete missingHost.PGHOST;
   assert.throws(() => getConfig(missingHost));

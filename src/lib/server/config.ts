@@ -10,6 +10,8 @@ export type Config = {
     user: string;
     password: string;
     database: string;
+    // Uses channel binding when offered; the driver may fall back without it.
+    enableChannelBinding: boolean;
   };
 };
 
@@ -31,6 +33,7 @@ export function getConfig(env: NodeJS.ProcessEnv = process.env): Config {
       user: getEnv('PGUSER'),
       password: getEnv('PGPASSWORD'),
       database: getEnv('PGDATABASE'),
+      enableChannelBinding: env.PGCHANNELBINDING === 'prefer' || env.PGCHANNELBINDING === 'require',
     },
   };
   return config;

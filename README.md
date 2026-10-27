@@ -70,6 +70,13 @@ CLI accepts suffixes: `tsx src/scripts/pg.ts start dev` ensures `exodus-dev` exi
 `db:*` commands use the same configuration; for example,
 `PGDATABASE=exodus-dev pnpm db:studio`.
 
+For production databases that support channel binding, set `PGSSLMODE=require`
+and `PGCHANNELBINDING=prefer` in the application environment. The application
+enables node-postgres channel binding when `PGCHANNELBINDING` is `prefer` or
+`require`; both use it when the server offers it and allow fallback otherwise.
+An unset value or `disable` leaves channel binding disabled. This setting applies
+to application connections; Drizzle Kit commands do not read it.
+
 Databases clone `exodus-template`, which contains the exported SQL schema and
 shared seed data. The file `.direnv/pg_database_version` records a fingerprint for the template
 and each clone, computed only from `database.sql` and `src/lib/testing/data.ts`.

@@ -22,6 +22,7 @@ export type Config = {
     user: string;
     password: string;
     database: string;
+    enableChannelBinding: boolean;
   };
 };
 ```
@@ -35,6 +36,11 @@ export declare function getConfig(env?: NodeJS.ProcessEnv): Config;
 Default to `process.env`. Require string values for GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, APP_URL, PGHOST, PGPORT,
 PGUSER, PGPASSWORD, and PGDATABASE; missing values throw MISSING_CONFIG. Empty strings are accepted. Convert PGPORT with
 `Number` without range or NaN validation. No I/O occurs merely by importing this module.
+
+Read optional PGCHANNELBINDING: `prefer` and `require` enable the driver's
+best-effort channel binding; other values, including `disable` and an unset
+variable, leave it disabled. `require` does not enforce channel binding: the
+driver may fall back when the server does not offer it.
 
 ### `src/lib/server/registry.ts`
 
