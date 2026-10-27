@@ -1,19 +1,21 @@
 import { defineConfig } from '@playwright/test';
+import { acquireSuiteLock } from './e2e/support/suite-lock';
 
-const host = 'http://localhost:4173';
+acquireSuiteLock();
 
 export default defineConfig({
-  webServer: {
-    command: 'pnpm run build && pnpm run preview',
-    url: host,
-    env: {
-      ...process.env,
-      EXODUSING_HOST: host,
-    },
-    reuseExistingServer: !process.env.CI,
-  },
+  globalSetup: './e2e/support/global-setup.ts',
+  reporter: 'list',
   testDir: 'e2e',
+  fullyParallel: true,
+  workers: 2,
+  retries: 0,
+  timeout: 60_000,
   use: {
-    baseURL: host,
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    launchOptions: {
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+    },
   },
 });

@@ -1,11 +1,11 @@
 <script lang="ts">
+  import type { UserSummary } from '$lib/models/user';
+
   interface UserBadgeProps {
-    name: string;
-    username: string;
+    user: UserSummary;
   }
-  const { name, username }: UserBadgeProps = $props();
+
+  const { user }: UserBadgeProps = $props();
 </script>
 
-<a class="text-accent hover:text-accent-alt font-medium" href={`/u/@${username}`}>
-  {name}
-</a>
+<a class="text-accent hover:text-accent-alt font-medium" href={`/u/@${user.username}`}>{user.name}</a>

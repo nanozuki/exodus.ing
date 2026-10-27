@@ -1,7 +1,7 @@
 <script lang="ts">
   import Input from '$lib/component/Input.svelte';
   import Button from '$lib/component/Button.svelte';
-  import { acceptInviteCode } from '$remotes/invite_codes.remote';
+  import { acceptInviteCode } from './page.remote';
   import { FormState } from '$lib/rune/FormState.svelte';
 
   const formState = new FormState(acceptInviteCode);

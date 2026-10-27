@@ -1,9 +1,8 @@
 <script lang="ts">
-  import ArticleListItem from '$lib/component/ArticleListItem.svelte';
-  import type { ArticleListItem as ArticleItem } from '$lib/domain/entities/article';
-  import Pager from '$lib/component/Pager.svelte';
-  import type { Paginated } from '$lib/domain/values/page';
-  import { ARTICLE_PAGE_SIZE } from '$lib/domain/entities/article';
+  import ArticleListItem from './ArticleListItem.svelte';
+  import type { ArticleListItem as ArticleItem } from '$lib/models/article';
+  import Pager from './Pager.svelte';
+  import type { Paginated } from '$lib/models/page';
   import { twMerge } from 'tailwind-merge';
 
   interface Props {
@@ -13,7 +12,7 @@
   }
 
   let { articles, pageLink, class: outerClass }: Props = $props();
-  let { pageNumber, count, items } = $derived(articles);
+  let { pageNumber, pageSize, count, items } = $derived(articles);
 </script>
 
 <div class={twMerge('gap-y-m flex flex-col', outerClass)}>
@@ -22,7 +21,7 @@
       <ArticleListItem article={a} />
     {/each}
   </div>
-  {#if count > ARTICLE_PAGE_SIZE}
-    <Pager {count} pageSize={ARTICLE_PAGE_SIZE} page={pageNumber} {pageLink} />
+  {#if count > pageSize}
+    <Pager {count} {pageSize} page={pageNumber} {pageLink} />
   {/if}
 </div>

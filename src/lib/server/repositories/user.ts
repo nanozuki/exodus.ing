@@ -1,125 +1,79 @@
-import type { User, UserInput, UserPatch } from '$lib/domain/entities/user';
+import type { User } from '$lib/models/user';
 import { asc, eq } from 'drizzle-orm';
-import { tUser, type AppDatabase } from './schema';
+import { tUser, type AppDatabase, type UserRow } from '$lib/server/db/schema';
 import { newNanoId, newVerifyCode, wrap } from './utils';
 
-export class PgUserRepository {
-  constructor(private db: AppDatabase) {}
+function model(row: UserRow): User {
+  const { id, username, githubId, name, aboutMe, verifyCode } = row;
+  return { id, username, githubId, name, aboutMe, verifyCode };
+}
 
-  async findById(id: string): Promise<User | null> {
-    const compabilityId = id.length === 16 ? id.slice(0, 6) : id;
-    const users = await this.db
-      .select({
-        id: tUser.id,
-        username: tUser.username,
-        githubId: tUser.githubId,
-        name: tUser.name,
-        aboutMe: tUser.aboutMe,
-        verifyCode: tUser.verifyCode,
-      })
+// Exactly 16-character legacy IDs are looked up using their first six characters.
+export async function findUserById(db: AppDatabase, id: string): Promise<User | null> {
+  return wrap('findUserById', async () => {
+    const [row] = await db
+      .select()
       .from(tUser)
-      .where(eq(tUser.id, compabilityId));
-    return users.length !== 0 ? users[0] : null;
-  }
+      .where(eq(tUser.id, id.length === 16 ? id.slice(0, 6) : id));
+    return row ? model(row) : null;
+  });
+}
 
-  async findByUsername(username: string): Promise<User | null> {
-    return await wrap('user.getUserByKey', async () => {
-      const users = await this.db
-        .select({
-          id: tUser.id,
-          username: tUser.username,
-          githubId: tUser.githubId,
-          name: tUser.name,
-          aboutMe: tUser.aboutMe,
-          verifyCode: tUser.verifyCode,
-        })
-        .from(tUser)
-        .where(eq(tUser.username, username));
-      return users.length !== 0 ? users[0] : null;
-    });
-  }
+export async function findUserByUsername(db: AppDatabase, username: string): Promise<User | null> {
+  return wrap('findUserByUsername', async () => {
+    const [row] = await db.select().from(tUser).where(eq(tUser.username, username));
+    return row ? model(row) : null;
+  });
+}
 
-  async findByName(name: string): Promise<User | null> {
-    return await wrap('user.findUserByName', async () => {
-      const users = await this.db
-        .select({
-          id: tUser.id,
-          username: tUser.username,
-          githubId: tUser.githubId,
-          name: tUser.name,
-          aboutMe: tUser.aboutMe,
-          verifyCode: tUser.verifyCode,
-        })
-        .from(tUser)
-        .where(eq(tUser.name, name));
-      return users.length !== 0 ? users[0] : null;
-    });
-  }
+export async function findUserByName(db: AppDatabase, name: string): Promise<User | null> {
+  return wrap('findUserByName', async () => {
+    const [row] = await db.select().from(tUser).where(eq(tUser.name, name));
+    return row ? model(row) : null;
+  });
+}
 
-  async findByGitHubId(githubId: number): Promise<User | null> {
-    return await wrap('user.findByGitHubId', async () => {
-      const users = await this.db
-        .select({
-          id: tUser.id,
-          username: tUser.username,
-          githubId: tUser.githubId,
-          name: tUser.name,
-          aboutMe: tUser.aboutMe,
-          verifyCode: tUser.verifyCode,
-        })
-        .from(tUser)
-        .where(eq(tUser.githubId, githubId));
-      return users.length !== 0 ? users[0] : null;
-    });
-  }
+export async function findUserByGitHubId(db: AppDatabase, githubId: number): Promise<User | null> {
+  return wrap('findUserByGitHubId', async () => {
+    const [row] = await db.select().from(tUser).where(eq(tUser.githubId, githubId));
+    return row ? model(row) : null;
+  });
+}
 
-  async listAll(): Promise<User[]> {
-    return await wrap('user.listAll', async () => {
-      return await this.db
-        .select({
-          id: tUser.id,
-          username: tUser.username,
-          githubId: tUser.githubId,
-          name: tUser.name,
-          aboutMe: tUser.aboutMe,
-          verifyCode: tUser.verifyCode,
-        })
-        .from(tUser)
-        .orderBy(asc(tUser.id));
-    });
-  }
+export async function getUsers(db: AppDatabase): Promise<User[]> {
+  return wrap('getUsers', async () => (await db.select().from(tUser).orderBy(asc(tUser.id))).map(model));
+}
 
-  private async generateId(): Promise<string> {
-    return await wrap('user.generateId', async () => {
-      let id = newNanoId();
-      const count = () => this.db.$count(tUser, eq(tUser.id, id));
-      while ((await count()) > 0) {
-        id = newNanoId();
-      }
-      return id;
-    });
-  }
+export interface CreateUserParams {
+  username: string;
+  githubId: number | null;
+  name: string;
+  aboutMe: string;
+}
 
-  async create(input: UserInput): Promise<User> {
-    const id = await this.generateId();
+export async function createUser(db: AppDatabase, params: CreateUserParams): Promise<User> {
+  return wrap('createUser', async () => {
+    let id = newNanoId();
+    while (await db.$count(tUser, eq(tUser.id, id))) id = newNanoId();
     const now = new Date();
-    const user = {
-      id,
-      createdAt: now,
-      updatedAt: now,
-      username: input.username,
-      githubId: input.githubId,
-      name: input.name,
-      aboutMe: input.aboutMe,
-      verifyCode: newVerifyCode(),
-    };
-    return await wrap('user.create', async () => {
-      await this.db.insert(tUser).values(user);
-      return { ...user, roles: [] };
-    });
-  }
+    const [row] = await db
+      .insert(tUser)
+      .values({ ...params, id, verifyCode: newVerifyCode(), createdAt: now, updatedAt: now })
+      .returning();
+    return model(row);
+  });
+}
 
-  async update(userId: string, patch: Partial<UserPatch>): Promise<void> {
-    await wrap('user.update', () => this.db.update(tUser).set(patch).where(eq(tUser.id, userId)));
-  }
+export interface UpdateUserParams {
+  id: string;
+  username?: string;
+  name?: string;
+  aboutMe?: string;
+}
+
+// This operation leaves updatedAt unchanged.
+export async function updateUser(db: AppDatabase, { id, ...patch }: UpdateUserParams): Promise<void> {
+  return wrap('updateUser', async () => {
+    await db.update(tUser).set(patch).where(eq(tUser.id, id));
+  });
 }

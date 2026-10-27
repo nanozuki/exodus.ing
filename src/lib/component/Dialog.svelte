@@ -15,8 +15,8 @@
     elements: { portalled, overlay, content },
     states,
   } = createDialog(props.dialogProps || { role: 'alertdialog' });
-
   const sync = createSync(states);
+
   $effect(() => {
     sync.open(open, (value) => {
       open = value;

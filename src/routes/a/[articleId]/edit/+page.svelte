@@ -3,24 +3,31 @@
   import Button from '$lib/component/Button.svelte';
   import ButtonLink from '$lib/component/ButtonLink.svelte';
   import MarkdownEditor from './MarkdownEditor.svelte';
-  import { createOrUpdateMarkdownArticle, getArticleCardById, getArticleContentById } from '$remotes/articles.remote';
+  import { createOrUpdateMarkdownArticle, loadPageData } from './page.remote';
+  import { page } from '$app/state';
   import ExternalArticleForm from './ExternalArticleForm.svelte';
 
-  const { data } = $props();
-  const { articleId, replyToId, user } = $derived(data);
-  const articleQ = $derived(articleId ? getArticleContentById(articleId) : undefined);
-  const replyToQ = $derived(replyToId ? getArticleCardById(replyToId) : undefined);
-  const article = $derived(articleQ ? await articleQ : undefined);
-  const replyTo = $derived(replyToQ ? await replyToQ : undefined);
-  const contentType = $derived(article ? article.contentType : data.contentType);
+  const { params } = $props();
+
+  const { articleId, replyToId, user, article, replyTo, contentType } = $derived(
+    await loadPageData({
+      articleId: params.articleId,
+      replyTo: page.url.searchParams.get('replyTo'),
+      contentType: page.url.searchParams.get('contentType'),
+    }),
+  );
+
+  const replyQuery = $derived(replyToId ? `&replyTo=${encodeURIComponent(replyToId)}` : '');
 
   let title: string = $derived(article?.title ?? '');
   let content: string = $derived(article?.content ?? '');
   let valid: boolean = $state(false);
   let pending = $derived(createOrUpdateMarkdownArticle.pending);
+
   const onValidateChange = (isValid: boolean) => {
     valid = isValid;
   };
+
   const onTitleChange = (newTitle: string) => {
     title = newTitle;
   };
@@ -55,10 +62,10 @@
   <h5 class="font-sans font-semibold">请选择方式</h5>
   <div class="bg-accent-alt/10 p-m gap-m flex flex-col">
     <p>使用 Markdown 添加文章，可以直接在 Exodus 内撰写和编辑。文章内容可以直接在站内完整阅读并支持所有的互动功能</p>
-    <ButtonLink href="/a/new/edit?contentType=markdown" variant="primary">创建 Markdown 文章</ButtonLink>
+    <ButtonLink href={`/a/new/edit?contentType=markdown${replyQuery}`} variant="primary">创建 Markdown 文章</ButtonLink>
   </div>
   <div class="bg-accent-alt/10 p-m gap-m flex flex-col">
     <p>链接到你在其他网页上发表的文章，需要验证作者身份。在 Exodus 不展示文章内容，但仍支持评论回应等互动功能</p>
-    <ButtonLink variant="primary" href="/a/new/edit?contentType=external">链接外部文章</ButtonLink>
+    <ButtonLink variant="primary" href={`/a/new/edit?contentType=external${replyQuery}`}>链接外部文章</ButtonLink>
   </div>
 {/if}

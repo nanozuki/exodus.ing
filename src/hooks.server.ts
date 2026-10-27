@@ -1,9 +1,10 @@
+import { attachLocals } from '$lib/server/auth';
 import { getConfig } from '$lib/server/config';
-import { buildServices, attachLocals, adapters, repositories } from '$lib/server/registry';
+import { buildServices, adapters, db } from '$lib/server/registry';
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 
 function ensureHost(request: Request) {
-  const host = getConfig().EXODUSING_HOST;
+  const host = getConfig().appUrl;
   if (!request.url.startsWith(host)) {
     throw redirect(303, host);
   }
@@ -20,7 +21,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 
 export const init: ServerInit = async () => {
-  if (!repositories || !adapters) {
+  if (!db || !adapters) {
     await buildServices();
   }
 };

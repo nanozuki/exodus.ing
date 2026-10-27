@@ -1,10 +1,17 @@
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: './src/lib/server/repositories/schema.ts',
+  schema: './src/lib/server/db/schema.ts',
   out: './migrations',
   verbose: true,
   dialect: 'postgresql',
-  dbCredentials: { url: process.env.EXODUSING_DATABASE! },
+  dbCredentials: {
+    ssl: process.env.PGSSLMODE === 'disable' ? false : undefined,
+    host: process.env.PGHOST!,
+    port: Number(process.env.PGPORT),
+    user: process.env.PGUSER!,
+    password: process.env.PGPASSWORD!,
+    database: process.env.PGDATABASE!,
+  },
   strict: true,
 });

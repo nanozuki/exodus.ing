@@ -6,7 +6,7 @@
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
   import MdiLinkVariant from '~icons/mdi/link-variant';
   import { format } from 'date-fns';
-  import type { ArticleListItem } from '$lib/domain/entities/article';
+  import type { ArticleListItem } from '$lib/models/article';
   import UserBadge from './UserBadge.svelte';
 
   interface ArticleHeaderProps {
@@ -14,6 +14,7 @@
   }
 
   const { article }: ArticleHeaderProps = $props();
+
   const info = 'flex items-center gap-x-0.5';
 </script>
 
@@ -25,7 +26,6 @@
       </h2>
     </a>
   {:else}
-    <!-- contentType === 'external' -->
     <h2 class="font-serif font-bold">
       <a href={article.content} target="_blank" rel="noopener noreferrer" class="text-accent-alt">
         <MdiLinkVariant class="inline" />
@@ -36,9 +36,7 @@
   {#if article.replyTo}
     <p class="text-subtle bg-accent-alt/10 px-2xs w-fit">
       <MdiReply style="display: inline; vertical-align: text-top;" />
-      <a class="text-accent hover:text-accent-alt inline" href={`/u/@${article.replyTo.authorUsername}`}>
-        {article.replyTo.authorName}
-      </a>
+      <UserBadge user={article.replyTo.author} />
       的
       <a class="text-text inline font-serif font-bold underline" href={`/a/${article.replyTo.id}`}>
         {article.replyTo.title}
@@ -46,7 +44,7 @@
     </p>
   {/if}
   <div class="gap-x-2xs flex flex-wrap items-center text-sm">
-    <UserBadge name={article.authorName} username={article.authorUsername} />
+    <UserBadge user={article.author} />
     <div class={info}>
       <MdiCalendar /><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>
     </div>

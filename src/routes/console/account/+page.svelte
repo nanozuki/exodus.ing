@@ -1,21 +1,26 @@
 <script lang="ts">
+  import { page } from '$app/state';
+  import { loadLayoutData } from '../layout.remote';
   import Button from '$lib/component/Button.svelte';
   import Input from '$lib/component/Input.svelte';
   import Dialog from '$lib/component/Dialog.svelte';
-  import { updateUsername } from '$remotes/users.remote';
+  import { updateUsername } from './page.remote';
   import { FormState } from '$lib/rune/FormState.svelte';
 
-  const { data } = $props();
-  const { user } = $derived(data);
+  // Initialize dialog/form state before the async viewer boundary so snippets can open after hydration.
   let open = $state(false);
 
   let openDialog = () => {
     open = true;
   };
+
   let closeDialog = () => {
     open = false;
   };
+
   const formState = new FormState(updateUsername, { afterSubmit: closeDialog });
+
+  const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
 </script>
 
 <svelte:head>

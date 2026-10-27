@@ -4,11 +4,13 @@
   import ButtonLink from '$lib/component/ButtonLink.svelte';
   import Input from '$lib/component/Input.svelte';
   import { FormState } from '$lib/rune/FormState.svelte';
-  import { loginByGithub, registerByGithub } from '$remotes/auth.remote';
+  import { loginByGithub, registerByGithub } from './page.remote';
 
   let next = $derived(page.url.searchParams.get('next') || undefined);
+
   let username = $state('');
   let name = $state('');
+
   const registerForm = new FormState(registerByGithub);
   const loginForm = new FormState(loginByGithub);
 </script>

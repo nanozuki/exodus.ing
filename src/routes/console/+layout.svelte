@@ -1,8 +1,10 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { loadLayoutData } from './layout.remote';
 
-  const { children, data } = $props();
-  const routes = $derived(data.routes);
+  const { children } = $props();
+
+  const { routes } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
 </script>
 
 <h4 class="font-serif font-bold">控制台</h4>

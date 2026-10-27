@@ -1,0 +1,170 @@
+import { test, expect } from './support/fixtures';
+
+test('User updates profile and account identity', async ({ actor }) => {
+  const page = await actor('carol');
+  await test.step('Save a display name and Markdown biography', async () => {
+    await page.goto('/console/profile');
+    await page.locator('input[name="name"]').fill('Carol Updated');
+    await page.locator('textarea[name="aboutMe"]').fill('A **reader** biography with [Exodus](https://exodus.ing).');
+    await page.getByRole('button', { name: '更新', exact: true }).click();
+    await expect(page.locator('input[name="name"]')).toHaveValue('Carol Updated');
+    await expect(page.getByRole('link', { name: 'Carol Updated', exact: true })).toBeVisible();
+    await page.goto('/u/@carol');
+    await expect(page.getByRole('heading', { name: 'Carol Updated', exact: true })).toBeVisible();
+    await expect(page.getByRole('article').getByRole('link', { name: 'Exodus', exact: true })).toHaveAttribute(
+      'href',
+      'https://exodus.ing',
+    );
+    await expect(page.getByRole('article').getByRole('strong')).toHaveText('reader');
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Carol Updated', exact: true })).toBeVisible();
+    await expect(page.getByRole('article').getByText('A reader biography with Exodus.', { exact: true })).toBeVisible();
+  });
+  await test.step('Cancel a username change', async () => {
+    await page.goto('/console/account');
+    await page.getByRole('button', { name: '编辑', exact: true }).click();
+    await page.locator('input[name="username"]').fill('discarded-carol');
+    await page.getByRole('button', { name: '取消', exact: true }).click();
+    await expect(page.getByText('carol', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText('carol', { exact: true })).toBeVisible();
+  });
+  await test.step('Save an available username and follow the new profile address', async () => {
+    await page.getByRole('button', { name: '编辑', exact: true }).click();
+    await page.locator('input[name="username"]').fill('carol-updated');
+    await page.getByRole('button', { name: '提交', exact: true }).click();
+    await expect(page).toHaveURL('/u/@carol-updated');
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Carol Updated', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Carol Updated', exact: true })).toHaveAttribute(
+      'href',
+      '/u/@carol-updated',
+    );
+    await page.goto('/console/account');
+    await expect(page.getByText('carol-updated', { exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Carol Updated', exact: true })).toHaveAttribute(
+      'href',
+      '/u/@carol-updated',
+    );
+  });
+});
+
+test('User corrects invalid profile and account input', async ({ actor, db }) => {
+  const page = await actor('carol');
+  await test.step('Correct an empty required display name', async () => {
+    await page.goto('/console/profile');
+    const name = page.locator('input[name="name"]');
+    await name.fill('');
+    await page.getByRole('button', { name: '更新', exact: true }).click();
+    await expect.poll(() => name.evaluate((input) => (input as HTMLInputElement).validity.valueMissing)).toBe(true);
+    expect((await db.query('SELECT name FROM "user" WHERE username = $1', ['carol'])).rows[0].name).toBe('Carol');
+    await page.reload();
+    await expect(name).toHaveValue('Carol');
+    await name.fill('Carol Valid');
+    await page.getByRole('button', { name: '更新', exact: true }).click();
+    await expect(page.getByRole('link', { name: 'Carol Valid', exact: true })).toBeVisible();
+    await page.reload();
+    await expect(name).toHaveValue('Carol Valid');
+  });
+  await test.step('Correct a username beginning with @', async () => {
+    await page.goto('/console/account');
+    await page.getByRole('button', { name: '编辑', exact: true }).click();
+    await page.locator('input[name="username"]').fill('@invalid-carol');
+    await page.getByRole('button', { name: '提交', exact: true }).click();
+    await expect(page.getByText('用户名不能以 @ 开头', { exact: false })).toBeVisible();
+    expect((await db.query('SELECT username FROM "user" WHERE id = $1', ['user_reader_1'])).rows[0].username).toBe(
+      'carol',
+    );
+    await page.locator('input[name="username"]').fill('carol-valid');
+    await page.getByRole('button', { name: '提交', exact: true }).click();
+    await expect(page).toHaveURL('/u/@carol-valid');
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Carol Valid', exact: true })).toBeVisible();
+    await page.goto('/console/account');
+    await expect(page.getByText('carol-valid', { exact: true })).toBeVisible();
+  });
+});
+
+test('Author manages invitations and invites a new author', async ({ actor, db }) => {
+  const author = await actor('alice');
+  const reader = await actor('carol');
+  let code: string;
+  await test.step('Create and delete an invitation, restoring quota', async () => {
+    await author.goto('/console/invites');
+    await expect(author.getByRole('button', { name: '创建邀请码(11)', exact: true })).toBeVisible();
+    await author.getByRole('button', { name: '创建邀请码(11)', exact: true }).click();
+    await expect(author.getByRole('button', { name: '创建邀请码(10)', exact: true })).toBeVisible();
+    // The delete controls have no text; scope the button through its submitted invitation code.
+    const created = (
+      await db.query('SELECT code FROM invite_code WHERE inviter_id = $1 AND code != $2 AND used_at IS NULL', [
+        'user_author_1',
+        'INVITE_AUTHOR1_UNUSED',
+      ])
+    ).rows;
+    expect(created).toHaveLength(1);
+    code = created[0].code;
+    await expect(author.getByText(code, { exact: true })).toBeVisible();
+    await author
+      .locator('form')
+      .filter({ has: author.locator(`input[name="code"][value="${code}"]`) })
+      .getByRole('button')
+      .click();
+    await expect(author.getByText(code, { exact: true })).toHaveCount(0);
+    await expect(author.getByRole('button', { name: '创建邀请码(11)', exact: true })).toBeVisible();
+    await author.reload();
+    await expect(author.getByText(code, { exact: true })).toHaveCount(0);
+    await expect(author.getByRole('button', { name: '创建邀请码(11)', exact: true })).toBeVisible();
+  });
+  await test.step('Create another invitation and redeem it in a separate context', async () => {
+    await author.getByRole('button', { name: '创建邀请码(11)', exact: true }).click();
+    await expect(author.getByRole('button', { name: '创建邀请码(10)', exact: true })).toBeVisible();
+    code = (
+      await db.query('SELECT code FROM invite_code WHERE inviter_id = $1 AND code != $2 AND used_at IS NULL', [
+        'user_author_1',
+        'INVITE_AUTHOR1_UNUSED',
+      ])
+    ).rows[0].code;
+    await expect(author.getByText(code, { exact: true })).toBeVisible();
+    await reader.goto('/console/be-writer');
+    await reader.locator('input[name="inviteCode"]').fill(code);
+    await reader.getByRole('button', { name: '成为作者', exact: true }).click();
+    await expect(reader).toHaveURL('/console/invites?welcome=true');
+    await expect(reader.getByText('恭喜！邀请码验证通过！', { exact: false })).toBeVisible();
+    await expect(reader.getByRole('link', { name: 'Alice', exact: true })).toHaveAttribute('href', '/u/@alice');
+    await reader.getByRole('link', { name: '发表新文章', exact: true }).click();
+    await expect(reader.getByRole('link', { name: '创建 Markdown 文章', exact: true })).toBeVisible();
+    await reader.reload();
+    await expect(reader.getByRole('link', { name: '创建 Markdown 文章', exact: true })).toBeVisible();
+    await reader.goto('/console/invites');
+    await reader.reload();
+    await expect(reader.getByRole('link', { name: 'Alice', exact: true })).toBeVisible();
+    await author.reload();
+    await expect(author.getByRole('link', { name: 'Carol', exact: true })).toHaveAttribute('href', '/u/@carol');
+    await expect(author.getByText(code, { exact: true })).toHaveCount(0);
+    await expect(author.getByRole('button', { name: '创建邀请码(10)', exact: true })).toBeVisible();
+  });
+});
+
+test('Reader corrects an invalid invitation before becoming an author', async ({ actor }) => {
+  const page = await actor('carol');
+  await page.goto('/console/be-writer');
+  for (const [code, error] of [
+    ['NONEXISTENT_INVITATION', '邀请码不存在'],
+    ['INVITE_AUTHOR1_USED', '邀请码已被使用'],
+  ]) {
+    await page.locator('input[name="inviteCode"]').fill(code);
+    await page.getByRole('button', { name: '成为作者', exact: true }).click();
+    await expect(page.getByText(error, { exact: false })).toBeVisible();
+    await expect(page.getByRole('link', { name: '邀请', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: '发表新文章', exact: true })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole('button', { name: '成为作者', exact: true })).toBeVisible();
+  }
+  await page.locator('input[name="inviteCode"]').fill('INVITE_AUTHOR1_UNUSED');
+  await page.getByRole('button', { name: '成为作者', exact: true }).click();
+  await expect(page).toHaveURL('/console/invites?welcome=true');
+  await expect(page.getByRole('link', { name: '发表新文章', exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole('link', { name: '发表新文章', exact: true }).click();
+  await expect(page.getByRole('link', { name: '创建 Markdown 文章', exact: true })).toBeVisible();
+});

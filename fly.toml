@@ -17,7 +17,7 @@ primary_region = 'fra'
   processes = ['app']
 
 [env]
-  EXODUSING_HOST = "https://exodus.ing"
+  APP_URL = "https://exodus.ing"
 
 [[vm]]
   memory = '256mb'

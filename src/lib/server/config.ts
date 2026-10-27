@@ -1,29 +1,40 @@
-import { throwError } from '$lib/errors';
+import { throwError } from '../errors';
 
 export type Config = {
-  EXODUSING_GITHUB_ID: string;
-  EXODUSING_GITHUB_SECRET: string;
-  // EXODUSING_GOOGLE_ID: string;
-  // EXODUSING_GOOGLE_SECRET: string;
-  EXODUSING_HOST: string;
-  EXODUSING_DATABASE: string;
+  githubClientId: string;
+  githubClientSecret: string;
+  appUrl: string;
+  database: {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+    // Uses channel binding when offered; the driver may fall back without it.
+    enableChannelBinding: boolean;
+  };
 };
 
-export function getConfig(): Config {
+export function getConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const getEnv = (key: string): string => {
-    const value = process.env[key];
+    const value = env[key];
     if (typeof value !== 'string') {
       return throwError('MISSING_CONFIG', { item: key });
     }
     return value;
   };
   const config: Config = {
-    EXODUSING_GITHUB_ID: getEnv('EXODUSING_GITHUB_ID'),
-    EXODUSING_GITHUB_SECRET: getEnv('EXODUSING_GITHUB_SECRET'),
-    // EXODUSING_GOOGLE_ID: getEnv('EXODUSING_GOOGLE_ID'),
-    // EXODUSING_GOOGLE_SECRET: getEnv('EXODUSING_GOOGLE_SECRET'),
-    EXODUSING_HOST: getEnv('EXODUSING_HOST'),
-    EXODUSING_DATABASE: getEnv('EXODUSING_DATABASE'),
+    githubClientId: getEnv('GITHUB_CLIENT_ID'),
+    githubClientSecret: getEnv('GITHUB_CLIENT_SECRET'),
+    appUrl: getEnv('APP_URL'),
+    database: {
+      host: getEnv('PGHOST'),
+      port: Number(getEnv('PGPORT')),
+      user: getEnv('PGUSER'),
+      password: getEnv('PGPASSWORD'),
+      database: getEnv('PGDATABASE'),
+      enableChannelBinding: env.PGCHANNELBINDING === 'prefer' || env.PGCHANNELBINDING === 'require',
+    },
   };
   return config;
 }

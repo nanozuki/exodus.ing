@@ -5,6 +5,7 @@
   interface CommentBadgeProps {
     count: number;
   }
+
   const { count }: CommentBadgeProps = $props();
 </script>
 

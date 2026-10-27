@@ -1,0 +1,3 @@
+# static
+
+no code files

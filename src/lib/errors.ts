@@ -124,5 +124,6 @@ export function catchError(e: unknown): AppError<ErrorTag> {
     return createError('INTERNAL_SERVER_ERROR', e.message);
   }
   console.log('Unknown thing caught:', e);
-  throw e; // Re-throw unknown non-error, maybe useful for other lib or framework
+  // Upstream handlers may recognize non-Error control-flow values.
+  throw e;
 }

@@ -6,17 +6,19 @@
   import DeleteIcon from '~icons/material-symbols-light/delete-outline';
   import UserBadge from '$lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
-  import { createInviteCode, deleteInviteCode, getConsoleInviteData } from '$remotes/invite_codes.remote';
+  import { createInviteCode, deleteInviteCode, loadPageData } from './page.remote';
 
   const welcome = $derived(page.url.searchParams.get('welcome') === 'true');
-  const inviteData = $derived(await getConsoleInviteData({}));
+
+  const inviteData = $derived(await loadPageData({}));
   const { invitees, inviter, quota, unusedCodes } = $derived(inviteData);
+
   let copied = $state('');
 </script>
 
 <p>
   {#if inviter}
-    {#if welcome}恭喜！邀请码验证通过！{/if}你受 <UserBadge {...inviter} /> 邀请成为作者。
+    {#if welcome}恭喜！邀请码验证通过！{/if}你受 <UserBadge user={inviter.user} /> 邀请成为作者。
   {:else}
     您通过站点直接邀请成为作者。
   {/if}
@@ -73,8 +75,8 @@
   <div>
     <h5 class="font-semibold">已邀请作者</h5>
     <div class="grid-invitees gap-x-xs gap-y-2xs grid">
-      {#each invitees as { name, username, invitedAt }}
-        <UserBadge {name} {username} />
+      {#each invitees as { user, invitedAt }}
+        <UserBadge {user} />
         {format(new Date(invitedAt), 'yyyy-MM-dd HH:mm')}
       {/each}
     </div>

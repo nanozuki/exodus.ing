@@ -7,9 +7,9 @@
   import MdiTextBoxEditOutline from '~icons/mdi/text-box-edit-outline';
   import UserBadge from '$lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
-  import type { CommentView } from '$lib/domain/entities/comment';
-  import { postComment } from '$remotes/comments.remote';
-  import type { User } from '$lib/domain/entities/user';
+  import type { CommentView } from './Comments.remote';
+  import { postComment } from './Comments.remote';
+  import type { User } from '$lib/models/user';
   import { FormState } from '$lib/rune/FormState.svelte';
 
   type CommentsProps = {
@@ -19,11 +19,13 @@
   };
 
   let { articleId, comments, user }: CommentsProps = $props();
+
   let authNext = $derived(encodeURIComponent(`/a/${articleId}#comment-section`));
 
   let editCommentId = $state<string | undefined>(undefined);
   let replyToId = $state<string | undefined>(undefined);
   let content = $state<string>('');
+
   const reply = (to: string) => {
     replyToId = to;
     editCommentId = undefined;
@@ -31,6 +33,7 @@
     document.getElementById('comment-input')?.scrollIntoView();
     document.getElementById('comment-input')?.focus();
   };
+
   const edit = (comment: CommentView) => {
     editCommentId = comment.id;
     replyToId = comment.replyTo?.id;
@@ -38,6 +41,7 @@
     document.getElementById('comment-input')?.scrollIntoView();
     document.getElementById('comment-input')?.focus();
   };
+
   const reset = () => {
     editCommentId = undefined;
     replyToId = undefined;
@@ -53,7 +57,6 @@
 <div id="comment-section" class="border-accent gap-y-m flex flex-col border-t-4">
   <h2 class="pt-1 font-serif font-bold">评论</h2>
 
-  <!-- Comment Form -->
   {#if user}
     <form {...form.props} class="gap-y-xs flex flex-col">
       {#if editCommentId}
@@ -73,7 +76,7 @@
         {#snippet addition()}
           {#if replied}
             <div class="bg-overlay p-1">
-              <p>回复 <UserBadge name={replied.author.name} username={replied.author.username} /></p>
+              <p>回复 <UserBadge user={replied.author} /></p>
               <p class="text-subtle">{replied.content}</p>
             </div>
           {/if}
@@ -98,7 +101,6 @@
     </div>
   {/if}
 
-  <!-- Comments List -->
   {#if comments.length > 0}
     <h6 class="pt-1 font-bold">
       评论 {comments.length}
@@ -109,7 +111,7 @@
       <div class="border-border border-t"></div>
       <div id={`comment-${comment.id}`}>
         <div class="gap-x-xs flex flex-row items-center">
-          <UserBadge name={comment.author.name} username={comment.author.username} />
+          <UserBadge user={comment.author} />
           <div class="gap-x-2xs flex flex-row items-center">
             <MdiCalendar />{format(comment.createdAt, 'yyyy-MM-dd HH:mm')}
           </div>
@@ -117,7 +119,7 @@
         </div>
         {#if comment.replyTo}
           <div class="bg-overlay p-1">
-            <p>回复 <UserBadge name={comment.replyTo.author.name} username={comment.replyTo.author.username} /></p>
+            <p>回复 <UserBadge user={comment.replyTo.author} /></p>
             {#each comment.replyTo.content.split('\n') as line}
               <p class="text-subtle">{line}</p>
             {/each}
