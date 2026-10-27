@@ -2,13 +2,12 @@ import { form, getRequestEvent, query } from '$app/server';
 import type { Comment } from '$lib/models/comment';
 import { getCommentsOfArticle } from '$lib/server/repositories/comment';
 import { saveComment } from '$lib/server/use-cases/comment';
-
-// A reply target is attached only when it occurs in the loaded discussion.
-export type CommentView = Comment & { replyTo?: Comment };
-
 import { db } from '$lib/server/registry';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
+
+// A reply target is attached only when it occurs in the loaded discussion.
+export type CommentView = Comment & { replyTo?: Comment };
 
 function commentViews(comments: Comment[]): CommentView[] {
   const map = new Map<string, Comment>();
