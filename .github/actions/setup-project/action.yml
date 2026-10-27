@@ -1,0 +1,19 @@
+name: Set up project
+description: Prepare the pinned Nix development environment and JavaScript dependencies.
+
+runs:
+  using: composite
+  steps:
+    - uses: cachix/install-nix-action@v31
+
+    # Separate caches let each job retain its own dependencies; compatible
+    # caches from other jobs or the base branch can still seed a cold run.
+    - uses: nix-community/cache-nix-action@v7
+      with:
+        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock') }}-${{ github.job }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock') }}
+        gc-max-store-size-linux: 4G
+
+    - name: Install dependencies
+      shell: bash
+      run: nix develop --command pnpm install --frozen-lockfile
