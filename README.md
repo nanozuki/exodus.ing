@@ -115,6 +115,21 @@ docker build .
 docker build --platform linux/amd64 .
 ```
 
+## Continuous integration
+
+[CI](.github/workflows/ci.yml) runs on pull requests and pushes to `main` and `next`.
+The `Checks and tests` job uses `nix develop` with the committed `flake.lock` for
+dependency installation, Prettier, ESLint, both type checks, and `pnpm test`.
+Tests include unit/browser tests, script integration tests, and end-to-end tests
+against a production build. PostgreSQL comes from `nix run .#pg`; Chromium and
+its system dependencies are installed by the lockfile's Playwright version.
+Tests use placeholder OAuth credentials and do not require production secrets.
+
+The `main` ruleset requires a pull request, an up-to-date branch, and the
+`Checks and tests` status from GitHub Actions before merging. Keep this job name
+stable when editing the workflow. A push to `main` deploys to Fly.io only after
+the checks pass again. Failed runs retain test diagnostics for three days.
+
 ## Stack
 
 - Svelte and SvelteKit
