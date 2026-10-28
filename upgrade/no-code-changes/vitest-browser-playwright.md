@@ -1,6 +1,6 @@
 # @vitest/browser-playwright
 
-执行状态：本次目标升级已因配套版本不满足而回撤，等待对应迁移组；详见[版本约束记录](../version-constraints.md)。本文版本区间保留为调研目标。
+执行状态：2026-10-28 已完成目标升级，实际安装版本为 5.0.5；browser-svelte 已配套升级为 3.1.0，详见[版本约束记录](../version-constraints.md)。本文保留原调研区间及迁移依据。
 
 - 调研日期：2026-10-28。
 - 清单当前版本：`^4.0.18`；清单目标版本：`^5.0.5`。固定比较区间：`4.0.18 < version <= 5.0.5`。
@@ -30,4 +30,4 @@
 
 使用 monorepo 的 [Vitest5官方迁移指南](https://vitest.dev/guide/migration/)，重点是 locator strict default、SerializedLocator、browser session、artifact目录和配置继承。未找到本 provider 的独立迁移指南。
 
-本项目未自定义 browser command，因此不需自己解构 SerializedLocator；也不应为“兼容”直接关闭精确匹配。后续以 Chromium 实际运行 Dialog 测试，验证挂载、焦点、fill/click和退出清理；核查 browser-svelte3 await render 后再跑全套单测。本轮未安装或运行目标版本。
+本项目未自定义 browser command，因此不需自己解构 SerializedLocator；也不应为“兼容”直接关闭精确匹配。目标版本已安装，browser-svelte3 已迁移为 await render。Chromium Dialog 测试验证了挂载、焦点、fill/click和正常退出；全部41项 Vitest 测试通过，无需修改 provider 配置。

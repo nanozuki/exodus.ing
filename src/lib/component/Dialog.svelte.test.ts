@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-svelte';
 import DialogTest from './Dialog.test.svelte';
 
 test('Content closes the dialog and reopening discards edits', async () => {
-  const screen = render(DialogTest);
+  const screen = await render(DialogTest);
   const trigger = screen.getByRole('button', { name: 'Edit username' });
   const dialog = screen.getByRole('dialog', { includeHidden: true });
   await trigger.click();

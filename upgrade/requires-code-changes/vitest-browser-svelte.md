@@ -1,12 +1,14 @@
 # vitest-browser-svelte
 
+执行状态：2026-10-28 已升级至 3.1.0，并与 Vitest/provider 5.0.5 配套验证通过。
+
 - 调研日期：2026-10-28。
 - 清单当前版本：`^2.0.2`；清单目标版本：`^3.1.0`。固定比较区间：`2.0.2 < version <= 3.1.0`。
-- 分类：**需要修改代码**。现有 Dialog.svelte.test.ts 把 render 当成同步函数，目标版本必须改为 await render(DialogTest)。
+- 分类：**需要修改代码**。升级前 Dialog.svelte.test.ts 把 render 当成同步函数，现已迁移为 await render(DialogTest)。
 
 ## 项目用法
 
-`src/lib/component/Dialog.svelte.test.ts:6` 当前为 `const screen = render(DialogTest)`，之后立即调用 `screen.getByRole`。测试还使用 locator 的 click / fill 和 Vitest 的 `expect.element`。当前配置运行 Chromium Browser Mode。
+`src/lib/component/Dialog.svelte.test.ts:6` 升级前为 `const screen = render(DialogTest)`，现已改为 `const screen = await render(DialogTest)`，之后立即调用 `screen.getByRole`。测试还使用 locator 的 click / fill 和 Vitest 的 `expect.element`。当前配置运行 Chromium Browser Mode。
 
 ## 区间变更
 
@@ -24,4 +26,4 @@
 
 Vitest 官方迁移指南专门覆盖 [render 改为 async](https://vitest.dev/guide/migration/#render-is-async-in-vitest-browser-vue-and-vitest-browser-svelte)。本库未找到独立迁移指南，3.0.0 release 是库自身的 breaking 说明。
 
-后续验证 Dialog 的打开、关闭、焦点归还、重开后丢弃草稿，运行 `pnpm test:unit --run --project client` 与类型检查；同时核查 Vitest 5 locator 默认精确匹配。本轮仅记录，未改测试或安装目标版本。
+已运行 `pnpm test:unit --run --project client` 与类型检查，并核查 Vitest 5 locator 默认精确匹配。已先复现同步 render 导致的 `screen.getByRole is not a function`，再完成 await render 迁移。Chromium 组件测试及全部41项 Vitest 测试通过，验证了打开、关闭、焦点归还和草稿丢弃；无需修改 locator 精确匹配配置。

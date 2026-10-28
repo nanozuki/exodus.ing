@@ -1,6 +1,6 @@
 # vitest
 
-执行状态：本次目标升级已因配套版本不满足而回撤，等待对应迁移组；详见[版本约束记录](../version-constraints.md)。本文版本区间保留为调研目标。
+执行状态：2026-10-28 已完成目标升级，实际安装版本为 5.0.5；browser-svelte 已配套升级为 3.1.0，详见[版本约束记录](../version-constraints.md)。本文保留原调研区间及迁移依据。
 
 - 调研日期：2026-10-28。
 - 清单当前版本：`^4.0.18`；清单目标版本：`^5.0.5`。固定比较区间：`4.0.18 < version <= 5.0.5`。
@@ -33,4 +33,4 @@
 
 ## 官方迁移指南与验证
 
-[官方 Migrating to Vitest 5.0](https://vitest.dev/guide/migration/) 是本区间的专门迁移指南。后续重点验证 client/server 项目发现、根配置继承、SvelteKit 插件、mock 生命周期、数据库与 fake Date、退出清理；运行 `pnpm test:unit --run`，并修复 browser-svelte 的 await render。本轮未升级依赖或运行目标版本。
+[官方 Migrating to Vitest 5.0](https://vitest.dev/guide/migration/) 是本区间的专门迁移指南。已完成 browser-svelte 的 await render 迁移；`pnpm test:unit --run --project client` 和 `pnpm test:unit --run` 均通过，全部41项测试覆盖 client/server 项目发现、SvelteKit 插件、mock、数据库及 fake Date 的现有用法，测试进程正常退出，配置无需修改。

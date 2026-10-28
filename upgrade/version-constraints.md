@@ -1,6 +1,6 @@
 # 剩余依赖的版本关系
 
-这里只记录尚未完成的升级及其配套关系，原始版本与目标见[剩余工作索引](README.md)。
+这里记录尚未完成的升级及其配套关系，并保留已完成的浏览器测试组约束，原始版本与目标见[剩余工作索引](README.md)。
 
 ## Kit与构建组
 
@@ -14,15 +14,15 @@
 
 建议在完成Kit3迁移时一起处理这五项，不能通过只更新Vite或plugin绕开Kit的peer约束。
 
-## 浏览器测试组
+## 浏览器测试组（已完成）
 
-| 依赖                       | 保留版本 | 目标  | 配套要求                                              |
-| -------------------------- | -------- | ----- | ----------------------------------------------------- |
-| vitest-browser-svelte      | 2.0.2    | 3.1.0 | 当前2.0.2只支持Vitest4；目标3要求现有测试await render |
-| vitest                     | 4.0.18   | 5.0.5 | 等待browser-svelte迁移后升级                          |
-| @vitest/browser-playwright | 4.0.18   | 5.0.5 | provider与Vitest要求精确版本相同，不只是主版本匹配    |
+| 依赖                       | 原版本 | 已安装 | 配套要求                                           |
+| -------------------------- | ------ | ------ | -------------------------------------------------- |
+| vitest-browser-svelte      | 2.0.2  | 3.1.0  | 原2.0.2只支持Vitest4；已迁移为await render         |
+| vitest                     | 4.0.18 | 5.0.5  | 已与browser-svelte3配套升级                        |
+| @vitest/browser-playwright | 4.0.18 | 5.0.5  | provider与Vitest要求精确版本相同，不只是主版本匹配 |
 
-应将三者目标同时安装，避免browser-svelte2与Vitest5或provider/Vitest版本不同的组合。
+三者已同时安装并通过验证；保留上述约束，避免browser-svelte2与Vitest5或provider/Vitest版本不同的组合。
 
 ## TypeScript与检查工具组
 
