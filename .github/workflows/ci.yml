@@ -2,44 +2,29 @@ name: CI
 
 on:
   pull_request:
-  push:
-    branches: [main, next]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITHUB_CLIENT_ID: ci-client-id
+  GITHUB_CLIENT_SECRET: ci-client-secret
+
+# These jobs use separate runners and run in parallel. Keep their names stable:
+# main requires all three status checks before merging.
 jobs:
-  checks:
-    # Keep this name stable: main requires this status check before merging.
-    name: Checks and tests
+  check:
+    name: Static checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    concurrency:
-      group: checks-${{ github.ref }}
-      cancel-in-progress: true
-    env:
-      GITHUB_CLIENT_ID: ci-client-id
-      GITHUB_CLIENT_SECRET: ci-client-secret
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
-      - uses: cachix/install-nix-action@v31
-
-      - uses: nix-community/cache-nix-action@v7
-        with:
-          primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock') }}
-          gc-max-store-size-linux: 4G
-
-      - name: Install dependencies
-        run: nix develop --command pnpm install --frozen-lockfile
-
-      - name: Install Chromium
-        run: nix develop --command pnpm exec playwright install --with-deps chromium
-
-      # Realize PostgreSQL before the test helpers' startup timeout begins.
-      - name: Prepare PostgreSQL
-        run: nix build --no-link .#pg
+      - uses: ./.github/actions/setup-project
 
       - name: Check formatting
         run: nix develop --command pnpm exec prettier --check .
@@ -53,10 +38,27 @@ jobs:
       - name: Check end-to-end test types
         run: nix develop --command pnpm check:e2e
 
-      # Includes browser/unit tests, script integration tests, a production build,
-      # and end-to-end tests against that build and the flake's PostgreSQL service.
-      - name: Run all tests
-        run: nix develop --command pnpm test
+  test:
+    name: Unit and integration tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+
+      # Vitest also supports component tests running in Chromium.
+      - name: Install Chromium
+        run: nix develop --command pnpm exec playwright install --with-deps chromium
+
+      # Realize PostgreSQL before the test helpers' startup timeout begins.
+      - name: Prepare PostgreSQL
+        run: nix build --no-link .#pg
+
+      - name: Run unit and repository tests
+        run: nix develop --command pnpm test:unit --run
+
+      - name: Run script integration tests
+        run: nix develop --command pnpm test:script
 
       - name: Stop PostgreSQL
         if: always()
@@ -66,7 +68,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-failure-diagnostics
+          name: test-diagnostics
           path: |
             test-results/
             .direnv/*.log
@@ -74,15 +76,36 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
 
-  deploy:
-    name: Deploy app
-    needs: checks
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  e2e:
+    name: E2E tests
     runs-on: ubuntu-24.04
-    concurrency: deploy-group
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - uses: ./.github/actions/setup-project
+
+      - name: Install Chromium
+        run: nix develop --command pnpm exec playwright install --with-deps chromium
+
+      - name: Prepare PostgreSQL
+        run: nix build --no-link .#pg
+
+      # Global setup builds the production application before starting tests.
+      - name: Run end-to-end tests
+        run: nix develop --command pnpm test:e2e
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: nix develop --command pnpm pg:stop
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-diagnostics
+          path: |
+            test-results/
+            .direnv/*.log
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 3

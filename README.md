@@ -117,18 +117,28 @@ docker build --platform linux/amd64 .
 
 ## Continuous integration
 
-[CI](.github/workflows/ci.yml) runs on pull requests and pushes to `main` and `next`.
-The `Checks and tests` job uses `nix develop` with the committed `flake.lock` for
-dependency installation, Prettier, ESLint, both type checks, and `pnpm test`.
-Tests include unit/browser tests, script integration tests, and end-to-end tests
-against a production build. PostgreSQL comes from `nix run .#pg`; Chromium and
-its system dependencies are installed by the lockfile's Playwright version.
-Tests use placeholder OAuth credentials and do not require production secrets.
+[CI](.github/workflows/ci.yml) runs when a pull request is opened or updated,
+and can also be started manually. Its jobs run in parallel on separate runners:
 
-The `main` ruleset requires a pull request, an up-to-date branch, and the
-`Checks and tests` status from GitHub Actions before merging. Keep this job name
-stable when editing the workflow. A push to `main` deploys to Fly.io only after
-the checks pass again. Failed runs retain test diagnostics for three days.
+| Job     | Required check             | Scope                                                         |
+| ------- | -------------------------- | ------------------------------------------------------------- |
+| `check` | Static checks              | Prettier, ESLint, application and E2E type checks             |
+| `test`  | Unit and integration tests | Vitest (including browser tests) and script integration tests |
+| `e2e`   | E2E tests                  | Playwright journeys against a production build                |
+
+Each job uses `nix develop` with the committed `flake.lock`. The shared
+[setup action](.github/actions/setup-project/action.yml) installs Nix, restores
+the job's Nix cache, and installs dependencies with the frozen pnpm lockfile.
+Test jobs use their own flake-managed PostgreSQL service and the lockfile's
+Playwright Chromium. E2E global setup builds the application once. Tests use
+placeholder OAuth credentials; failed runs retain diagnostics for three days.
+
+The `main` ruleset requires a pull request, an up-to-date branch, all three CI
+checks above, and GitGuardian Security Checks. Keep the check names stable.
+[Deploy](.github/workflows/deploy.yml) runs on pushes to `main`: Fly.io builds
+and deploys the application, then a read-only homepage check verifies public
+HTTPS availability with retries for cold starts. It does not rerun the CI
+test suites. Deployments are serialized and are not interrupted by later pushes.
 
 ## Stack
 
