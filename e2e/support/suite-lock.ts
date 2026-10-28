@@ -27,6 +27,7 @@ export function acquireSuiteLock(): void {
     if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
       throw new Error(
         'An E2E suite already owns .direnv/e2e-suite.lock. Check its owner before removing a stale lock.',
+        { cause: error },
       );
     }
     throw error;

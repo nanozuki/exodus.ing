@@ -29,8 +29,7 @@ Supporting nonexported types used in `loadPageData`:
 ```typescript
 type Tab = 'articles' | 'comments';
 type ListData = { tabs: Tab[] } & (
-  | { tab: 'articles'; articles: Paginated<ArticleListItem> }
-  | { tab: 'comments'; comments: Paginated<CommentListItem> }
+  { tab: 'articles'; articles: Paginated<ArticleListItem> } | { tab: 'comments'; comments: Paginated<CommentListItem> }
 );
 ```
 

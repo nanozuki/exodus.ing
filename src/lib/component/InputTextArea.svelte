@@ -26,6 +26,5 @@
     class="bg-surface border-accent-alt focus-visible:border-accent h-[5em] border-2 p-1 focus-visible:outline-hidden"
     bind:value
     {name}
-    {...rest}
-  ></textarea>
+    {...rest}></textarea>
 </div>
