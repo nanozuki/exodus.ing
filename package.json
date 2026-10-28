@@ -89,10 +89,5 @@
     "unified": "^11.0.5",
     "vfile-matter": "^5.0.1"
   },
-  "packageManager": "pnpm@10.28.2",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  }
+  "packageManager": "pnpm@12.15.0"
 }

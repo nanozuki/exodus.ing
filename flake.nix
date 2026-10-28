@@ -49,11 +49,13 @@
               superuser = "exodus";
               createDatabase = false;
               initialScript.before = pkgs.writeText "init-postgres.sql" "ALTER ROLE exodus WITH PASSWORD 'exodus';";
-              settings.hba_file = toString (pkgs.writeText "pg_hba.conf" ''
-                local all all trust
-                host all all 127.0.0.1/32 scram-sha-256
-                host all all ::1/128 scram-sha-256
-              '');
+              settings.hba_file = toString (
+                pkgs.writeText "pg_hba.conf" ''
+                  local all all trust
+                  host all all 127.0.0.1/32 scram-sha-256
+                  host all all ::1/128 scram-sha-256
+                ''
+              );
             };
           };
 
@@ -68,11 +70,11 @@
             packages = with pkgs; [
               flyctl
               git
-              nodePackages."@tailwindcss/language-server"
-              nodePackages.nodejs
-              nodePackages.pnpm
-              nodePackages.svelte-language-server
+              nodejs
               pgcli
+              pnpm
+              svelte-language-server
+              tailwindcss-language-server
               vtsls
             ];
             shellHook = ''
