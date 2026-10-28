@@ -14,8 +14,8 @@ declare const component: Component<Props>;
 export default component;
 ```
 
-Call the ancestor console `loadLayoutData({ pathname: page.url.pathname })` and display its user's username and GitHub ID. Open a bindable dialog to edit username, provide cancel without submission, and submit
-updateUsername with field issues and operation error feedback. FormState closes the dialog after fulfilled submission.
+Call the ancestor console `loadLayoutData({ pathname: page.url.pathname })` and display its user's username and GitHub ID. Use an internally controlled dialog to edit username, provide cancel without submission, and submit
+updateUsername with field issues and operation error feedback. Successful submission navigates to the updated profile; the dialog ends with the page. The trigger snippet supplies button content; cancellation uses the content snippet’s close callback.
 
 ### `src/routes/console/account/page.remote.ts`
 

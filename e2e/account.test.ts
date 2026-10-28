@@ -25,9 +25,28 @@ test('User updates profile and account identity', async ({ actor }) => {
     await page.getByRole('button', { name: '编辑', exact: true }).click();
     await page.locator('input[name="username"]').fill('discarded-carol');
     await page.getByRole('button', { name: '取消', exact: true }).click();
+    await expect(page.locator('input[name="username"]')).toBeHidden();
+    await expect(page.getByRole('button', { name: '编辑', exact: true })).toBeFocused();
+    await page.getByRole('button', { name: '编辑', exact: true }).click();
+    await expect(page.locator('input[name="username"]')).toHaveValue('carol');
+    await page.getByRole('button', { name: '取消', exact: true }).click();
     await expect(page.getByText('carol', { exact: true })).toBeVisible();
     await page.reload();
     await expect(page.getByText('carol', { exact: true })).toBeVisible();
+  });
+  await test.step('Dismiss username editing with Escape and an outside click', async () => {
+    const trigger = page.getByRole('button', { name: '编辑', exact: true });
+    const username = page.locator('input[name="username"]');
+    await trigger.click();
+    await expect(username).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(username).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await expect(username).toBeVisible();
+    await page.getByRole('dialog', { name: '修改用户名' }).click({ position: { x: -10, y: -10 } });
+    await expect(username).toBeHidden();
+    await expect(trigger).toBeFocused();
   });
   await test.step('Save an available username and follow the new profile address', async () => {
     await page.getByRole('button', { name: '编辑', exact: true }).click();
@@ -72,6 +91,8 @@ test('User corrects invalid profile and account input', async ({ actor, db }) =>
     await page.locator('input[name="username"]').fill('@invalid-carol');
     await page.getByRole('button', { name: '提交', exact: true }).click();
     await expect(page.getByText('用户名不能以 @ 开头', { exact: false })).toBeVisible();
+    await expect(page.locator('input[name="username"]')).toBeVisible();
+    await expect(page.locator('input[name="username"]')).toHaveValue('@invalid-carol');
     expect((await db.query('SELECT username FROM "user" WHERE id = $1', ['user_reader_1'])).rows[0].username).toBe(
       'carol',
     );

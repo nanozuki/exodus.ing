@@ -115,7 +115,7 @@ declare const config: import('@sveltejs/kit').Config;
 export default config;
 ```
 
-Configure Vite preprocessing followed by Melt UI preprocessing, the Node deployment adapter, experimental remote functions, and asynchronous component compilation.
+Configure Vite preprocessing, the Node deployment adapter, experimental remote functions, and asynchronous component compilation.
 Remote imports use their owning page/component paths; no `$remotes` alias remains. Tool evaluation constructs
 preprocessors/adapter, not application services.
 

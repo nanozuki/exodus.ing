@@ -221,11 +221,27 @@ assertions on the behavior they change.
 - operation: Open and reload the public profile.
 - assertion: The updated name and rendered biography persist.
 - operation: Open username editing, change the value, and cancel.
-- assertion: The username remains unchanged.
+- assertion: The dialog closes, focus returns to the edit button, and the username remains unchanged.
+- operation: Reopen username editing without reloading.
+- assertion: The input contains the saved username rather than the discarded edit.
+- operation: Dismiss username editing with Escape, then reopen and click outside.
+- assertion: Each dismissal closes the dialog and restores focus to the edit button.
 - operation: Submit an available new username.
 - assertion: The resulting profile uses the new address.
 - operation: Reload and revisit account settings.
 - assertion: The username persists and current profile links use the new address.
+
+**test: Username dialog fits its content while opening and typing**
+
+- operation: Open username editing at desktop and narrow viewport widths.
+- assertion: The dialog has no horizontal or vertical content overflow when its contents fit the viewport.
+- operation: Move focus between the username input and cancel button, then type a username while sampling the dialog's content dimensions across animation frames.
+- assertion: Focus changes and typing do not introduce horizontal or vertical overflow.
+
+**test: Autofill controls stay aligned inside the username dialog**
+
+- operation: Open username editing and inject a fixed-position control using viewport coordinates, as password managers do.
+- assertion: The control stays aligned with the input and does not introduce horizontal or vertical dialog overflow.
 
 **test: User corrects invalid profile and account input**
 
@@ -234,7 +250,7 @@ assertions on the behavior they change.
 - operation: Supply a valid name and save.
 - assertion: The corrected profile is saved.
 - operation: Attempt to change the username to a value beginning with @.
-- assertion: Validation explains the problem and the saved username remains unchanged.
+- assertion: Validation explains the problem, the dialog remains open with its input preserved, and the saved username remains unchanged.
 - operation: Correct the username to an available value and submit.
 - assertion: The update succeeds and opens the correct profile.
 

@@ -137,18 +137,18 @@ Render supplied article groups and comment text/update timestamps in supplied or
 ```typescript
 interface DialogProps {
   trigger: Snippet;
-  content: Snippet;
-  open: ReturnType<typeof $bindable<boolean>>;
-  dialogProps?: CreateDialogProps;
+  content: Snippet<[close: () => void]>;
+  labelledby: string;
 }
 
 declare const component: Component<DialogProps>;
 export default component;
 ```
 
-Expose two-way open binding with runtime default false and caller-provided trigger/content snippets. Synchronize open
-with Melt UI dialog state; portal the overlay/content while open. Without dialogProps, use role=alertdialog. Trigger
-actions are supplied by the caller.
+Own the trigger button, custom overlay, native modal dialog, and Melt open state. The trigger snippet supplies
+button content only. labelledby identifies the heading supplied in content. Pass close to the content snippet. Closing through the snippet callback, Escape, or an
+outside click restores trigger focus. Reopening starts with fresh content rather than discarded edits. Use ordinary
+dialog semantics; no externally bound open state or Melt-specific configuration is exposed.
 
 ### `src/lib/component/Input.svelte`
 

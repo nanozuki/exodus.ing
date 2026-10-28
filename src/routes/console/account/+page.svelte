@@ -7,18 +7,7 @@
   import { updateUsername } from './page.remote';
   import { FormState } from '$lib/rune/FormState.svelte';
 
-  // Initialize dialog/form state before the async viewer boundary so snippets can open after hydration.
-  let open = $state(false);
-
-  let openDialog = () => {
-    open = true;
-  };
-
-  let closeDialog = () => {
-    open = false;
-  };
-
-  const formState = new FormState(updateUsername, { afterSubmit: closeDialog });
+  const formState = new FormState(updateUsername);
 
   const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
 </script>
@@ -31,13 +20,13 @@
 <div id="account-setting" class="gap-x-m items-center">
   <p class="font-serif font-bold">用户名:</p>
   <p>{user.username}</p>
-  <Dialog bind:open>
+  <Dialog labelledby="username-dialog-title">
     {#snippet trigger()}
-      <Button onclick={openDialog}>编辑</Button>
+      编辑
     {/snippet}
-    {#snippet content()}
+    {#snippet content(close)}
       <div>
-        <h2 class="font-serif font-bold">修改用户名</h2>
+        <h2 id="username-dialog-title" class="font-serif font-bold">修改用户名</h2>
         <p class="text-warn">用户名更改后，个人主页地址也变更，请谨慎修改。</p>
       </div>
       <form class="gap-y-m flex flex-col" {...formState.props}>
@@ -52,7 +41,7 @@
         />
         <div class="gap-x-m flex flex-row">
           <div class="flex-1">
-            <Button type="button" onclick={closeDialog}>取消</Button>
+            <Button type="button" onclick={close}>取消</Button>
           </div>
           <div class="flex-1">
             <Button variant="danger" pending={updateUsername.pending} type="submit">提交</Button>
