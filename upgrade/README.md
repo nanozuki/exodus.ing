@@ -7,6 +7,7 @@
 - `requires-code-changes/`：4个待办，需要修改应用、测试、配置或脚本。
 - `no-code-changes/`：3个待办，未发现独立代码迁移点，但因配套版本不兼容已回撤，需等待关联迁移，不能单独批量更新。
 - [版本依赖关系](version-constraints.md)记录剩余依赖应如何配套。
+- [部署后检查](post-deployment-checks.md)跟踪 SvelteKit 3 origin 与反向代理核验。
 
 ## 需要代码迁移
 

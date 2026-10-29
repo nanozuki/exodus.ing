@@ -18,8 +18,8 @@
 </script>
 
 <form {...operateBookmark} method="POST">
-  <input type="hidden" name="action" value={isBookmarked ? 'remove' : 'add'} />
-  <input type="hidden" name="articleId" value={articleId} />
+  <input {...operateBookmark.fields.action.as('hidden', isBookmarked ? 'remove' : 'add')} />
+  <input {...operateBookmark.fields.articleId.as('hidden', articleId)} />
   <Action element="button" type="submit" class="flex items-center gap-x-1 px-2 py-1">
     {#if isBookmarked}
       <MdiBookmark /><span>已收藏</span>

@@ -38,10 +38,11 @@
   <h5 class="font-semibold">邀请码</h5>
   {#if unusedCodes.length > 0}
     <div class="grid-codes gap-x-xs gap-y-xs grid items-center">
-      {#each unusedCodes as { code }}
+      {#each unusedCodes as { code } (code)}
+        {@const deleteForm = deleteInviteCode.for(code)}
         <p class="text-accent font-mono">{code}</p>
-        <form {...deleteInviteCode}>
-          <input type="hidden" name="code" value={code} />
+        <form {...deleteForm}>
+          <input {...deleteForm.fields.code.as('hidden', code)} />
           <button type="submit" class="text-error bg-error/20 hover:bg-error/30 block p-1">
             <DeleteIcon class="size-6" />
           </button>
@@ -75,7 +76,7 @@
   <div>
     <h5 class="font-semibold">已邀请作者</h5>
     <div class="grid-invitees gap-x-xs gap-y-2xs grid">
-      {#each invitees as { user, invitedAt }}
+      {#each invitees as { user, invitedAt } (user.id)}
         <UserBadge {user} />
         {format(new Date(invitedAt), 'yyyy-MM-dd HH:mm')}
       {/each}

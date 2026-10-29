@@ -96,7 +96,7 @@ async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
   return user ? { ...user, roles } : null;
 }
 
-// Invalid or missing sessions produce anonymous locals. Invalid cookies are left in place.
+// Populate existing locals; invalid or missing sessions are anonymous. Invalid cookies are left in place.
 export async function attachLocals(event: RequestEvent): Promise<void> {
   const loggedInUser = await loadSession(event);
 
@@ -119,10 +119,10 @@ export async function attachLocals(event: RequestEvent): Promise<void> {
     return throwError('FORBIDDEN', { operation });
   }
 
-  event.locals = {
+  Object.assign(event.locals, {
     loggedInUser,
     requireLoggedInUser,
     hasPermission,
     requirePermission,
-  };
+  });
 }

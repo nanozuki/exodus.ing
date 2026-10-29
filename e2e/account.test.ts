@@ -127,7 +127,7 @@ test('Author manages invitations and invites a new author', async ({ actor, db }
     await expect(author.getByText(code, { exact: true })).toBeVisible();
     await author
       .locator('form')
-      .filter({ has: author.locator(`input[name="code"][value="${code}"]`) })
+      .filter({ has: author.locator(`input[type="hidden"][value="${code}"]`) })
       .getByRole('button')
       .click();
     await expect(author.getByText(code, { exact: true })).toHaveCount(0);
@@ -147,7 +147,7 @@ test('Author manages invitations and invites a new author', async ({ actor, db }
     ).rows[0].code;
     await expect(author.getByText(code, { exact: true })).toBeVisible();
     await reader.goto('/console/be-writer');
-    await reader.locator('input[name="inviteCode"]').fill(code);
+    await reader.locator('input[name^="inviteCode/"]').fill(code);
     await reader.getByRole('button', { name: '成为作者', exact: true }).click();
     await expect(reader).toHaveURL('/console/invites?welcome=true');
     await expect(reader.getByText('恭喜！邀请码验证通过！', { exact: false })).toBeVisible();
@@ -228,18 +228,23 @@ test('Registration identity conflicts display on the matching field', async ({ p
   await expect(page.getByText('昵称已存在', { exact: true })).toBeVisible();
 });
 
-test('Profile field errors preserve values without JavaScript', async ({ browser, app, sessions }) => {
-  const context = await browser.newContext({ baseURL: app, javaScriptEnabled: false });
+test('Profile field errors preserve values without JavaScript', async ({
+  browser,
+  app,
+  sessions,
+  extraHTTPHeaders,
+}) => {
+  const context = await browser.newContext({ baseURL: app, javaScriptEnabled: false, extraHTTPHeaders });
   try {
     await context.addCookies([{ name: 'auth_session', value: sessions.get('carol')!, url: app }]);
     const page = await context.newPage();
     await page.goto('/console/profile');
-    await page.locator('input[name="name"]').fill('Alice');
-    await page.locator('textarea[name="aboutMe"]').fill('Retain this biography without JavaScript.');
+    await page.locator('input[name^="name/"]').fill('Alice');
+    await page.locator('textarea[name^="aboutMe/"]').fill('Retain this biography without JavaScript.');
     await page.getByRole('button', { name: '更新', exact: true }).click();
     await expect(page.getByText('昵称已存在', { exact: true })).toBeVisible();
-    await expect(page.locator('input[name="name"]')).toHaveValue('Alice');
-    await expect(page.locator('textarea[name="aboutMe"]')).toHaveValue('Retain this biography without JavaScript.');
+    await expect(page.locator('input[name^="name/"]')).toHaveValue('Alice');
+    await expect(page.locator('textarea[name^="aboutMe/"]')).toHaveValue('Retain this biography without JavaScript.');
   } finally {
     await context.close();
   }

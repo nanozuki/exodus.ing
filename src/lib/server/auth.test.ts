@@ -56,8 +56,10 @@ it('validates callback state and retains malformed JSON error behavior', () => {
 });
 
 it('attaches anonymous locals and enforces authentication for missing sessions', async () => {
-  const event = { cookies } as unknown as RequestEvent;
+  const locals = {};
+  const event = Object.defineProperty({ cookies }, 'locals', { value: locals }) as unknown as RequestEvent;
   await attachLocals(event);
+  expect(event.locals).toBe(locals);
   expect(event.locals.loggedInUser).toBeNull();
   expect(() => event.locals.requireLoggedInUser('test')).toThrow();
   expect(mocks.validateSession).not.toHaveBeenCalled();
@@ -69,7 +71,7 @@ it('refreshes the cookie only on renewal and loads current identity and roles', 
   mocks.validateSession.mockResolvedValue({ session, refresh: true });
   mocks.findUser.mockResolvedValue({ id: 'user', name: 'Current' });
   mocks.roles.mockResolvedValue([]);
-  const event = { cookies } as unknown as RequestEvent;
+  const event = { cookies, locals: {} } as unknown as RequestEvent;
   await attachLocals(event);
   expect(event.locals.loggedInUser).toEqual({ id: 'user', name: 'Current', roles: [] });
   expect(cookies.set).toHaveBeenCalledTimes(1);

@@ -15,7 +15,7 @@ for (const command of ['dev', 'pg:status', 'pg:stop', 'pg:reset']) {
     const root = await mkdtemp(join(tmpdir(), 'exodus-bootstrap-'));
     try {
       await cp(new URL('src/', projectRoot), join(root, 'src'), { recursive: true });
-      for (const file of ['package.json', 'tsconfig.json', 'svelte.config.js']) {
+      for (const file of ['package.json', 'tsconfig.json', 'vite.config.ts']) {
         await cp(new URL(file, projectRoot), join(root, file));
       }
       await symlink(fileURLToPath(new URL('node_modules', projectRoot)), join(root, 'node_modules'));
