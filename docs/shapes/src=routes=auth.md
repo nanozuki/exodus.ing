@@ -13,8 +13,7 @@ declare const component: Component<Record<string, never>>;
 export default component;
 ```
 
-Read optional next from the current URL. Submit independent registration and login forms through FormState, with
-optional signup username/name and issue feedback. Show simulated-login navigation only when PROD is false; the remote
+Read optional next from the current URL. Submit independent registration and login remote forms directly, using remote-field attributes for optional signup username/name and hidden next values. Display signup field issues; submission exceptions propagate to the error page. Show simulated-login navigation only when PROD is false; the remote
 independently checks its environment.
 
 ### `src/routes/auth/page.remote.ts`
@@ -34,7 +33,7 @@ export declare const registerByGithub: RemoteForm<
 >;
 ```
 
-Trim optional username/name and treat blank results as absent. Call validateSignUp for prefix/duplicate checks, then preserve nonempty next and optional signup fields through createGitHubAuthUrl in the server auth request helper. Redirect 302 to GitHub. Preflight uniqueness reads do not reserve identities; OAuth cookies remain request adaptation.
+Trim optional username/name and treat blank results as absent. Call validateSignUp for prefix/duplicate checks, then preserve nonempty next and optional signup fields through createGitHubAuthUrl in the server auth request helper. Redirect 302 to GitHub. Preflight uniqueness reads do not reserve identities; OAuth cookies remain request adaptation. Map PARAMETER_INVALID `username` and `name` to field issues; other errors propagate to the error page.
 
 #### `loginByGithub`
 

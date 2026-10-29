@@ -113,7 +113,7 @@ Supply the author, content, and optional direct parent for a new article.
 export declare function createArticle(db: AppDatabase, params: CreateArticleParams): Promise<Article>;
 ```
 
-Generate a unique six-character storage ID and capture the persistence timestamp. Read any parent and its ancestry inside the transaction that inserts the article and increments that direct parent’s reply count. A missing parent throws `NOT_FOUND`. Complete author lookup and result mapping within that same transaction before commit, then return the mapped article; authorization and content policy belong to use cases.
+Generate a unique six-character storage ID and capture the persistence timestamp. Read any parent and its ancestry inside the transaction that inserts the article and increments that direct parent’s reply count. A missing parent throws `NOT_FOUND`. Complete author lookup and result mapping within that same transaction before commit, then return the mapped article; author/title uniqueness conflicts become `title` field errors; authorization and content policy belong to use cases.
 
 #### `UpdateArticleParams`
 
@@ -135,7 +135,7 @@ These parameters do not provide authorization or existence guarantees.
 export declare function updateArticle(db: AppDatabase, params: UpdateArticleParams): Promise<void>;
 ```
 
-Update the supplied title/content fields by ID without checking existence. Preserve the current behavior of not explicitly advancing `updatedAt`.
+Update the supplied title/content fields by ID without checking existence. Author/title uniqueness conflicts become `title` field errors. Preserve the current behavior of not explicitly advancing `updatedAt`.
 
 ### `src/lib/server/repositories/bookmark.ts`
 
@@ -260,7 +260,7 @@ Supply the discussion, author, text, and optional parent comment.
 export declare function createComment(db: AppDatabase, params: CreateCommentParams): Promise<Comment>;
 ```
 
-Generate a unique six-character ID and persistence timestamp. Read any reply parent in the same transaction as insertion and article comment-count increment; missing reply parent throws `NOT_FOUND`. Complete author lookup and result mapping within that same transaction before commit, then return the mapped comment. Preserve current reply-path behavior; this refactor does not introduce new cross-article reply validation.
+Generate a unique six-character ID and persistence timestamp. Read any reply parent in the same transaction as insertion and article comment-count increment; missing reply parent throws `NOT_FOUND`. The article count update must affect an existing article; otherwise throw `NOT_FOUND` and roll back the comment. Complete author lookup and result mapping within that same transaction before commit, then return the mapped comment. Preserve current reply-path behavior; this refactor does not introduce new cross-article reply validation.
 
 #### `UpdateCommentParams`
 
@@ -403,7 +403,7 @@ export declare function createRoleOfUserByInviteCode(
 ): Promise<UserRole>;
 ```
 
-Within one transaction, lock and require the matching unused code, create its user-role relationship if absent, and set `usedAt` to the supplied instant. Missing or already used codes throw `BAD_REQUEST`. If the user already has the role, retain and return that relationship and still consume the code, preserving current behavior. The role and inviter are read from the code. A failed role write leaves the code unused; concurrent attempts cannot both redeem it. This replaces the separate code-consumption and role-grant writes.
+Within one transaction, lock and require the matching unused code, create its user-role relationship if absent, and set `usedAt` to the supplied instant. Missing or already used codes throw `PARAMETER_INVALID` with the `inviteCode` field, including competing redemption. If the user already has the role, retain and return that relationship and still consume the code, preserving current behavior. The role and inviter are read from the code. A failed role write leaves the code unused; concurrent attempts cannot both redeem it. This replaces the separate code-consumption and role-grant writes.
 
 ### `src/lib/server/repositories/session.ts`
 
@@ -537,7 +537,7 @@ operation.
 export declare function updateUser(db: AppDatabase, params: UpdateUserParams): Promise<void>;
 ```
 
-Apply supplied username/name/about-me fields without existence checks or an explicit `updatedAt` change. Username rules and acting-user authorization belong to callers.
+Apply supplied username/name/about-me fields without existence checks or an explicit `updatedAt` change. Known username/name uniqueness conflicts are field errors through `wrap`. Username rules and acting-user authorization belong to callers.
 
 ### `src/lib/server/repositories/utils.ts`
 
@@ -549,7 +549,11 @@ Shared operation wrapping and storage identifier generation. These helpers are m
 export declare function wrap<T>(operation: string, fn: () => Promise<T>): Promise<T>;
 ```
 
-Time and log successful operations. Preserve HTTP errors; normalize ordinary errors to `DATABASE_ERROR` with the operation name and message, and other thrown values using JSON serialization. Preserve current serialization failure behavior.
+Time and log successful operations. Before normalizing failures, inspect PostgreSQL
+error causes for code `23505` and known constraints: `updateUser` maps username/name
+uniqueness to PARAMETER_INVALID `username`/`name`; `createArticle` and `updateArticle`
+map author/title uniqueness to PARAMETER_INVALID `title`. Other constraints and
+operations retain DATABASE_ERROR. Preserve HTTP errors; normalize ordinary errors to `DATABASE_ERROR` with the operation name and message, and other thrown values using JSON serialization. Preserve current serialization failure behavior.
 
 #### `newNanoId`
 

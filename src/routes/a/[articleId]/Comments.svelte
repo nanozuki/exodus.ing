@@ -10,7 +10,6 @@
   import type { CommentView } from './Comments.remote';
   import { postComment } from './Comments.remote';
   import type { User } from '$lib/models/user';
-  import { FormState } from '$lib/rune/FormState.svelte';
 
   type CommentsProps = {
     articleId: string;
@@ -24,12 +23,12 @@
 
   let editCommentId = $state<string | undefined>(undefined);
   let replyToId = $state<string | undefined>(undefined);
-  let content = $state<string>('');
+  const content = $derived(postComment.fields.content.value() ?? '');
 
   const reply = (to: string) => {
     replyToId = to;
     editCommentId = undefined;
-    content = '';
+    postComment.fields.content.set('');
     document.getElementById('comment-input')?.scrollIntoView();
     document.getElementById('comment-input')?.focus();
   };
@@ -37,7 +36,7 @@
   const edit = (comment: CommentView) => {
     editCommentId = comment.id;
     replyToId = comment.replyTo?.id;
-    content = comment.content;
+    postComment.fields.content.set(comment.content);
     document.getElementById('comment-input')?.scrollIntoView();
     document.getElementById('comment-input')?.focus();
   };
@@ -45,10 +44,9 @@
   const reset = () => {
     editCommentId = undefined;
     replyToId = undefined;
-    content = '';
+    postComment.fields.content.set('');
   };
 
-  const form = new FormState(postComment, { afterSubmit: reset });
   let replied = $derived.by(() => {
     return replyToId ? comments.find((comment: CommentView) => comment.id === replyToId) : undefined;
   });
@@ -58,20 +56,29 @@
   <h2 class="pt-1 font-serif font-bold">评论</h2>
 
   {#if user}
-    <form {...form.props} class="gap-y-xs flex flex-col">
+    <form
+      {...postComment.enhance(async (form) => {
+        if (await form.submit()) {
+          form.element.reset();
+          reset();
+        }
+      })}
+      class="gap-y-xs flex flex-col"
+    >
       {#if editCommentId}
-        <input type="hidden" name="commentId" value={editCommentId} />
+        <input {...postComment.fields.commentId.as('hidden', editCommentId)} />
       {:else}
-        <input type="hidden" name="articleId" value={articleId} />
-        <input type="hidden" name="replyToId" value={replyToId} />
+        <input {...postComment.fields.articleId.as('hidden', articleId)} />
+        {#if replyToId}
+          <input {...postComment.fields.replyToId.as('hidden', replyToId)} />
+        {/if}
       {/if}
       <InputTextArea
         id="comment-input"
         placeholder={editCommentId ? '编辑评论' : '发表评论'}
-        name="content"
+        {...postComment.fields.content.as('text')}
         label={editCommentId ? '编辑评论' : '发表评论'}
         issues={postComment.fields.content.issues()}
-        bind:value={content}
       >
         {#snippet addition()}
           {#if replied}
@@ -82,12 +89,9 @@
           {/if}
         {/snippet}
       </InputTextArea>
-      {#if form.error}
-        <p class="text-error">{form.error}</p>
-      {/if}
       <div class="flex flex-row gap-x-2">
         {#if content.length > 0}
-          <Button variant="normal" type="button" onclick={reset}>{'取消'}</Button>
+          <Button variant="normal" type="button" onclick={reset}>取消</Button>
         {/if}
         <Button variant="primary" pending={postComment.pending} type="submit"
           >{editCommentId ? '更新评论' : '发表评论'}</Button

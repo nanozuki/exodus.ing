@@ -14,8 +14,7 @@ declare const component: Component<Props>;
 export default component;
 ```
 
-Call the ancestor console `loadLayoutData({ pathname: page.url.pathname })` and initialize name and biography from its user and submit updateProfile. Display field issues and caught form
-errors; the name input is required.
+Call the ancestor console `loadLayoutData({ pathname: page.url.pathname })` and use its name and biography as remote-field rendering/reset defaults. Submit updateProfile directly and display field issues; the name input is required. Submission exceptions propagate to the error page.
 
 ### `src/routes/console/profile/page.remote.ts`
 
@@ -33,4 +32,4 @@ export declare const updateProfile: RemoteForm<
 >;
 ```
 
-Require login, nonempty display name, and string aboutMe. Directly call updateUser with a UpdateUserParams containing only the trusted actor ID, name, and aboutMe; redirect 303 to /console/profile. No explicit uniqueness precheck is added.
+Require login, nonempty display name, and string aboutMe. Directly call updateUser with a UpdateUserParams containing only the trusted actor ID, name, and aboutMe; redirect 303 to /console/profile. No explicit uniqueness precheck is added. Map PARAMETER_INVALID `name` to a field issue; other errors propagate to the error page.

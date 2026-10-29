@@ -14,7 +14,7 @@ export default component;
 ```
 
 Await loadPageData and show each returned user as a submit button with roles. Pass next through when it starts with
-`/`, otherwise `/`. Submit through FormState; the remote performs environment enforcement.
+`/`, otherwise `/`. Submit the remote form directly, using remote-field attributes for hidden next and each userId submit button. The remote performs environment enforcement; submission exceptions propagate to the error page.
 
 ### `src/routes/auth/testing/page.remote.ts`
 

@@ -189,3 +189,58 @@ test('Reader corrects an invalid invitation before becoming an author', async ({
   await page.getByRole('link', { name: '发表新文章', exact: true }).click();
   await expect(page.getByRole('link', { name: '创建 Markdown 文章', exact: true })).toBeVisible();
 });
+
+test('Identity conflicts stay on their fields and preserve unsaved input', async ({ actor, db }) => {
+  const page = await actor('carol');
+  const alice = (await db.query('SELECT name FROM "user" WHERE username = $1', ['alice'])).rows[0];
+  await page.goto('/console/profile');
+  await page.locator('input[name="name"]').fill(alice.name);
+  await page.locator('textarea[name="aboutMe"]').fill('Keep this unsaved biography.');
+  await page.getByRole('button', { name: '更新', exact: true }).click();
+  await expect(page.locator('input[name="name"]')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('昵称已存在', { exact: true })).toBeVisible();
+  await expect(page.locator('textarea[name="aboutMe"]')).toHaveValue('Keep this unsaved biography.');
+  expect((await db.query('SELECT name FROM "user" WHERE username = $1', ['carol'])).rows[0].name).toBe('Carol');
+  await page.locator('input[name="name"]').fill('Carol Conflict Resolved');
+  await page.getByRole('button', { name: '更新', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Carol Conflict Resolved', exact: true })).toBeVisible();
+  await page.goto('/console/account');
+  await page.getByRole('button', { name: '编辑', exact: true }).click();
+  await page.locator('input[name="username"]').fill('alice');
+  await page.getByRole('button', { name: '提交', exact: true }).click();
+  await expect(page.locator('input[name="username"]')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('用户名已存在', { exact: true })).toBeVisible();
+  await expect(page.locator('input[name="username"]')).toHaveValue('alice');
+});
+
+test('Registration identity conflicts display on the matching field', async ({ page }) => {
+  await page.goto('/auth');
+  await page.locator('input[name="username"]').fill('alice');
+  await page.locator('input[name="name"]').fill('Unreserved Registration Name');
+  await page.getByRole('button', { name: '使用 GitHub 注册', exact: true }).click();
+  await expect(page.locator('input[name="username"]')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('用户名已存在', { exact: true })).toBeVisible();
+  await expect(page.locator('input[name="name"]')).toHaveValue('Unreserved Registration Name');
+  await page.locator('input[name="username"]').fill('unreserved-registration-user');
+  await page.locator('input[name="name"]').fill('Alice');
+  await page.getByRole('button', { name: '使用 GitHub 注册', exact: true }).click();
+  await expect(page.locator('input[name="name"]')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('昵称已存在', { exact: true })).toBeVisible();
+});
+
+test('Profile field errors preserve values without JavaScript', async ({ browser, app, sessions }) => {
+  const context = await browser.newContext({ baseURL: app, javaScriptEnabled: false });
+  try {
+    await context.addCookies([{ name: 'auth_session', value: sessions.get('carol')!, url: app }]);
+    const page = await context.newPage();
+    await page.goto('/console/profile');
+    await page.locator('input[name="name"]').fill('Alice');
+    await page.locator('textarea[name="aboutMe"]').fill('Retain this biography without JavaScript.');
+    await page.getByRole('button', { name: '更新', exact: true }).click();
+    await expect(page.getByText('昵称已存在', { exact: true })).toBeVisible();
+    await expect(page.locator('input[name="name"]')).toHaveValue('Alice');
+    await expect(page.locator('textarea[name="aboutMe"]')).toHaveValue('Retain this biography without JavaScript.');
+  } finally {
+    await context.close();
+  }
+});

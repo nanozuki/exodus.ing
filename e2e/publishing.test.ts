@@ -105,6 +105,17 @@ test('Author verifies a domain to publish and edit an external article', async (
     await expect(page.locator('input[name="url"]')).toHaveValue(url);
     await expect(page.locator('input[name="title"]')).toHaveValue('Verified external journey');
     await page.locator('input[name="url"]').fill('https://crows.moe/e2e-revised');
+    const duplicateTitle = (
+      await db.query('SELECT title FROM article WHERE user_id = $1 AND title != $2 LIMIT 1', [
+        'user_author_1',
+        'Verified external journey',
+      ])
+    ).rows[0].title;
+    await page.locator('input[name="title"]').fill(duplicateTitle);
+    await page.getByRole('button', { name: '发布', exact: true }).click();
+    await expect(page.locator('input[name="title"]')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByText('你已经发布过同名文章', { exact: true })).toBeVisible();
+    await expect(page.locator('input[name="url"]')).toHaveValue('https://crows.moe/e2e-revised');
     await page.locator('input[name="title"]').fill('Revised external journey');
     await page.getByRole('button', { name: '发布', exact: true }).click();
     await articleContent(page, 'Revised external journey');

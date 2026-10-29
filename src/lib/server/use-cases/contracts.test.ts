@@ -183,6 +183,11 @@ describe('business operations', () => {
     expect(now).toHaveBeenCalledTimes(1);
     await expect(acceptInviteCode({ db, now }, { actor: reader, code: invite.code })).rejects.toMatchObject({
       status: 400,
+      body: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码已被使用' } },
+    });
+    await expect(acceptInviteCode({ db, now }, { actor: reader, code: 'absent' })).rejects.toMatchObject({
+      status: 400,
+      body: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码不存在' } },
     });
   });
 

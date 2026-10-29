@@ -108,10 +108,12 @@ export async function createComment(db: AppDatabase, params: CreateCommentParams
         createdAt: now,
         updatedAt: now,
       });
-      await tx
+      const [article] = await tx
         .update(tArticle)
         .set({ commentCount: sql`${tArticle.commentCount} + 1` })
-        .where(eq(tArticle.id, params.articleId));
+        .where(eq(tArticle.id, params.articleId))
+        .returning({ id: tArticle.id });
+      if (!article) return throwError('NOT_FOUND', { resource: '文章' });
       // Resolve the author before commit so mapping failures roll back the write and counter.
       return readComment(tx, id);
     }),

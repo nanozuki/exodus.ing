@@ -33,9 +33,7 @@ declare const component: Component<Props>;
 export default component;
 ```
 
-Initialize remote URL/title fields from the initial article once using untrack. Submit articleId/replyToId via hidden
-fields and display field/form errors. Derive hostname from current URL input, tolerating parse failures, and show the
-current user’s required TXT record. Publication verifies DNS through the remote; this component performs no DNS request.
+Capture the initial article once using untrack and use it only as URL/title rendering/reset defaults, preserving submitted values after native validation failures. Submit the remote form directly, include only defined articleId/replyToId values using hidden remote fields, and display field issues. Submission exceptions propagate to the error page. Derive hostname from the current URL field value, falling back to the initial article URL only when no field value exists. Tolerate parse failures and show the current user’s required TXT record. Publication verifies DNS through the remote; this component performs no DNS request.
 
 ### `src/routes/a/[articleId]/edit/MarkdownEditor.svelte`
 
@@ -112,4 +110,4 @@ export declare const createOrUpdateExternalArticle: RemoteForm<
 >;
 ```
 
-Require CreateArticle, a valid URL, and a string title (the schema still accepts an empty title). Parse the URL and pass that parsed value with its exact original string, trusted actor, and other fields to saveExternalArticle. Map an unverified-domain result to existing PARAMETER_INVALID URL feedback. On success redirect 303 to the saved ID. DNS verification and ownership decisions live in the use case; no linked page is fetched and existing content types are not changed.
+Require CreateArticle, a valid URL, and a string title (the schema still accepts an empty title). Parse the URL and pass that parsed value with its exact original string, trusted actor, and other fields to saveExternalArticle. Map an unverified-domain result (including nonexistent domains) to a URL field issue, and PARAMETER_INVALID `title` to a title field issue. All other errors propagate to the error page. On success redirect 303 to the saved ID. DNS verification and ownership decisions live in the use case; no linked page is fetched and existing content types are not changed.

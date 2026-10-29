@@ -127,3 +127,16 @@ test.describe('bookmark pagination', () => {
     });
   });
 });
+
+test('Invalid hidden discussion context reaches the error page', async ({ actor, db }) => {
+  const page = await actor('carol');
+  const before = (await db.query('SELECT count(*) FROM comment')).rows[0].count;
+  await page.goto('/a/A25');
+  await page.locator('#comment-input').fill('This must not become an orphan comment.');
+  await page.locator('#comment-section input[name="articleId"]').evaluate((input) => {
+    (input as HTMLInputElement).value = 'absent';
+  });
+  await page.getByRole('button', { name: '发表评论', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Error: 404', exact: true })).toBeVisible();
+  expect((await db.query('SELECT count(*) FROM comment')).rows[0].count).toBe(before);
+});

@@ -5,11 +5,8 @@
   import Input from '$lib/component/Input.svelte';
   import InputTextArea from '$lib/component/InputTextArea.svelte';
   import { updateProfile } from './page.remote';
-  import { FormState } from '$lib/rune/FormState.svelte';
 
   const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
-
-  const formState = new FormState(updateProfile);
 </script>
 
 <svelte:head>
@@ -17,11 +14,17 @@
   <meta property="og:title" content="个人资料设置" />
 </svelte:head>
 
-<form id="profile" {...formState.props} class="gap-y-m flex flex-col">
-  <Input name="name" label="名称" type="text" value={user.name} issues={updateProfile.fields.name.issues()} required />
-  <InputTextArea name="aboutMe" label="介绍" value={user.aboutMe} issues={updateProfile.fields.aboutMe.issues()} />
-  {#if formState.error}
-    <p class="text-error">{formState.error}</p>
-  {/if}
+<form id="profile" {...updateProfile} class="gap-y-m flex flex-col">
+  <Input
+    {...updateProfile.fields.name.as('text', user.name)}
+    label="名称"
+    issues={updateProfile.fields.name.issues()}
+    required
+  />
+  <InputTextArea
+    {...updateProfile.fields.aboutMe.as('text', user.aboutMe)}
+    label="介绍"
+    issues={updateProfile.fields.aboutMe.issues()}
+  />
   <Button variant="primary" pending={updateProfile.pending} type="submit">更新</Button>
 </form>

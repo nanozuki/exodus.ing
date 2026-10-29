@@ -11,8 +11,8 @@ only actual shared business scenarios receive separate exported functions.
 `AppDatabase` comes from `src/lib/server/db/schema.ts`; business data comes from
 `src/lib/models`. Callers supply trusted authenticated actors, provider identities,
 parsed URLs, and request-independent input values. Repository/adapter failures
-propagate; expected business failures retain existing application error tags and
-messages. Each use case declares only the dependencies it uses. Request entry
+propagate; expected business failures use tagged application errors, with field
+keys for correctable input failures. Each use case declares only the dependencies it uses. Request entry
 points supply `now` from `adapters/clock.ts`; use cases never obtain the current
 time directly.
 
@@ -178,7 +178,7 @@ export function acceptInviteCode(
 ): Promise<void>;
 ```
 
-Load the invite and preserve BAD_REQUEST for a missing or previously used code.
+Load the invite and report PARAMETER_INVALID with `inviteCode` for a missing or previously used code.
 Read `now` once, then call the atomic invitation-redemption repository operation
 with the authenticated actor ID and timestamp. That operation rechecks unused
 state inside its transaction, grants the code's role, and marks it used together.

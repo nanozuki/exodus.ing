@@ -1,6 +1,6 @@
 import { form, getRequestEvent } from '$app/server';
 import z from 'zod';
-import { redirect } from '@sveltejs/kit';
+import { invalid, isHttpError, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/registry';
 import { updateUser } from '$lib/server/repositories/user';
 
@@ -9,9 +9,19 @@ const updateProfileSchema = z.object({
   aboutMe: z.string(),
 });
 
-export const updateProfile = form(updateProfileSchema, async ({ name, aboutMe }) => {
+export const updateProfile = form(updateProfileSchema, async ({ name, aboutMe }, issue) => {
   const { locals } = getRequestEvent();
   const user = locals.requireLoggedInUser('update profile');
-  await updateUser(db, { id: user.id, name, aboutMe });
+
+  try {
+    await updateUser(db, { id: user.id, name, aboutMe });
+  } catch (error) {
+    if (isHttpError(error) && error.body.tag === 'PARAMETER_INVALID') {
+      const fields = error.body.value as Record<string, string>;
+      if (fields.name) invalid(issue.name(fields.name));
+    }
+    throw error;
+  }
+
   redirect(303, '/console/profile');
 });

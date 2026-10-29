@@ -68,10 +68,10 @@ export function resolveTxt(domain: string): Promise<string[]>;
 
 Fetch Cloudflare DNS-over-HTTPS at
 `https://1.1.1.1/dns-query?name=<domain>&type=TXT` with
-`accept: application/dns-json`. A nonzero DNS Status throws EXTERNAL_API_ERROR.
+`accept: application/dns-json`. DNS Status 3 (nonexistent domain) returns `[]`;
+other nonzero statuses and unsuccessful HTTP responses throw EXTERNAL_API_ERROR.
 Return each answer's raw `data`, or `[]` when Answer is absent. Transport/JSON
-failures propagate; this refactor does not change TXT chunk/unquote handling,
-HTTP-status validation, or answer-type filtering.
+failures propagate. TXT chunk/unquote handling and answer-type filtering are unchanged.
 
 ### `src/lib/server/adapters/session_id.ts`
 

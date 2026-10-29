@@ -71,7 +71,7 @@ export default component;
 
 Render #comment-section and stable #comment-<id> anchors. Signed-in viewers can compose/reply, and only the comment
 author sees edit controls. Replying selects the direct target, clears editing/content, and focuses/scrolls the input;
-editing loads the existing content. Cancel and successful submission reset local state. Anonymous viewers get an encoded
+editing loads the existing content. Submit through a component-local enhance callback with remote-field attributes. Use the remote content field as the single source for composing and editing text; reply/edit/cancel handlers set that field directly. Cancel clears editing/reply state and the content field; only a successful submit resets both the HTML form and composition state. Failed validation preserves composition and displays content issues; submission exceptions propagate to the error page. Anonymous viewers get an encoded
 return destination. Display comment text line-by-line without HTML interpretation, parent attribution, author, and
 created timestamp. Pass each comment’s author and any direct parent’s author UserSummary to UserBadge. The remote owns write authorization.
 

@@ -5,11 +5,15 @@
   import Input from '$lib/component/Input.svelte';
   import Dialog from '$lib/component/Dialog.svelte';
   import { updateUsername } from './page.remote';
-  import { FormState } from '$lib/rune/FormState.svelte';
-
-  const formState = new FormState(updateUsername);
 
   const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
+  let hasMountedUsernameForm = false;
+
+  function resetUsernameOnRemount(form: HTMLFormElement) {
+    // Keep initial native-submission feedback; later mounts discard the closed dialog's edits and issues.
+    if (hasMountedUsernameForm) form.reset();
+    hasMountedUsernameForm = true;
+  }
 </script>
 
 <svelte:head>
@@ -29,14 +33,11 @@
         <h2 id="username-dialog-title" class="font-serif font-bold">修改用户名</h2>
         <p class="text-warn">用户名更改后，个人主页地址也变更，请谨慎修改。</p>
       </div>
-      <form class="gap-y-m flex flex-col" {...formState.props}>
+      <form class="gap-y-m flex flex-col" {...updateUsername} {@attach resetUsernameOnRemount}>
         <Input
-          type="text"
-          name="username"
+          {...updateUsername.fields.username.as('text', user.username)}
           label="用户名"
-          value={user.username}
           issues={updateUsername.fields.username.issues()}
-          error={formState.error}
           required
         />
         <div class="gap-x-m flex flex-row">

@@ -31,8 +31,8 @@ export async function acceptInviteCode(
   params: { actor: LoggedInUser; code: string },
 ): Promise<void> {
   const code = await invites.findInviteCodeByCode(deps.db, params.code);
-  if (!code) return throwError('BAD_REQUEST', '邀请码不存在');
-  if (code.usedAt) return throwError('BAD_REQUEST', '邀请码已被使用');
+  if (!code) return throwError('PARAMETER_INVALID', { inviteCode: '邀请码不存在' });
+  if (code.usedAt) return throwError('PARAMETER_INVALID', { inviteCode: '邀请码已被使用' });
   const usedAt = deps.now();
   await createRoleOfUserByInviteCode(deps.db, { code: params.code, userId: params.actor.id, usedAt });
 }
