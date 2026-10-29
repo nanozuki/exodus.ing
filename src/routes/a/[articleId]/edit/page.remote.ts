@@ -1,12 +1,12 @@
 import { form, getRequestEvent, query } from '$app/server';
 import z from 'zod';
 import { redirect } from '@sveltejs/kit';
-import { Permission } from '$lib/models/role';
-import type { ArticleContent, ArticleContentType } from '$lib/models/article';
-import { db } from '$lib/server/registry';
-import { getArticleSummaryById } from '$lib/server/repositories/article';
-import { getEditableArticle, saveMarkdownArticle } from '$lib/server/use-cases/article';
-import { throwArticleIssue } from '$lib/markdown';
+import { Permission } from '#lib/models/role.js';
+import type { ArticleContent, ArticleContentType } from '#lib/models/article.js';
+import { db } from '#lib/server/registry.js';
+import { getArticleSummaryById } from '#lib/server/repositories/article.js';
+import { getEditableArticle, saveMarkdownArticle } from '#lib/server/use-cases/article.js';
+import { throwArticleIssue } from '#lib/markdown.js';
 
 export const loadPageData = query(
   z.object({ articleId: z.string(), replyTo: z.string().nullable(), contentType: z.string().nullable() }),

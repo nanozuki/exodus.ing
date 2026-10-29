@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { errorTagTitle } from '$lib/errors';
+  import { errorTagTitle } from '#lib/errors.js';
 </script>
 
 <h1>Error: {page.status}</h1>

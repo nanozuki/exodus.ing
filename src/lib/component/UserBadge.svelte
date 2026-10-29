@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { UserSummary } from '$lib/models/user';
+  import type { UserSummary } from '#lib/models/user.js';
 
   interface UserBadgeProps {
     user: UserSummary;

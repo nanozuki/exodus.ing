@@ -12,7 +12,7 @@
 `svelte.config.js` 配置 Node adapter、remote
 functions 和 async 编译；`vite.config.ts` 调用 `sveltekit()`；根 `tsconfig.json`
 继承 `.svelte-kit/tsconfig.json`。应用普遍使用
-`$lib`、`$app/state`、`$app/server` 的
+`#lib`、`$app/state`、`$app/server` 的
 `query/form/getRequestEvent`；表单、查询刷新和身份验证覆盖多数页面。`src/hooks.server.ts`
 导入
 `Handle/ServerInit`，`src/lib/rune/FormState.svelte.ts`、`src/lib/component/Input*.svelte`
@@ -25,7 +25,7 @@ functions 和 async 编译；`vite.config.ts` 调用 `sveltekit()`；根 `tsconf
 | 引入版本                                              | 变化                                                                                                                                                               | 本项目影响与动作                                                                                                                                                            |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 3.0.0                                                 | 不再读取 `svelte.config.js`，选项直接传给 Vite 的 `sveltekit({...})`，原 `kit` 层去掉                                                                              | 移动 adapter、preprocess、remoteFunctions、async 等配置；迁移后同步 Prettier、检查工具对配置的读取。2.62.0 已提供过渡入口                                                   |
-| 3.0.0                                                 | `$lib` 被 `#lib` 替代，并采用 package imports；移除隐式扩展名支持                                                                                                  | 全项目别名迁移，按官方迁移器处理 `.js`/`.svelte` 等扩展名；不要仅做字符串替换                                                                                               |
+| 3.0.0                                                 | `#lib` 被 `#lib` 替代，并采用 package imports；移除隐式扩展名支持                                                                                                  | 全项目别名迁移，按官方迁移器处理 `.js`/`.svelte` 等扩展名；不要仅做字符串替换                                                                                               |
 | 3.0.0                                                 | 生成配置改为 `$app/tsconfig`，不再继承 `.svelte-kit/tsconfig.json`；用户提供 include/exclude                                                                       | 修改根配置，并复核继承它的 `e2e/tsconfig.json` 的文件集合；保留脚本、测试所需检查范围                                                                                       |
 | 3.0.0                                                 | remote 类型移到 `$app/server`，hooks 类型移到 `@sveltejs/kit/hooks`                                                                                                | 调整 `RemoteForm/RemoteFormInput/RemoteFormIssue`、`Handle/ServerInit` 导入。不要把仍属于主入口的 `RequestEvent/Cookies/RequestHandler` 一并移动                            |
 | 3.0.0                                                 | 所有 remote form 控件必须来自本表单的 `fields.foo.as(...)`；手写 name 提交会被拒绝                                                                                 | 命中 auth、profile、account、invite、bookmark、comment 和发布表单的手写 name/hidden/submit 控件；输入组件应透传 `.as()` 属性，含隐藏值、按钮值、默认值和 reset 行为都要迁移 |

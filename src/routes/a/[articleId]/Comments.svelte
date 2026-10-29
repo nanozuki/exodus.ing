@@ -1,15 +1,15 @@
 <script lang="ts">
-  import Action from '$lib/component/Action.svelte';
-  import Button from '$lib/component/Button.svelte';
-  import InputTextArea from '$lib/component/InputTextArea.svelte';
+  import Action from '#lib/component/Action.svelte';
+  import Button from '#lib/component/Button.svelte';
+  import InputTextArea from '#lib/component/InputTextArea.svelte';
   import MdiCalendar from '~icons/mdi/calendar';
   import MdiReply from '~icons/mdi/reply';
   import MdiTextBoxEditOutline from '~icons/mdi/text-box-edit-outline';
-  import UserBadge from '$lib/component/UserBadge.svelte';
+  import UserBadge from '#lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
   import type { CommentView } from './Comments.remote';
   import { postComment } from './Comments.remote';
-  import type { User } from '$lib/models/user';
+  import type { User } from '#lib/models/user.js';
 
   type CommentsProps = {
     articleId: string;

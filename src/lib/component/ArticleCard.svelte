@@ -1,6 +1,6 @@
 <script lang="ts">
   import UserBadge from './UserBadge.svelte';
-  import type { ArticleSummary } from '$lib/models/article';
+  import type { ArticleSummary } from '#lib/models/article.js';
 
   const { article }: { article: ArticleSummary } = $props();
 </script>

@@ -1,14 +1,14 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { listArticlesOfUser } from '$lib/server/repositories/article';
-import { listCommentsOfUser } from '$lib/server/repositories/comment';
-import { getRolesOfUser } from '$lib/server/repositories/role';
-import { findUserByUsername, findUserById } from '$lib/server/repositories/user';
-import { AUTH_COOKIE_NAME } from '$lib/server/auth';
-import { Permission, hasPermission } from '$lib/models/role';
-import type { User } from '$lib/models/user';
-import { throwError } from '$lib/errors';
-import { compileMarkdown } from '$lib/markdown';
-import { db } from '$lib/server/registry';
+import { listArticlesOfUser } from '#lib/server/repositories/article.js';
+import { listCommentsOfUser } from '#lib/server/repositories/comment.js';
+import { getRolesOfUser } from '#lib/server/repositories/role.js';
+import { findUserByUsername, findUserById } from '#lib/server/repositories/user.js';
+import { AUTH_COOKIE_NAME } from '#lib/server/auth.js';
+import { Permission, hasPermission } from '#lib/models/role.js';
+import type { User } from '#lib/models/user.js';
+import { throwError } from '#lib/errors.js';
+import { compileMarkdown } from '#lib/markdown.js';
+import { db } from '#lib/server/registry.js';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 

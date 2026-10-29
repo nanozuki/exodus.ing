@@ -1,5 +1,5 @@
-import { userHasPermission, type LoggedInUser } from '$lib/models/user';
-import { Permission } from '$lib/models/role';
+import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
+import { Permission } from '#lib/models/role.js';
 
 export type ConsoleRoute = { route: string; title: string };
 

@@ -1,7 +1,7 @@
-import type { Relation, Role, UserRole } from '$lib/models/role';
-import { throwError } from '$lib/errors';
+import type { Relation, Role, UserRole } from '#lib/models/role.js';
+import { throwError } from '#lib/errors.js';
 import { and, desc, eq } from 'drizzle-orm';
-import { tInviteCode, tUser, tUserRole, type AppDatabase } from '$lib/server/db/schema';
+import { tInviteCode, tUser, tUserRole, type AppDatabase } from '#lib/server/db/schema.js';
 import { wrap } from './utils';
 
 const user = { id: tUser.id, username: tUser.username, name: tUser.name };

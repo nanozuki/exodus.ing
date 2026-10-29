@@ -1,9 +1,9 @@
 import { form, getRequestEvent } from '$app/server';
-import { adapters, db } from '$lib/server/registry';
-import { validateSignUp } from '$lib/server/use-cases/user';
-import { createGitHubAuthUrl } from '$lib/server/auth';
+import { adapters, db } from '#lib/server/registry.js';
+import { validateSignUp } from '#lib/server/use-cases/user.js';
+import { createGitHubAuthUrl } from '#lib/server/auth.js';
 import { invalid, isHttpError, redirect } from '@sveltejs/kit';
-import type { OAuthCookieDataInput } from '$lib/server/auth';
+import type { OAuthCookieDataInput } from '#lib/server/auth.js';
 import z from 'zod';
 
 const registerByGithubSchema = z.object({

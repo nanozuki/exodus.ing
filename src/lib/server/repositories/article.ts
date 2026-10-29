@@ -5,12 +5,12 @@ import type {
   ArticleContentType,
   ArticleFeedsItem,
   ArticleListItem,
-} from '$lib/models/article';
-import { decodePathField, encodeIdPath, getPathParent } from '$lib/models/id_path';
-import type { Pagination, Paginated } from '$lib/models/page';
-import { throwError } from '$lib/errors';
+} from '#lib/models/article.js';
+import { decodePathField, encodeIdPath, getPathParent } from '#lib/models/id_path.js';
+import type { Pagination, Paginated } from '#lib/models/page.js';
+import { throwError } from '#lib/errors.js';
 import { desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
-import { tArticle, tBookmark, tUser, type AppDatabase } from '$lib/server/db/schema';
+import { tArticle, tBookmark, tUser, type AppDatabase } from '#lib/server/db/schema.js';
 import { newNanoId, wrap } from './utils';
 
 type QueryDatabase = Parameters<Parameters<AppDatabase['transaction']>[0]>[0];

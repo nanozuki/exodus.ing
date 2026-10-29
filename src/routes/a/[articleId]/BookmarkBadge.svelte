@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Action from '$lib/component/Action.svelte';
+  import Action from '#lib/component/Action.svelte';
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
   import MdiBookmark from '~icons/mdi/bookmark';
   import { operateArticleBookmark } from './BookmarkBadge.remote';
-  import type { BookmarkState } from '$lib/models/bookmark';
+  import type { BookmarkState } from '#lib/models/bookmark.js';
 
   type BookmarkProps = {
     articleId: string;

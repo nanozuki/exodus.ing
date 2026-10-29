@@ -1,11 +1,11 @@
-import type { InviteCode } from '$lib/models/invite_code';
-import type { LoggedInUser } from '$lib/models/user';
-import { userHasPermission } from '$lib/models/user';
-import { Permission, Role } from '$lib/models/role';
-import { throwError } from '$lib/errors';
-import type { AppDatabase } from '$lib/server/db/schema';
-import * as invites from '$lib/server/repositories/invite_code';
-import { createRoleOfUserByInviteCode } from '$lib/server/repositories/role';
+import type { InviteCode } from '#lib/models/invite_code.js';
+import type { LoggedInUser } from '#lib/models/user.js';
+import { userHasPermission } from '#lib/models/user.js';
+import { Permission, Role } from '#lib/models/role.js';
+import { throwError } from '#lib/errors.js';
+import type { AppDatabase } from '#lib/server/db/schema.js';
+import * as invites from '#lib/server/repositories/invite_code.js';
+import { createRoleOfUserByInviteCode } from '#lib/server/repositories/role.js';
 
 export async function getInviteQuota(deps: { db: AppDatabase }, params: { userId: string }): Promise<number> {
   const { articleCount, validCodeCount, invitedCount } = await invites.getInviteStatsOfUser(deps.db, params.userId);

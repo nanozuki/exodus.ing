@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Input from '$lib/component/Input.svelte';
-  import Button from '$lib/component/Button.svelte';
+  import Input from '#lib/component/Input.svelte';
+  import Button from '#lib/component/Button.svelte';
   import { acceptInviteCode } from './page.remote';
 </script>
 

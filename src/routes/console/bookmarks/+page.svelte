@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ArticleList from '$lib/component/ArticleList.svelte';
+  import ArticleList from '#lib/component/ArticleList.svelte';
   import { page } from '$app/state';
   import { loadPageData } from './page.remote';
 

@@ -132,9 +132,9 @@ default SVG Svelte components. These wildcard module declarations are TypeScript
 ambient APIs, not shape name patterns. No runtime effect.
 
 ```typescript
-import type { Permission } from '$lib/models/role';
-import type { LoggedInUser } from '$lib/models/user';
-import type { AppError, ErrorTag } from '$lib/errors';
+import type { Permission } from '#lib/models/role.js';
+import type { LoggedInUser } from '#lib/models/user.js';
+import type { AppError, ErrorTag } from '#lib/errors.js';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces

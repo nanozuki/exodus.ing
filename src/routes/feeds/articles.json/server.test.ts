@@ -1,10 +1,10 @@
 import { afterAll, afterEach, beforeAll, expect, it, vi } from 'vitest';
-import { createTestDatabase, type TestDatabase } from '$lib/server/testing/database';
-import { articleSamples, getAuthor } from '$lib/testing/data';
+import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
+import { articleSamples, getAuthor } from '#lib/testing/data.js';
 
-const state = vi.hoisted(() => ({ db: null as unknown as import('$lib/server/db/schema').AppDatabase }));
+const state = vi.hoisted(() => ({ db: null as unknown as import('#lib/server/db/schema.js').AppDatabase }));
 
-vi.mock('$lib/server/registry', () => ({
+vi.mock('#lib/server/registry.js', () => ({
   get db() {
     return state.db;
   },

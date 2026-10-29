@@ -80,7 +80,7 @@ setup step. This rule takes precedence over the application import convention
 below.
 
 For a target under `src/lib`, use a relative path when its file is in the same
-directory as the importing file; otherwise use `$lib/...`. A child directory is
+directory as the importing file; otherwise use `#lib/...`. A child directory is
 a different directory. For other local targets, use relative paths. Keep package
 imports and framework aliases such as `$app/...` as provided by their owners.
 

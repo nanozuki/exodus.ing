@@ -5,14 +5,14 @@ const mocks = vi.hoisted(() => ({ validateSession: vi.fn(), findUser: vi.fn(), r
 
 vi.mock('./registry', () => ({ db: {} }));
 
-vi.mock('$lib/server/use-cases/session', () => ({ validateSession: mocks.validateSession }));
+vi.mock('#lib/server/use-cases/session.js', () => ({ validateSession: mocks.validateSession }));
 
-vi.mock('$lib/server/repositories/user', () => ({ findUserById: mocks.findUser }));
+vi.mock('#lib/server/repositories/user.js', () => ({ findUserById: mocks.findUser }));
 
-vi.mock('$lib/server/repositories/role', () => ({ getRolesOfUser: mocks.roles }));
+vi.mock('#lib/server/repositories/role.js', () => ({ getRolesOfUser: mocks.roles }));
 
 import { AUTH_COOKIE_NAME, attachLocals, createGitHubAuthUrl, readGitHubCallbackData, setAuthCookie } from './auth';
-import type { GitHubOAuth } from '$lib/server/adapters/github_auth';
+import type { GitHubOAuth } from '#lib/server/adapters/github_auth.js';
 
 const cookies = { get: vi.fn(), set: vi.fn() };
 

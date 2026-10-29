@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Button from '$lib/component/Button.svelte';
-  import Input from '$lib/component/Input.svelte';
+  import Button from '#lib/component/Button.svelte';
+  import Input from '#lib/component/Input.svelte';
   import { createOrUpdateExternalArticle } from './ExternalArticleForm.remote';
-  import type { LoggedInUser } from '$lib/models/user';
-  import type { ArticleContent } from '$lib/models/article';
+  import type { LoggedInUser } from '#lib/models/user.js';
+  import type { ArticleContent } from '#lib/models/article.js';
   import { untrack } from 'svelte';
 
   type Props = {

@@ -6,7 +6,7 @@
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
   import MdiLinkVariant from '~icons/mdi/link-variant';
   import { format } from 'date-fns';
-  import type { ArticleListItem } from '$lib/models/article';
+  import type { ArticleListItem } from '#lib/models/article.js';
   import UserBadge from './UserBadge.svelte';
 
   interface ArticleHeaderProps {

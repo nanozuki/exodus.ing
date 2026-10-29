@@ -1,7 +1,7 @@
-import type { LoggedInUser } from '$lib/models/user';
-import { throwError } from '$lib/errors';
-import type { AppDatabase } from '$lib/server/db/schema';
-import { getCommentById, createComment, updateComment } from '$lib/server/repositories/comment';
+import type { LoggedInUser } from '#lib/models/user.js';
+import { throwError } from '#lib/errors.js';
+import type { AppDatabase } from '#lib/server/db/schema.js';
+import { getCommentById, createComment, updateComment } from '#lib/server/repositories/comment.js';
 
 // On edits, the stored article and ancestry win over submitted replacements.
 export async function saveComment(

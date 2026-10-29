@@ -1,7 +1,7 @@
-import { listArticleFeeds } from '$lib/server/repositories/article';
-import type { ArticleFeedsItem } from '$lib/models/article';
-import { compileMarkdown } from '$lib/markdown';
-import { db } from '$lib/server/registry';
+import { listArticleFeeds } from '#lib/server/repositories/article.js';
+import type { ArticleFeedsItem } from '#lib/models/article.js';
+import { compileMarkdown } from '#lib/markdown.js';
+import { db } from '#lib/server/registry.js';
 import { formatRFC3339 } from 'date-fns';
 import type { RequestHandler } from '@sveltejs/kit';
 

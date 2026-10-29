@@ -1,9 +1,9 @@
-import { setAuthCookie, readGitHubCallbackData } from '$lib/server/auth';
-import { catchError, throwAppError } from '$lib/errors';
-import { adapters, db } from '$lib/server/registry';
-import { now } from '$lib/server/adapters/clock';
-import { generateSessionId } from '$lib/server/adapters/session_id';
-import { loginWithGitHub } from '$lib/server/use-cases/user';
+import { setAuthCookie, readGitHubCallbackData } from '#lib/server/auth.js';
+import { catchError, throwAppError } from '#lib/errors.js';
+import { adapters, db } from '#lib/server/registry.js';
+import { now } from '#lib/server/adapters/clock.js';
+import { generateSessionId } from '#lib/server/adapters/session_id.js';
+import { loginWithGitHub } from '#lib/server/use-cases/user.js';
 import type { RequestEvent } from '@sveltejs/kit';
 
 export async function GET(request: RequestEvent): Promise<Response> {

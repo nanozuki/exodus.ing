@@ -1,8 +1,8 @@
 <script lang="ts">
   import MdiTextBoxEditOutline from '~icons/mdi/text-box-edit-outline';
-  import Action from '$lib/component/Action.svelte';
-  import type { User } from '$lib/models/user';
-  import type { Article } from '$lib/models/article';
+  import Action from '#lib/component/Action.svelte';
+  import type { User } from '#lib/models/user.js';
+  import type { Article } from '#lib/models/article.js';
 
   interface EditBadgeProps {
     user: User | null;

@@ -1,6 +1,6 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { db } from '$lib/server/registry';
-import { getBookmarkStateOfArticle, createBookmark, deleteBookmark } from '$lib/server/repositories/bookmark';
+import { db } from '#lib/server/registry.js';
+import { getBookmarkStateOfArticle, createBookmark, deleteBookmark } from '#lib/server/repositories/bookmark.js';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 

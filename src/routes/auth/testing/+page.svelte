@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import Button from '$lib/component/Button.svelte';
+  import Button from '#lib/component/Button.svelte';
   import { loadPageData, simulateTestingLogin } from './page.remote';
 
   const nextParam = $derived(page.url.searchParams.get('next') || '/');

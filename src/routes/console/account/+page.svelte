@@ -1,9 +1,9 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { loadLayoutData } from '../layout.remote';
-  import Button from '$lib/component/Button.svelte';
-  import Input from '$lib/component/Input.svelte';
-  import Dialog from '$lib/component/Dialog.svelte';
+  import Button from '#lib/component/Button.svelte';
+  import Input from '#lib/component/Input.svelte';
+  import Dialog from '#lib/component/Dialog.svelte';
   import { updateUsername } from './page.remote';
 
   const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));

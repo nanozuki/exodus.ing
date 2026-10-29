@@ -1,14 +1,14 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { and, eq, sql } from 'drizzle-orm';
-import { createTestDatabase, type TestDatabase } from '$lib/server/testing/database';
-import { tArticle, tBookmark, tComment, tInviteCode, tUserRole } from '$lib/server/db/schema';
+import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
+import { tArticle, tBookmark, tComment, tInviteCode, tUserRole } from '#lib/server/db/schema.js';
 import * as articles from './article';
 import * as bookmarks from './bookmark';
 import * as comments from './comment';
 import * as invites from './invite_code';
 import * as roles from './role';
 import * as users from './user';
-import { Role } from '$lib/models/role';
+import { Role } from '#lib/models/role.js';
 
 vi.mock('./utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./utils')>();

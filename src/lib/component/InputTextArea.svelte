@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RemoteFormIssue } from '@sveltejs/kit';
+  import type { RemoteFormIssue } from '$app/server';
   import type { Snippet } from 'svelte';
   import type { HTMLTextareaAttributes } from 'svelte/elements';
 

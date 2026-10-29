@@ -22,21 +22,24 @@ vi.mock('$app/server', () => ({
   getRequestEvent: () => state.event,
 }));
 
-vi.mock('$lib/server/registry', () => ({ db: {}, adapters: {} }));
+vi.mock('#lib/server/registry.js', () => ({ db: {}, adapters: {} }));
 
-vi.mock('$lib/server/repositories/article', () => ({
+vi.mock('#lib/server/repositories/article.js', () => ({
   listArticles: state.listArticles,
   listBookmarkedArticlesOfUser: state.listBookmarks,
   getArticleSummaryById: vi.fn(),
 }));
 
-vi.mock('$lib/server/use-cases/article', () => ({ getEditableArticle: state.editable, saveMarkdownArticle: vi.fn() }));
+vi.mock('#lib/server/use-cases/article.js', () => ({
+  getEditableArticle: state.editable,
+  saveMarkdownArticle: vi.fn(),
+}));
 
 import { loadPageData as home } from './page.remote';
 import { loadLayoutData as consoleLayout } from './console/layout.remote';
 import { loadPageData as editor } from './a/[articleId]/edit/page.remote';
 import { loadPageData as bookmarks } from './console/bookmarks/page.remote';
-import { Role } from '$lib/models/role';
+import { Role } from '#lib/models/role.js';
 
 const actor = {
   id: 'trusted',

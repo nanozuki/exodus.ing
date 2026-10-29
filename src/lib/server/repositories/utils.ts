@@ -1,4 +1,4 @@
-import { throwError } from '$lib/errors';
+import { throwError } from '#lib/errors.js';
 import { isHttpError } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid';
 

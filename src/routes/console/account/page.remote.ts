@@ -1,8 +1,8 @@
 import { form, getRequestEvent } from '$app/server';
 import z from 'zod';
 import { invalid, isHttpError, redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/registry';
-import { updateUsername as updateUsernameUseCase } from '$lib/server/use-cases/user';
+import { db } from '#lib/server/registry.js';
+import { updateUsername as updateUsernameUseCase } from '#lib/server/use-cases/user.js';
 
 const updateUsernameSchema = z.object({
   username: z.string().min(1, '用户名不能为空'),

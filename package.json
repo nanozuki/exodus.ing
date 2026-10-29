@@ -32,9 +32,9 @@
     "@iconify-json/material-symbols-light": "1.2.97",
     "@iconify-json/mdi": "^1.2.3",
     "@playwright/test": "^1.64.1",
-    "@sveltejs/adapter-node": "^5.5.2",
-    "@sveltejs/kit": "^2.70.3",
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@sveltejs/adapter-node": "^6.0.0",
+    "@sveltejs/kit": "^3.0.0",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/svelte": "^5.4.2",
@@ -55,15 +55,15 @@
     "prettier-plugin-svelte": "^4.1.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "svelte": "^5.57.3",
-    "svelte-check": "^4.3.6",
+    "svelte-check": "^4.7.5",
     "tailwindcss": "^4.3.3",
     "tslib": "^2.8.1",
     "tsx": "4.23.15",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.0",
     "typescript-eslint": "^8.72.1",
     "unplugin-icons": "^24.0.0",
     "vfile": "^6.0.3",
-    "vite": "^7.3.1",
+    "vite": "^8.0.12",
     "vitest": "^5.0.5",
     "vitest-browser-svelte": "^3.1.0",
     "zod": "^4.6.7"
@@ -88,5 +88,9 @@
     "unified": "^11.0.5",
     "vfile-matter": "^5.0.1"
   },
-  "packageManager": "pnpm@12.15.0"
+  "packageManager": "pnpm@12.15.0",
+  "imports": {
+    "#lib": "./src/lib/index.js",
+    "#lib/*": "./src/lib/*"
+  }
 }

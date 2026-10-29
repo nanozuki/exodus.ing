@@ -1,7 +1,7 @@
 import { query } from '$app/server';
 import z from 'zod';
-import { db } from '$lib/server/registry';
-import { listArticles } from '$lib/server/repositories/article';
+import { db } from '#lib/server/registry.js';
+import { listArticles } from '#lib/server/repositories/article.js';
 
 export const loadPageData = query(
   z.object({

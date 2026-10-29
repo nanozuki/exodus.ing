@@ -1,5 +1,5 @@
-import { throwError } from '$lib/errors';
-import type { Config } from '$lib/server/config';
+import { throwError } from '#lib/errors.js';
+import type { Config } from '#lib/server/config.js';
 import { GitHub, OAuth2RequestError } from 'arctic';
 
 export type GitHubUser = { id: number; username: string };

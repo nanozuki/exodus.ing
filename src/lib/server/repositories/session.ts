@@ -1,6 +1,6 @@
-import type { Session } from '$lib/models/session';
+import type { Session } from '#lib/models/session.js';
 import { eq } from 'drizzle-orm';
-import { tSession, type AppDatabase } from '$lib/server/db/schema';
+import { tSession, type AppDatabase } from '#lib/server/db/schema.js';
 import { wrap } from './utils';
 
 export async function findSessionById(db: AppDatabase, sessionId: string): Promise<Session | null> {

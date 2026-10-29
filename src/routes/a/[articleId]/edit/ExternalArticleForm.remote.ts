@@ -1,9 +1,9 @@
 import { form, getRequestEvent } from '$app/server';
 import z from 'zod';
 import { invalid, isHttpError, redirect } from '@sveltejs/kit';
-import { Permission } from '$lib/models/role';
-import { db, adapters } from '$lib/server/registry';
-import { saveExternalArticle } from '$lib/server/use-cases/article';
+import { Permission } from '#lib/models/role.js';
+import { db, adapters } from '#lib/server/registry.js';
+import { saveExternalArticle } from '#lib/server/use-cases/article.js';
 
 // Pass the original URL string alongside its parsed value so persistence keeps the submitted text.
 export const createOrUpdateExternalArticle = form(

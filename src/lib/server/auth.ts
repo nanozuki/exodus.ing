@@ -1,16 +1,16 @@
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
 import { z } from 'zod';
-import type { Session } from '$lib/models/session';
-import type { Permission } from '$lib/models/role';
-import { userHasPermission, type LoggedInUser } from '$lib/models/user';
-import { throwError } from '$lib/errors';
-import type { GitHubOAuth } from '$lib/server/adapters/github_auth';
+import type { Session } from '#lib/models/session.js';
+import type { Permission } from '#lib/models/role.js';
+import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
+import { throwError } from '#lib/errors.js';
+import type { GitHubOAuth } from '#lib/server/adapters/github_auth.js';
 import { db } from './registry';
-import { now } from '$lib/server/adapters/clock';
-import { validateSession } from '$lib/server/use-cases/session';
-import { findUserById } from '$lib/server/repositories/user';
-import { getRolesOfUser } from '$lib/server/repositories/role';
+import { now } from '#lib/server/adapters/clock.js';
+import { validateSession } from '#lib/server/use-cases/session.js';
+import { findUserById } from '#lib/server/repositories/user.js';
+import { getRolesOfUser } from '#lib/server/repositories/role.js';
 
 const GITHUB_OAUTH_COOKIE_NAME = 'github_oauth_state';
 

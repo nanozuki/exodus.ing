@@ -1,19 +1,19 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTestDatabase, type TestDatabase } from '$lib/server/testing/database';
-import { Role } from '$lib/models/role';
-import { findUserByUsername } from '$lib/server/repositories/user';
-import { findSessionById, createSession as persistSession } from '$lib/server/repositories/session';
-import { getArticleById } from '$lib/server/repositories/article';
-import { tArticle } from '$lib/server/db/schema';
+import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
+import { Role } from '#lib/models/role.js';
+import { findUserByUsername } from '#lib/server/repositories/user.js';
+import { findSessionById, createSession as persistSession } from '#lib/server/repositories/session.js';
+import { getArticleById } from '#lib/server/repositories/article.js';
+import { tArticle } from '#lib/server/db/schema.js';
 import { createSession, validateSession } from './session';
 import { getEditableArticle, saveExternalArticle, saveMarkdownArticle, verifyDomainOwnership } from './article';
 import { saveComment } from './comment';
 import { getInviteQuota, createInviteCode, acceptInviteCode } from './invite_code';
 import { loginWithGitHub, updateUsername, validateSignUp } from './user';
-import type { LoggedInUser } from '$lib/models/user';
+import type { LoggedInUser } from '#lib/models/user.js';
 
-vi.mock('$lib/server/repositories/utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('$lib/server/repositories/utils')>();
+vi.mock('#lib/server/repositories/utils.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#lib/server/repositories/utils.js')>();
   let sequence = 0;
   return {
     ...actual,

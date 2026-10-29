@@ -1,9 +1,9 @@
-import type { Comment, CommentListItem } from '$lib/models/comment';
-import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/models/id_path';
-import type { Pagination, Paginated } from '$lib/models/page';
-import { throwError } from '$lib/errors';
+import type { Comment, CommentListItem } from '#lib/models/comment.js';
+import { decodeIdPath, decodePathField, encodeIdPath } from '#lib/models/id_path.js';
+import type { Pagination, Paginated } from '#lib/models/page.js';
+import { throwError } from '#lib/errors.js';
 import { desc, eq, sql } from 'drizzle-orm';
-import { tArticle, tComment, tUser, type AppDatabase } from '$lib/server/db/schema';
+import { tArticle, tComment, tUser, type AppDatabase } from '#lib/server/db/schema.js';
 import { newNanoId, wrap } from './utils';
 
 type QueryDatabase = Pick<AppDatabase, 'select'>;

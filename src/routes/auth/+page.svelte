@@ -1,8 +1,8 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import Button from '$lib/component/Button.svelte';
-  import ButtonLink from '$lib/component/ButtonLink.svelte';
-  import Input from '$lib/component/Input.svelte';
+  import Button from '#lib/component/Button.svelte';
+  import ButtonLink from '#lib/component/ButtonLink.svelte';
+  import Input from '#lib/component/Input.svelte';
   import { loginByGithub, registerByGithub } from './page.remote';
 
   let next = $derived(page.url.searchParams.get('next') || undefined);

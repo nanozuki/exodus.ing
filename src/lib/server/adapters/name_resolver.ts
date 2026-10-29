@@ -1,4 +1,4 @@
-import { throwError } from '$lib/errors';
+import { throwError } from '#lib/errors.js';
 
 interface Response {
   Status: number;

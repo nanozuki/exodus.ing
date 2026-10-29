@@ -1,12 +1,12 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { setAuthCookie } from '$lib/server/auth';
-import { createSession } from '$lib/server/use-cases/session';
-import { now } from '$lib/server/adapters/clock';
-import { generateSessionId } from '$lib/server/adapters/session_id';
-import { getUsers, findUserById } from '$lib/server/repositories/user';
-import { getRolesOfUser } from '$lib/server/repositories/role';
-import { throwError } from '$lib/errors';
-import { db } from '$lib/server/registry';
+import { setAuthCookie } from '#lib/server/auth.js';
+import { createSession } from '#lib/server/use-cases/session.js';
+import { now } from '#lib/server/adapters/clock.js';
+import { generateSessionId } from '#lib/server/adapters/session_id.js';
+import { getUsers, findUserById } from '#lib/server/repositories/user.js';
+import { getRolesOfUser } from '#lib/server/repositories/role.js';
+import { throwError } from '#lib/errors.js';
+import { db } from '#lib/server/registry.js';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 

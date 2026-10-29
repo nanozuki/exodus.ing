@@ -1,7 +1,7 @@
 <script lang="ts">
-  import ArticleCard from '$lib/component/ArticleCard.svelte';
-  import Button from '$lib/component/Button.svelte';
-  import ButtonLink from '$lib/component/ButtonLink.svelte';
+  import ArticleCard from '#lib/component/ArticleCard.svelte';
+  import Button from '#lib/component/Button.svelte';
+  import ButtonLink from '#lib/component/ButtonLink.svelte';
   import MarkdownEditor from './MarkdownEditor.svelte';
   import { createOrUpdateMarkdownArticle, loadPageData } from './page.remote';
   import { page } from '$app/state';

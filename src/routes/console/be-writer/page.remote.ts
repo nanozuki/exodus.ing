@@ -1,10 +1,10 @@
 import { form, getRequestEvent } from '$app/server';
 import z from 'zod';
 import { invalid, isHttpError, redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/registry';
-import { now } from '$lib/server/adapters/clock';
-import { acceptInviteCode as acceptInviteCodeUseCase } from '$lib/server/use-cases/invite_code';
-import { getRolesOfUser } from '$lib/server/repositories/role';
+import { db } from '#lib/server/registry.js';
+import { now } from '#lib/server/adapters/clock.js';
+import { acceptInviteCode as acceptInviteCodeUseCase } from '#lib/server/use-cases/invite_code.js';
+import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { loadLayoutData } from '../../layout.remote';
 
 export const acceptInviteCode = form(

@@ -1,7 +1,8 @@
-import { attachLocals } from '$lib/server/auth';
-import { getConfig } from '$lib/server/config';
-import { buildServices, adapters, db } from '$lib/server/registry';
-import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
+import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
+import { attachLocals } from '#lib/server/auth.js';
+import { getConfig } from '#lib/server/config.js';
+import { buildServices, adapters, db } from '#lib/server/registry.js';
 
 function ensureHost(request: Request) {
   const host = getConfig().appUrl;

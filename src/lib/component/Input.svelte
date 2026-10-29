@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RemoteFormIssue } from '@sveltejs/kit';
+  import type { RemoteFormIssue } from '$app/server';
   import type { HTMLInputAttributes } from 'svelte/elements';
 
   interface Props extends HTMLInputAttributes {

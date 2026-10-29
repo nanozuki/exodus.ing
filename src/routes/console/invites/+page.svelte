@@ -1,10 +1,10 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import Action from '$lib/component/Action.svelte';
-  import Button from '$lib/component/Button.svelte';
+  import Action from '#lib/component/Action.svelte';
+  import Button from '#lib/component/Button.svelte';
   import CopyIcon from '~icons/material-symbols-light/content-copy-outline-rounded';
   import DeleteIcon from '~icons/material-symbols-light/delete-outline';
-  import UserBadge from '$lib/component/UserBadge.svelte';
+  import UserBadge from '#lib/component/UserBadge.svelte';
   import { format } from 'date-fns';
   import { createInviteCode, deleteInviteCode, loadPageData } from './page.remote';
 

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { OAuth2RequestError } from 'arctic';
 import { GitHubOAuth } from './github_auth';
-import type { Config } from '$lib/server/config';
+import type { Config } from '#lib/server/config.js';
 
 const provider = vi.hoisted(() => ({ authorize: vi.fn(), exchange: vi.fn() }));
 

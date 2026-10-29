@@ -1,6 +1,6 @@
-import type { Permission } from '$lib/models/role';
-import type { LoggedInUser } from '$lib/models/user';
-import type { AppError, ErrorTag } from '$lib/errors';
+import type { Permission } from '#lib/models/role.js';
+import type { LoggedInUser } from '#lib/models/user.js';
+import type { AppError, ErrorTag } from '#lib/errors.js';
 
 declare global {
   namespace App {

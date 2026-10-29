@@ -3,7 +3,7 @@
   import MdiCalendar from '~icons/mdi/calendar';
   import MdiReply from '~icons/mdi/reply';
   import { format } from 'date-fns';
-  import UserBadge from '$lib/component/UserBadge.svelte';
+  import UserBadge from '#lib/component/UserBadge.svelte';
   import type { Snippet } from 'svelte';
 
   type Props = {

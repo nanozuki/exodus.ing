@@ -1,11 +1,11 @@
-import type { Article } from '$lib/models/article';
-import type { LoggedInUser } from '$lib/models/user';
-import { userHasPermission } from '$lib/models/user';
-import { Permission } from '$lib/models/role';
-import { throwError } from '$lib/errors';
-import { compileArticle, type MarkdownArticleIssue } from '$lib/markdown';
-import type { AppDatabase } from '$lib/server/db/schema';
-import { getArticleById, createArticle, updateArticle } from '$lib/server/repositories/article';
+import type { Article } from '#lib/models/article.js';
+import type { LoggedInUser } from '#lib/models/user.js';
+import { userHasPermission } from '#lib/models/user.js';
+import { Permission } from '#lib/models/role.js';
+import { throwError } from '#lib/errors.js';
+import { compileArticle, type MarkdownArticleIssue } from '#lib/markdown.js';
+import type { AppDatabase } from '#lib/server/db/schema.js';
+import { getArticleById, createArticle, updateArticle } from '#lib/server/repositories/article.js';
 
 export type SaveMarkdownArticleResult = { ok: true; articleId: string } | { ok: false; issues: MarkdownArticleIssue[] };
 

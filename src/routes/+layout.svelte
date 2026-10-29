@@ -2,9 +2,9 @@
   import '../app.css';
   import { loadLayoutData } from './layout.remote';
   import { navigating, page } from '$app/state';
-  import Logo from '$lib/component/Logo.svelte';
-  import Loading from '$lib/component/Loading.svelte';
-  import UserBadge from '$lib/component/UserBadge.svelte';
+  import Logo from '#lib/component/Logo.svelte';
+  import Loading from '#lib/component/Loading.svelte';
+  import UserBadge from '#lib/component/UserBadge.svelte';
 
   let { children } = $props();
 
