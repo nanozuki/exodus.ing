@@ -2,20 +2,44 @@
 
 ## Progress — 2026-10-29
 
-- Upgraded SvelteKit from 2.50.1 to 2.70.3 as the recommended transition before Kit 3; the 3.1.0 target remains pending.
-- Removed all eight FormState instances. Remote forms now own field values and validation feedback; comments retain local success-only cleanup, while unexpected errors reach the error page.
-- Known username, display-name, and article-title uniqueness conflicts now carry field errors. Invalid or consumed invitations map to inviteCode; nonexistent domains and unmatched TXT records map to url, while DNS service failures propagate.
-- Preserved username-dialog cancellation, post-invitation navigation and viewer updates, and invalid input without JavaScript. Missing article context rolls back comment creation and returns 404.
-- Validation: application and E2E type checks, ESLint, formatting, and production build passed. All 82 tests passed: 46 unit/component/database, 12 script integration, and 24 E2E. Build warnings remain for remote-function sourcemaps and Zod annotations/circular dependencies.
+- Upgraded SvelteKit from 2.50.1 to 2.70.3 as the recommended transition before
+  Kit 3; the 3.1.0 target remains pending.
+- Removed all eight FormState instances. Remote forms now own field values and
+  validation feedback; comments retain local success-only cleanup, while
+  unexpected errors reach the error page.
+- Known username, display-name, and article-title uniqueness conflicts now carry
+  field errors. Invalid or consumed invitations map to inviteCode; nonexistent
+  domains and unmatched TXT records map to url, while DNS service failures
+  propagate.
+- Preserved username-dialog cancellation, post-invitation navigation and viewer
+  updates, and invalid input without JavaScript. Missing article context rolls
+  back comment creation and returns 404.
+- Validation: application and E2E type checks, ESLint, formatting, and
+  production build passed. All 82 tests passed: 46 unit/component/database, 12
+  script integration, and 24 E2E. Build warnings remain for remote-function
+  sourcemaps and Zod annotations/circular dependencies.
 
 ## Progress — 2026-10-28
 
-- Completed: 31 of 38 npm dependency upgrades, verified against package.json and the installed versions.
-- Browser testing group completed: vitest and @vitest/browser-playwright are both installed at 5.0.5; vitest-browser-svelte is installed at 3.1.0. The Dialog component test now awaits render; the existing Vitest configuration remains compatible.
-- Pending: 7 dependencies. Four require code/configuration migration; three were rolled back to preserve compatible version combinations. See [remaining upgrade work](upgrade/README.md).
-- Validation after the Vitest upgrade: no peer dependency issues; frozen-lockfile installation, ESLint, formatting of changed files, application/E2E type checks, and production build passed. All 73 tests passed: 41 unit/component/database, 12 script integration, and 20 E2E.
-- The two error wrappers now preserve their original cause, and the formatting failures are fixed.
-- No minimumReleaseAgeExclude exceptions are configured. At the user’s request, pinned @flydotio/dockerfile to 0.7.13 and @iconify-json/material-symbols-light to 1.2.97 (the preceding stable releases), because the original targets did not meet the release-age policy.
+- Completed: 31 of 38 npm dependency upgrades, verified against package.json and
+  the installed versions.
+- Browser testing group completed: vitest and @vitest/browser-playwright are
+  both installed at 5.0.5; vitest-browser-svelte is installed at 3.1.0. The
+  Dialog component test now awaits render; the existing Vitest configuration
+  remains compatible.
+- Pending: 7 dependencies. Four require code/configuration migration; three were
+  rolled back to preserve compatible version combinations. See
+  [remaining upgrade work](upgrade/README.md).
+- Validation after the Vitest upgrade: no peer dependency issues;
+  frozen-lockfile installation, ESLint, formatting of changed files,
+  application/E2E type checks, and production build passed. All 73 tests passed:
+  41 unit/component/database, 12 script integration, and 20 E2E.
+- The two error wrappers now preserve their original cause, and the formatting
+  failures are fixed.
+- No minimumReleaseAgeExclude exceptions are configured. At the user’s request,
+  pinned @flydotio/dockerfile to 0.7.13 and @iconify-json/material-symbols-light
+  to 1.2.97 (the preceding stable releases), because the original targets did
+  not meet the release-age policy.
 - Docker changes and melt remain outside this work.
 
 ## nix flakes

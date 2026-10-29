@@ -59,7 +59,8 @@ Constraints:
 ### Unified Entry: /auth
 
 - Show "Register/Log In" with provider buttons.
-- Optional fields for username/name are collected here or on the completion step.
+- Optional fields for username/name are collected here or on the completion
+  step.
 
 ### OAuth Start
 
@@ -130,7 +131,8 @@ Constraints:
 
 ## Security Notes
 
-- Do not trust client data for sign_up fields; always re-validate before creating user.
+- Do not trust client data for sign_up fields; always re-validate before
+  creating user.
 - Clear OAuth state cookie after callback.
 - Keep pending_auth TTL short (10-15 minutes).
 - Consider rate limits for completion attempts.
@@ -146,9 +148,12 @@ Constraints:
 
 - Missing/expired pending_id: redirect to /auth with a message.
 - OAuth state mismatch: hard fail and clear state cookie.
-- Provider user already linked to another account: block and instruct user to log in.
-- Username/name collision on completion: show validation error and keep pending_auth.
-- Logged-in user attempts to start new auth: link provider instead of creating new user.
+- Provider user already linked to another account: block and instruct user to
+  log in.
+- Username/name collision on completion: show validation error and keep
+  pending_auth.
+- Logged-in user attempts to start new auth: link provider instead of creating
+  new user.
 - Next URL not safe: fall back to "/".
 
 ## Sequence Steps

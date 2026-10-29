@@ -1,6 +1,7 @@
 # src/routes/auth/testing
 
-Render the development/test simulated-login selector; its remote operations enforce environment restrictions.
+Render the development/test simulated-login selector; its remote operations
+enforce environment restrictions.
 
 ## Files
 
@@ -13,12 +14,18 @@ declare const component: Component<Record<string, never>>;
 export default component;
 ```
 
-Await loadPageData and show each returned user as a submit button with roles. Pass next through when it starts with
-`/`, otherwise `/`. Submit the remote form directly, using remote-field attributes for hidden next and each userId submit button. The remote performs environment enforcement; submission exceptions propagate to the error page.
+Await loadPageData and show each returned user as a submit button with roles.
+Pass next through when it starts with `/`, otherwise `/`. Submit the remote form
+directly, using remote-field attributes for hidden next and each userId submit
+button. The remote performs environment enforcement; submission exceptions
+propagate to the error page.
 
 ### `src/routes/auth/testing/page.remote.ts`
 
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors at this boundary; preserve the framework query refresh, form fields, enhancement, and pending APIs. Pass explicit capabilities to use cases or call repositories directly for data access.
+SvelteKit remote entry point. Validate request inputs and obtain trusted actors
+at this boundary; preserve the framework query refresh, form fields,
+enhancement, and pending APIs. Pass explicit capabilities to use cases or call
+repositories directly for data access.
 
 #### `loadPageData`
 
@@ -36,7 +43,9 @@ export declare const loadPageData: RemoteQueryFunction<
 >;
 ```
 
-Reject when PROD is true and MODE is not test. Otherwise getUsers and concurrent getRolesOfUser calls supply every stored user's id, username, name, and roles. Environment gating and page projection stay at this remote boundary.
+Reject when PROD is true and MODE is not test. Otherwise getUsers and concurrent
+getRolesOfUser calls supply every stored user's id, username, name, and roles.
+Environment gating and page projection stay at this remote boundary.
 
 #### `simulateTestingLogin`
 
@@ -50,4 +59,9 @@ export declare const simulateTestingLogin: RemoteForm<
 >;
 ```
 
-Use the same environment restriction. Require a nonempty userId, find the user or throw NOT_FOUND, and call `createSession({ db, now, generateSessionId }, { userId })` using the clock and session-ID adapter functions. Set its cookie through the server auth request helper. Redirect 303 to next when it starts with /, otherwise /. Preserve the existing string-prefix behavior, including protocol-relative values.
+Use the same environment restriction. Require a nonempty userId, find the user
+or throw NOT_FOUND, and call
+`createSession({ db, now, generateSessionId }, { userId })` using the clock and
+session-ID adapter functions. Set its cookie through the server auth request
+helper. Redirect 303 to next when it starts with /, otherwise /. Preserve the
+existing string-prefix behavior, including protocol-relative values.

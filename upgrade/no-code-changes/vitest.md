@@ -8,7 +8,13 @@
 
 ## 项目用法
 
-`vite.config.ts` 使用 test.projects，两个 inline project 都 extends 同一个 vite.config.ts。client 是 Playwright Chromium，server 是 node；设置 requireAssertions、testTimeout、hookTimeout。测试使用 vi.hoisted/mock/fn/resetAllMocks、fake Date、异步 rejects/resolves、expect.element。`Dialog.svelte.test.ts` 使用 browser locator。server 的 remotes/auth/OAuth 测试已主动清理 mock。无 coverage、bench、自定义 reporter/custom browser command 配置。
+`vite.config.ts` 使用 test.projects，两个 inline
+project 都 extends 同一个 vite.config.ts。client 是 Playwright
+Chromium，server 是 node；设置 requireAssertions、testTimeout、hookTimeout。测试使用 vi.hoisted/mock/fn/resetAllMocks、fake
+Date、异步 rejects/resolves、expect.element。`Dialog.svelte.test.ts`
+使用 browser
+locator。server 的 remotes/auth/OAuth 测试已主动清理 mock。无 coverage、bench、自定义 reporter/custom
+browser command 配置。
 
 ## 命中使用范围的变更
 
@@ -27,10 +33,19 @@
 
 ## 运行要求与未命中 breaking
 
-[5.0.5 官方包元数据](https://registry.npmjs.org/vitest/5.0.5)：Node 为 `^22.12.0 || ^24.0.0 || >=26.0.0`；Vite peer 为 `^6.4.0 || ^7.0.0 || ^8.0.0`。Docker22.17满足 Vitest 本身要求，但不满足 jsdom30，见相应记录。browser-playwright 必须与 Vitest 同为5.0.5。
+[5.0.5 官方包元数据](https://registry.npmjs.org/vitest/5.0.5)：Node 为
+`^22.12.0 || ^24.0.0 || >=26.0.0`；Vite peer 为
+`^6.4.0 || ^7.0.0 || ^8.0.0`。Docker22.17满足 Vitest 本身要求，但不满足 jsdom30，见相应记录。browser-playwright 必须与 Vitest 同为5.0.5。
 
-移除 deprecated entrypoints、sequential/benchmark API，coverage glob/threshold 与 reporter 默认输出调整，在当前仓库未发现对应使用。toThrow 空字符串、类 mock prototype 修复也未发现对应调用，不要求盲改代码。Vitest 的 expect.poll 与 Playwright Test 的 expect.poll 是不同实现，后者不受此条直接影响。
+移除 deprecated entrypoints、sequential/benchmark API，coverage
+glob/threshold 与 reporter 默认输出调整，在当前仓库未发现对应使用。toThrow 空字符串、类 mock
+prototype 修复也未发现对应调用，不要求盲改代码。Vitest 的 expect.poll 与 Playwright
+Test 的 expect.poll 是不同实现，后者不受此条直接影响。
 
 ## 官方迁移指南与验证
 
-[官方 Migrating to Vitest 5.0](https://vitest.dev/guide/migration/) 是本区间的专门迁移指南。已完成 browser-svelte 的 await render 迁移；`pnpm test:unit --run --project client` 和 `pnpm test:unit --run` 均通过，全部41项测试覆盖 client/server 项目发现、SvelteKit 插件、mock、数据库及 fake Date 的现有用法，测试进程正常退出，配置无需修改。
+[官方 Migrating to Vitest 5.0](https://vitest.dev/guide/migration/)
+是本区间的专门迁移指南。已完成 browser-svelte 的 await
+render 迁移；`pnpm test:unit --run --project client` 和 `pnpm test:unit --run`
+均通过，全部41项测试覆盖 client/server 项目发现、SvelteKit 插件、mock、数据库及 fake
+Date 的现有用法，测试进程正常退出，配置无需修改。

@@ -1,7 +1,7 @@
 # src/routes/console/invites
 
-Render invitation quota, unused codes, inviter, and invitees for authors, including creation, deletion, and copy
-controls.
+Render invitation quota, unused codes, inviter, and invitees for authors,
+including creation, deletion, and copy controls.
 
 ## Files
 
@@ -14,13 +14,19 @@ declare const component: Component<Record<string, never>>;
 export default component;
 ```
 
-Await loadPageData({}). Show optional welcome text, inviter relationship, quota, unused codes, and invitees. Pass each Relation.user to UserBadge and display its invitedAt relationship timestamp.
-Offer creation only for positive quota. Delete by submitted code; copy via navigator.clipboard and mark the last copied
-code. Clipboard failures are not handled locally. Remotes refresh the projection after writes.
+Await loadPageData({}). Show optional welcome text, inviter relationship, quota,
+unused codes, and invitees. Pass each Relation.user to UserBadge and display its
+invitedAt relationship timestamp. Offer creation only for positive quota. Delete
+by submitted code; copy via navigator.clipboard and mark the last copied code.
+Clipboard failures are not handled locally. Remotes refresh the projection after
+writes.
 
 ### `src/routes/console/invites/page.remote.ts`
 
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors at this boundary; preserve the framework query refresh, form fields, enhancement, and pending APIs. Pass explicit capabilities to use cases or call repositories directly for data access.
+SvelteKit remote entry point. Validate request inputs and obtain trusted actors
+at this boundary; preserve the framework query refresh, form fields,
+enhancement, and pending APIs. Pass explicit capabilities to use cases or call
+repositories directly for data access.
 
 #### `loadPageData`
 
@@ -36,7 +42,10 @@ export declare const loadPageData: RemoteQueryFunction<
 >;
 ```
 
-Accept an empty object and require CreateArticle. Concurrently query inviter, invitees, unused codes, and getInviteQuota. Map the repository's missing inviter null to undefined to preserve the page output. The quota's three statistics share a snapshot, but the four page sections do not promise a common snapshot.
+Accept an empty object and require CreateArticle. Concurrently query inviter,
+invitees, unused codes, and getInviteQuota. Map the repository's missing inviter
+null to undefined to preserve the page output. The quota's three statistics
+share a snapshot, but the four page sections do not promise a common snapshot.
 
 #### `createInviteCode`
 
@@ -44,7 +53,11 @@ Accept an empty object and require CreateArticle. Concurrently query inviter, in
 export declare const createInviteCode: RemoteForm<void, void>;
 ```
 
-Require CreateArticle, then call the createInviteCode use case with database and trusted actor. The use case calculates quota; the repository atomically checks the supplied statistics before insertion. Refresh console invite data on success. A changed statistics snapshot rejects with the documented retry message.
+Require CreateArticle, then call the createInviteCode use case with database and
+trusted actor. The use case calculates quota; the repository atomically checks
+the supplied statistics before insertion. Refresh console invite data on
+success. A changed statistics snapshot rejects with the documented retry
+message.
 
 #### `deleteInviteCode`
 
@@ -57,4 +70,5 @@ export declare const deleteInviteCode: RemoteForm<
 >;
 ```
 
-Require CreateArticle and nonempty code. Call deleteInviteCode directly with the actor-scoped DeleteInviteCodeParams, then refresh console invite data.
+Require CreateArticle and nonempty code. Call deleteInviteCode directly with the
+actor-scoped DeleteInviteCodeParams, then refresh console invite data.

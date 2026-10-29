@@ -10,7 +10,11 @@
 
 ## 实际使用
 
-`vite.config.ts` 集成 Tailwind、SvelteKit、unplugin-icons，开启 build.sourcemap，并承载 Vitest 的 client/server projects。package scripts 使用 vite dev/build/preview；没有自定义 Rollup 插件、manualChunks、JSX、decorators、library mode 或显式 build.target/minify 配置。
+`vite.config.ts`
+集成 Tailwind、SvelteKit、unplugin-icons，开启 build.sourcemap，并承载 Vitest 的 client/server
+projects。package scripts 使用 vite
+dev/build/preview；没有自定义 Rollup 插件、manualChunks、JSX、decorators、library
+mode 或显式 build.target/minify 配置。
 
 ## 相关变化清单
 
@@ -18,11 +22,15 @@
 
 7.x 维护线的后续发布不全包含在 8.x 主分支 changelog，因此额外核查[固定 7.3.7 tag 的官方 changelog](https://github.com/vitejs/vite/blob/v7.3.7/packages/vite/CHANGELOG.md)中 7.3.1 之后的全部条目：
 
-- 7.3.2：优化依赖 sourcemap 路径遍历、env transport 的 server.fs 校验、去掉 query 后再次校验 server.fs 的修复；这些开发服务器入口在 8.0.5 也修复，目标 8.3.5 包含。当前未配置 --host/server.host，不能断言已暴露攻击条件，但不能遗漏相关修复。
+- 7.3.2：优化依赖 sourcemap 路径遍历、env
+  transport 的 server.fs 校验、去掉 query 后再次校验 server.fs 的修复；这些开发服务器入口在 8.0.5 也修复，目标 8.3.5 包含。当前未配置 --host/server.host，不能断言已暴露攻击条件，但不能遗漏相关修复。
 - 7.3.3：新 Safari 不再不必要地降级解构语法；最终 8.x 转用 Oxc，也需按目标浏览器验证构建输出。
-- 7.3.5：拒绝 Windows alternate paths 和 launch-editor middleware 的 UNC 路径；当前 macOS 开发没有直接平台迁移要求。7.3.4 在官方记录中注明跳过发布，不作为另一个需安装的版本。
-- 7.3.6：允许 esbuild 0.28，属于 7.x 依赖兼容；8.x 默认后端已经变化，不需要为了过渡单独升级 esbuild。
-- 7.3.7：launch-editor 更新、transformIndexHtml filename 去掉 query、safeModulePaths 存 id 而非 URL；开发插件/文件访问路径相关，目标 8.3.3 已有对应修复。
+- 7.3.5：拒绝 Windows alternate paths 和 launch-editor
+  middleware 的 UNC 路径；当前 macOS 开发没有直接平台迁移要求。7.3.4 在官方记录中注明跳过发布，不作为另一个需安装的版本。
+- 7.3.6：允许 esbuild
+  0.28，属于 7.x 依赖兼容；8.x 默认后端已经变化，不需要为了过渡单独升级 esbuild。
+- 7.3.7：launch-editor 更新、transformIndexHtml
+  filename 去掉 query、safeModulePaths 存 id 而非 URL；开发插件/文件访问路径相关，目标 8.3.3 已有对应修复。
 
 以下为升级到 8.x 后的主要相关变化：
 
@@ -39,12 +47,18 @@
 | 8.3.4                          | preload helper 等待进行中的 stylesheet、CSS 循环 chunk 缓存修复                                                  | 路由跳转与动态加载样式应回归                                                                                |
 | 8.3.5                          | CSS url 中字面 %、subpath imports 含多个 #、socket upgrade 错误处理修复                                          | 新 Kit 的 #lib 解析与 dev server 应验证；没有对应特殊输入的修复无需改业务                                   |
 
-8.1→8.3 新增的 bundled-dev、chunkImportMap、自定义构建 API 等可选能力当前没有显式启用，不自动要求引入。UMD/IIFE import.meta、system/amd 输出、手动分包、原生 decorator、插件 bundle 对象修改和插件 hook API 的删除项未命中本仓库直接配置；仍需通过适配后的上游插件覆盖间接使用。
+8.1→8.3 新增的 bundled-dev、chunkImportMap、自定义构建 API 等可选能力当前没有显式启用，不自动要求引入。UMD/IIFE
+import.meta、system/amd 输出、手动分包、原生 decorator、插件 bundle 对象修改和插件 hook
+API 的删除项未命中本仓库直接配置；仍需通过适配后的上游插件覆盖间接使用。
 
-目标 Node engines 为 `^20.19.0 || >=22.12.0`，Docker 22.17.0 满足；Kit 3 的 Node 22.17 下限更严格。目标 Vite 的 @types/node peer 也允许 >=22.12，清单目标 26.6.5 在其范围内，但 Node 类型与实际运行时对齐仍单独审查。
+目标 Node engines 为 `^20.19.0 || >=22.12.0`，Docker 22.17.0 满足；Kit 3 的 Node
+22.17 下限更严格。目标 Vite 的 @types/node
+peer 也允许 >=22.12，清单目标 26.6.5 在其范围内，但 Node 类型与实际运行时对齐仍单独审查。
 
 ## 官方迁移指南与验证
 
 [Migration from v7](https://vite.dev/guide/migration.html)是本次官方主指南，覆盖 Rolldown/Oxc、目标浏览器、CSS 压缩、CJS 和弃用配置；不需要先降级或额外引入 rolldown-vite 才能直接升级。
 
-后续验证 dev/HMR、build、preview、Node adapter 生产启动、浏览器/服务器 Vitest、E2E 与 source map。升级审计没有执行这些目标版本测试。
+后续验证 dev/HMR、build、preview、Node
+adapter 生产启动、浏览器/服务器 Vitest、E2E 与 source
+map。升级审计没有执行这些目标版本测试。

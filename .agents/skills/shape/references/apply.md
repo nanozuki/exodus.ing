@@ -4,17 +4,18 @@
 
 Read every shape file owning source in scope and the contracts of collaborators
 needed to interpret their interfaces. Compare the target with current code and
-project conventions. Identify missing contracts, ambiguous ownership, conflicting
-commitments, and proposed interface changes.
+project conventions. Identify missing contracts, ambiguous ownership,
+conflicting commitments, and proposed interface changes.
 
 Complete this step when each planned covered code change has an approved
 contract and its responsibility boundary is clear. For a gap or conflict,
 present the concrete contract proposal or decision needed and wait for
-confirmation of that part. Continue independent work already covered by
-approved contracts.
+confirmation of that part. Continue independent work already covered by approved
+contracts.
 
-Apply the README's [testing boundary](../README.md#tests-and-shared-test-infrastructure)
-when identifying which changes need file and declaration contracts.
+Apply the README's
+[testing boundary](../README.md#tests-and-shared-test-infrastructure) when
+identifying which changes need file and declaration contracts.
 
 ## Implement
 
@@ -31,9 +32,9 @@ checks have run. If blocked, identify what prevents meeting that criterion.
 ## Verify and report
 
 Read [Check](check.md) and assess the affected scope. Repair implementation
-violations within the task's authorization, then reassess the affected contracts.
-Preserve the approved contract during repairs; contract changes follow the
-skill's approval boundary rather than erasing a failed check.
+violations within the task's authorization, then reassess the affected
+contracts. Preserve the approved contract during repairs; contract changes
+follow the skill's approval boundary rather than erasing a failed check.
 
 Finish with the changes made, evidence of conformance, and remaining gaps,
 blockers, or unverified commitments.

@@ -10,7 +10,10 @@
 
 ## 实际使用
 
-`svelte.config.js` 的 `vitePreprocess()` 处理 Svelte TypeScript；`vite.config.ts` 通过 SvelteKit 插件接入。大量组件在模板中引用 script 导入，应用启用了 async、使用 scoped CSS、SSR 与 HMR。
+`svelte.config.js` 的 `vitePreprocess()` 处理 Svelte
+TypeScript；`vite.config.ts`
+通过 SvelteKit 插件接入。大量组件在模板中引用 script 导入，应用启用了 async、使用 scoped
+CSS、SSR 与 HMR。
 
 ## 变更清单
 
@@ -29,10 +32,15 @@
 | 7.3.0                     | 异常配置选项不再把完整 inline config 写进日志；环境参数传入 dynamicCompileOptions 属新增能力，当前没使用         |
 | 7.2.0、7.1.3/7.1.4、7.3.1 | inspector 新上下文菜单及 Vite+/pnpm 注入、LTR 样式修复；当前并非 Vite+，不需要针对这些功能改应用                 |
 
-7.0 删除 deprecated `vitePlugin.hot`、`vitePlugin.ignorePluginPreprocessors`、插件 `api.idFilter`、其他插件的 `plugin.api.sveltePreprocess`。仓库未发现这些配置/API，不能因为主版本变化就假设本项目必须迁移它们。
+7.0 删除 deprecated
+`vitePlugin.hot`、`vitePlugin.ignorePluginPreprocessors`、插件
+`api.idFilter`、其他插件的
+`plugin.api.sveltePreprocess`。仓库未发现这些配置/API，不能因为主版本变化就假设本项目必须迁移它们。
 
 ## 官方迁移信息
 
-未发现专门的 v7 migration 文档；[官方 7.0.0 发布记录](https://github.com/sveltejs/vite-plugin-svelte/releases/tag/%40sveltejs%2Fvite-plugin-svelte%407.0.0)直接列出删除项与替代 API；[官方高级用法](https://github.com/sveltejs/vite-plugin-svelte/blob/main/docs/advanced-usage.md#transform-svelte-files-with-vite-plugins)解释 preprocess 插件接口。[Vite 8 迁移指南](https://vite.dev/guide/migration.html)覆盖 Oxc/Rolldown 的上游迁移。
+未发现专门的 v7
+migration 文档；[官方 7.0.0 发布记录](https://github.com/sveltejs/vite-plugin-svelte/releases/tag/%40sveltejs%2Fvite-plugin-svelte%407.0.0)直接列出删除项与替代 API；[官方高级用法](https://github.com/sveltejs/vite-plugin-svelte/blob/main/docs/advanced-usage.md#transform-svelte-files-with-vite-plugins)解释 preprocess 插件接口。[Vite 8 迁移指南](https://vite.dev/guide/migration.html)覆盖 Oxc/Rolldown 的上游迁移。
 
-在实际升级阶段运行类型检查、开发 HMR、生产 SSR build、客户端浏览器测试；确认模板值导入和 CSS 正常。本轮未执行目标版本验证。
+在实际升级阶段运行类型检查、开发 HMR、生产 SSR
+build、客户端浏览器测试；确认模板值导入和 CSS 正常。本轮未执行目标版本验证。

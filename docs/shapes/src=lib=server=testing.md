@@ -1,9 +1,10 @@
 # src/lib/server/testing
 
-Provide isolated PostgreSQL databases for repository integration tests. Reuse the
-checkout-local provisioning lifecycle; test cases exercise real SQL and internal
-transactions without connecting to the development database. Application code
-must not import this test-only module. Importing it performs no I/O.
+Provide isolated PostgreSQL databases for repository integration tests. Reuse
+the checkout-local provisioning lifecycle; test cases exercise real SQL and
+internal transactions without connecting to the development database.
+Application code must not import this test-only module. Importing it performs no
+I/O.
 
 ## Files
 
@@ -25,7 +26,9 @@ Cleanup does not stop the shared PostgreSQL service or remove other databases.
 #### `createTestDatabase`
 
 ```typescript
-export declare function createTestDatabase(suite: string): Promise<TestDatabase>;
+export declare function createTestDatabase(
+  suite: string,
+): Promise<TestDatabase>;
 ```
 
 Create a uniquely named, test-owned clone using the existing `ensureDatabase`

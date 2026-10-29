@@ -6,8 +6,9 @@ source. Read the covered source, contracts, relevant consumers, and tests.
 ## Assess conformance
 
 Account for every covered code file and public declaration in scope, applying
-the README's [testing boundary](../README.md#tests-and-shared-test-infrastructure).
-Report these four dimensions separately.
+the README's
+[testing boundary](../README.md#tests-and-shared-test-infrastructure). Report
+these four dimensions separately.
 
 For patterns, establish the exact matched names, then check each declaration
 against the shared structure, behavior, and explicit exceptions. A name match
@@ -18,11 +19,11 @@ establishes name coverage only.
 Identify eligible directories without shape, covered code files missing file
 sections, stale source paths, ambiguous or overlapping ownership, multiple shape
 files for one source directory, and violations of the README's eligibility,
-directory membership, or filename rules.
-Report contracts for excluded directories and sections for excluded files or
-test-case declarations as obsolete. For directories without direct covered code,
-verify the `no code files` marker and absence of file entries. Count only covered
-code in the inventory.
+directory membership, or filename rules. Report contracts for excluded
+directories and sections for excluded files or test-case declarations as
+obsolete. For directories without direct covered code, verify the
+`no code files` marker and absence of file entries. Count only covered code in
+the inventory.
 
 ### Public names and structures
 

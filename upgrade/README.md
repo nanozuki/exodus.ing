@@ -1,6 +1,8 @@
 # 剩余依赖升级
 
-本目录跟踪尚未完成的7个依赖，并保留已完成的浏览器测试组迁移报告。版本与进度以 [UPGRADING_RECORD.md](../UPGRADING_RECORD.md) 为准；每份报告保留原始当前版本、目标版本、官方证据和迁移资料。
+本目录跟踪尚未完成的7个依赖，并保留已完成的浏览器测试组迁移报告。版本与进度以
+[UPGRADING_RECORD.md](../UPGRADING_RECORD.md)
+为准；每份报告保留原始当前版本、目标版本、官方证据和迁移资料。
 
 - `requires-code-changes/`：4个待办，需要修改应用、测试、配置或脚本。
 - `no-code-changes/`：3个待办，未发现独立代码迁移点，但因配套版本不兼容已回撤，需等待关联迁移，不能单独批量更新。
@@ -27,4 +29,5 @@
 
 - [vitest](no-code-changes/vitest.md)：5.0.5。
 - [@vitest/browser-playwright](no-code-changes/vitest-browser-playwright.md)：5.0.5，与 Vitest 精确匹配。
-- [vitest-browser-svelte](requires-code-changes/vitest-browser-svelte.md)：3.1.0，组件测试已迁移为 `await render`。
+- [vitest-browser-svelte](requires-code-changes/vitest-browser-svelte.md)：3.1.0，组件测试已迁移为
+  `await render`。

@@ -31,7 +31,8 @@
 | typescript   | 5.9.3    | 7.0.2 | 当前Kit2要求TS^5.3.3，目标Kit3要求TS^6.0.0；不能直接换成TS7            |
 | svelte-check | 4.3.6    | 4.7.7 | 目标同名TypeScript peer为5/6；TS7检查需要原生模式参数及双版本alias布局 |
 
-后续先确定TS6兼容工具与TS7原生CLI的共存方案，再调整check/check:watch/check:e2e入口及有效tsconfig。其他现有工具的Compiler API兼容约束在TypeScript独立报告中作为迁移条件保留。
+后续先确定TS6兼容工具与TS7原生CLI的共存方案，再调整check/check:watch/check:e2e入口及有效tsconfig。其他现有工具的Compiler
+API兼容约束在TypeScript独立报告中作为迁移条件保留。
 
 ## 官方依据
 

@@ -4,11 +4,19 @@
 - 目标版本：`^3.1.0`
 - 版本来源：`UPGRADING_RECORD.md`，保持用户给定区间。
 - 调研日期：2026-10-28。
-- 分类：**需要修改代码**。需要把 Svelte 配置迁入 Vite，迁移 #lib/扩展名、tsconfig、类型导入、remote forms、刷新及重定向等现有代码。
+- 分类：**需要修改代码**。需要把 Svelte 配置迁入 Vite，迁移 #lib/扩展名、tsconfig、类型导入、remote
+  forms、刷新及重定向等现有代码。
 
 ## 实际使用
 
-`svelte.config.js` 配置 Node adapter、remote functions 和 async 编译；`vite.config.ts` 调用 `sveltekit()`；根 `tsconfig.json` 继承 `.svelte-kit/tsconfig.json`。应用普遍使用 `$lib`、`$app/state`、`$app/server` 的 `query/form/getRequestEvent`；表单、查询刷新和身份验证覆盖多数页面。`src/hooks.server.ts` 导入 `Handle/ServerInit`，`src/lib/rune/FormState.svelte.ts`、`src/lib/component/Input*.svelte` 导入 remote 类型。
+`svelte.config.js` 配置 Node adapter、remote
+functions 和 async 编译；`vite.config.ts` 调用 `sveltekit()`；根 `tsconfig.json`
+继承 `.svelte-kit/tsconfig.json`。应用普遍使用
+`$lib`、`$app/state`、`$app/server` 的
+`query/form/getRequestEvent`；表单、查询刷新和身份验证覆盖多数页面。`src/hooks.server.ts`
+导入
+`Handle/ServerInit`，`src/lib/rune/FormState.svelte.ts`、`src/lib/component/Input*.svelte`
+导入 remote 类型。
 
 ## 相关变更清单
 
@@ -38,13 +46,22 @@
 | 3.0.0；3.1.0 目标元数据                               | Node 最低 22.17；3.0 changelog 写 Svelte 最低 5.56.4，但 **3.1.0 实际 peer 是 Svelte `^5.57.1`、TypeScript `^6.0.0`、vite-plugin-svelte `^7.0.0`、Vite `^8.0.12`** | Docker Node 22.17.0 和目标 Svelte 5.57.3 满足；**清单 TypeScript 7.0.2 不满足 Kit 3.1.0 的 TypeScript peer**，不能将“要求 TS6”误读为任意 >=6                                |
 | 3.0.1、3.1.0                                          | 生成类型相对导入、server-only 判断、生成文件无内容变动时不重写等修复                                                                                               | 当前 bundler 模块解析不直接命中 nodenext 修复；生成检查/HMR 流程受其他修复影响；3.1 新 CSP hash reporting 与 endpoint tracing 当前未配置，不必启用                          |
 
-3.0.0 另修复 remote 字段值强制转换/初始默认值、单次刷新序列化、redirect 完成时机及失败 query 的 promise 清理；这些与现有 forms/queries 同一路径，合并在上述表单与刷新验证项中。query.live、prerender remote、service worker、参数 matcher、自定义 adapter、跨页面 use:enhance、shallow routing 相关 API 变化当前没有对应使用，不需要为了升级引入这些功能。`$app/stores` 已移除，但项目已使用 `$app/state`。
+3.0.0 另修复 remote 字段值强制转换/初始默认值、单次刷新序列化、redirect 完成时机及失败 query 的 promise 清理；这些与现有 forms/queries 同一路径，合并在上述表单与刷新验证项中。query.live、prerender
+remote、service
+worker、参数 matcher、自定义 adapter、跨页面 use:enhance、shallow
+routing 相关 API 变化当前没有对应使用，不需要为了升级引入这些功能。`$app/stores`
+已移除，但项目已使用 `$app/state`。
 
 ## 官方迁移指南与验证
 
-[固定目标 3.1.0 的官方 npm 元数据](https://registry.npmjs.org/@sveltejs/kit/3.1.0)直接核实 engines/peerDependencies。TypeScript peer 虽标 optional，本项目已安装它，仍需满足范围；后续应保留 TypeScript 6 供 Kit/检查器使用，并评估用 npm alias 单独接入 TS7 编译器，见 svelte-check 报告。此处只记录冲突，不更改用户清单。
+[固定目标 3.1.0 的官方 npm 元数据](https://registry.npmjs.org/@sveltejs/kit/3.1.0)直接核实 engines/peerDependencies。TypeScript
+peer 虽标 optional，本项目已安装它，仍需满足范围；后续应保留 TypeScript
+6 供 Kit/检查器使用，并评估用 npm
+alias 单独接入 TS7 编译器，见 svelte-check 报告。此处只记录冲突，不更改用户清单。
 
-- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3)：包含配置、别名/扩展名、tsconfig、types、remote forms、环境与 adapter 迁移。
-- [官方 3.0 发布说明及迁移器入口](https://svelte.dev/blog/sveltekit-3-is-here)：可在实际升级阶段运行 `sv migrate sveltekit-3`，随后逐项审查生成结果。本轮未运行。
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3)：包含配置、别名/扩展名、tsconfig、types、remote
+  forms、环境与 adapter 迁移。
+- [官方 3.0 发布说明及迁移器入口](https://svelte.dev/blog/sveltekit-3-is-here)：可在实际升级阶段运行
+  `sv migrate sveltekit-3`，随后逐项审查生成结果。本轮未运行。
 
 升级阶段执行类型检查、生产构建、Node 产物启动、全部现有 E2E；重点验证登录/Host 重定向、表单错误不触发成功重置、隐藏字段/submit 值、文章发布/评论/书签刷新、无 JS 提交、SSR/hydration 与 origin。当前报告是静态影响审计，未安装目标依赖，未声称这些验证已通过。

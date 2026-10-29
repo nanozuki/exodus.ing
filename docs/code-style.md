@@ -31,8 +31,14 @@ These module-level constants also form one group:
 
 ```typescript
 const template = 'exodus-template';
-const versionFile = new URL('../../../.direnv/pg_database_version', import.meta.url);
-const temporaryVersionFile = new URL('../../../.direnv/pg_database_version.tmp', import.meta.url);
+const versionFile = new URL(
+  '../../../.direnv/pg_database_version',
+  import.meta.url,
+);
+const temporaryVersionFile = new URL(
+  '../../../.direnv/pg_database_version.tmp',
+  import.meta.url,
+);
 ```
 
 ## Comments
@@ -43,12 +49,12 @@ failures, or lifecycle obligations missing from its name and signature. A caller
 should not need to inspect the implementation to discover these commitments.
 
 Write implementation comments for the maintainer: explain the reason for a
-decision or an invariant that future changes must preserve, rather than narrating
-the statements.
+decision or an invariant that future changes must preserve, rather than
+narrating the statements.
 
-Apply this test to every comment, including file overviews, exported declarations,
-private helpers, fields, and inline comments. Leave self-explanatory code
-uncommented, including public declarations.
+Apply this test to every comment, including file overviews, exported
+declarations, private helpers, fields, and inline comments. Leave
+self-explanatory code uncommented, including public declarations.
 
 Keep each fact in one authoritative place. Put caller-facing information beside
 the relevant interface, implementation rationale beside the decision, and
@@ -66,11 +72,12 @@ recognize. Update or remove a comment when its explanation stops applying.
 Keep imports together, separated from the implementation by one blank line.
 
 Code executed outside SvelteKit/Vite uses relative paths for all local imports.
-This includes standalone scripts, tooling configuration, their integration tests,
-and shared modules loaded by those entry points. Apply this rule throughout their
-local dependency graph, including type-only imports, so the entry points work
-without generated `.svelte-kit` configuration or an alias setup step. This rule
-takes precedence over the application import convention below.
+This includes standalone scripts, tooling configuration, their integration
+tests, and shared modules loaded by those entry points. Apply this rule
+throughout their local dependency graph, including type-only imports, so the
+entry points work without generated `.svelte-kit` configuration or an alias
+setup step. This rule takes precedence over the application import convention
+below.
 
 For a target under `src/lib`, use a relative path when its file is in the same
 directory as the importing file; otherwise use `$lib/...`. A child directory is
@@ -84,6 +91,6 @@ locations, not import specifiers.
 ## Review
 
 For every changed file, check that each blank line marks a useful boundary, each
-retained comment answers a reader's question, and every import follows the target
-location rule. Formatting tools handle syntax; logical grouping and comment
-usefulness require reading the surrounding code.
+retained comment answers a reader's question, and every import follows the
+target location rule. Formatting tools handle syntax; logical grouping and
+comment usefulness require reading the surrounding code.
