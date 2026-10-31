@@ -91,6 +91,7 @@
   "packageManager": "pnpm@12.16.1",
   "imports": {
     "#lib": "./src/lib/index.js",
+    "#lib/*.js": "./src/lib/*.ts",
     "#lib/*": "./src/lib/*"
   }
 }

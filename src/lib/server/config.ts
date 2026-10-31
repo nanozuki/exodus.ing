@@ -1,4 +1,4 @@
-import { throwError } from '../errors';
+import { throwError } from '#lib/errors.js';
 
 export type Config = {
   githubClientId: string;

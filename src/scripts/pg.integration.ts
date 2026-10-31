@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Client } from 'pg';
 import { ensureDatabase, resetDatabase } from './lib/database';
-import { getConfig } from '../lib/server/config';
+import { getConfig } from '#lib/server/config.js';
 
 test('database names reject reserved names, SQL fragments, and PostgreSQL truncation', async () => {
   for (const name of ['', 'all', 'template', 'dev"; DROP DATABASE postgres;', 'a'.repeat(57)]) {
@@ -124,7 +124,7 @@ test('template reset deletes all exodus databases, preserves unrelated databases
     await cp(new URL('../../drizzle.config.ts', import.meta.url), join(root, 'drizzle.config.ts'));
     const flake = await readFile(new URL('../../flake.nix', import.meta.url), 'utf8');
     await writeFile(join(root, 'flake.nix'), flake.replace(/port = \d+;/, `port = ${port};`));
-    await writeFile(join(root, 'package.json'), '{"type":"module"}');
+    await cp(new URL('../../package.json', import.meta.url), join(root, 'package.json'));
     await symlink(fileURLToPath(new URL('../../node_modules', import.meta.url)), join(root, 'node_modules'));
     await exec('git', ['init', '-q', root]);
     await exec('git', ['-C', root, 'add', 'flake.nix', 'flake.lock']);

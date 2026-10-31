@@ -5,7 +5,7 @@ import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
 import { Client } from 'pg';
 import { ensureDatabase, resetDatabase } from '../../src/scripts/lib/database';
-import { testDataset } from '../../src/lib/testing/data';
+import { testDataset } from '#lib/testing/data.js';
 import { databaseSuffix } from './names';
 
 type Scenario = { prepare: (db: Client) => Promise<void> };

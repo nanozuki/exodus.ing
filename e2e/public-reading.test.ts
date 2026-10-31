@@ -1,5 +1,5 @@
 import { test, expect } from './support/fixtures';
-import { testDataset, articleSamples, getAuthor } from '../src/lib/testing/data';
+import { testDataset, articleSamples, getAuthor } from '#lib/testing/data.js';
 import { articleContent } from './support/journeys';
 
 test.describe('public navigation', () => {

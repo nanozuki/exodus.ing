@@ -1,6 +1,6 @@
 import { schema, type AppDatabase } from './schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import type { Config } from '../config';
+import type { Config } from '#lib/server/config.js';
 
 // Construction does not issue a readiness query or confirm that PostgreSQL is reachable.
 export async function getDatabase(config: Config): Promise<AppDatabase> {
