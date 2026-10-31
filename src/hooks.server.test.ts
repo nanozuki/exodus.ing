@@ -13,6 +13,7 @@ vi.mock('#lib/server/config.js', () => ({ getConfig: mocks.getConfig }));
 vi.mock('#lib/server/registry.js', () => ({ db: {}, adapters: {}, buildServices: vi.fn() }));
 
 import { handle } from './hooks.server';
+import { GET } from './routes/healthcheck/+server';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -28,6 +29,27 @@ function request(url: string, method = 'GET') {
   const result = handle({ event, resolve } as unknown as Parameters<Handle>[0]);
   return { event, response, resolve, result };
 }
+
+it.each(['http://127.0.0.1:3000/healthcheck', 'https://exodus.ing/healthcheck'])(
+  'serves the health check without canonicalization or authentication at %s',
+  async (url) => {
+    const event = { request: new Request(url), url: new URL(url) };
+    const resolve = vi.fn(() => GET({} as never));
+    const response = await handle({ event, resolve } as unknown as Parameters<Handle>[0]);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+    expect(mocks.getConfig).not.toHaveBeenCalled();
+    expect(mocks.attachLocals).not.toHaveBeenCalled();
+    expect(resolve).toHaveBeenCalledWith(event);
+  },
+);
+
+it('still canonicalizes paths below the health check', async () => {
+  await expect(request('http://127.0.0.1:3000/healthcheck/private').result).rejects.toMatchObject({
+    status: 308,
+    location: 'https://exodus.ing/healthcheck/private',
+  });
+});
 
 it.each(['GET', 'HEAD', 'POST'])(
   'permanently redirects %s requests before authentication and resolution',

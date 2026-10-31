@@ -87,7 +87,9 @@ servers, pgcli, and Fly tooling; it does not start PostgreSQL merely on entry.
 Deployment configuration: exodus-ing in fra, application port 3000, forced
 HTTPS, automatic start/suspend with zero minimum machines, and one shared
 CPU/256MB machine. APP_URL is https://exodus.ing; database/provider credentials
-come from external runtime configuration.
+come from external runtime configuration. An internal GET `/healthcheck` HTTP
+check runs every 10 seconds with a 30-second startup grace period and a 5-second
+request timeout.
 
 ### `package.json`
 
