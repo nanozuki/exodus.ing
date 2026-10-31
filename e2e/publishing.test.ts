@@ -72,16 +72,16 @@ test('Author verifies a domain to publish and edit an external article', async (
   await test.step('Submit with a nonmatching verification code', async () => {
     await page.goto('/a/new/edit');
     await page.getByRole('link', { name: '链接外部文章', exact: true }).click();
-    await page.locator('input[name="url"]').fill(url);
-    await page.locator('input[name="title"]').fill('Verified external journey');
+    await page.locator('input[name^="url/"]').fill(url);
+    await page.locator('input[name^="title/"]').fill('Verified external journey');
     await expect(
       page.getByText('提交前，请确保你为域名 crows.moe 设置了 TXT 类型的 DNS 记录：', { exact: true }),
     ).toBeVisible();
     await expect(page.getByText('exodus-site-verification=verify_alice', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: '发布', exact: true }).click();
     await expect(page.getByText('无法验证站点所有权，请按照说明添加 TXT 记录后重试', { exact: false })).toBeVisible();
-    await expect(page.locator('input[name="url"]')).toHaveValue(url);
-    await expect(page.locator('input[name="title"]')).toHaveValue('Verified external journey');
+    await expect(page.locator('input[name^="url/"]')).toHaveValue(url);
+    await expect(page.locator('input[name^="title/"]')).toHaveValue('Verified external journey');
     expect((await db.query('SELECT count(*) FROM article')).rows[0].count).toBe(before);
   });
   await test.step('Match the real DNS record and publish', async () => {
@@ -90,8 +90,8 @@ test('Author verifies a domain to publish and edit an external article', async (
       'alice',
     ]);
     await page.reload();
-    await page.locator('input[name="url"]').fill(url);
-    await page.locator('input[name="title"]').fill('Verified external journey');
+    await page.locator('input[name^="url/"]').fill(url);
+    await page.locator('input[name^="title/"]').fill('Verified external journey');
     await page.getByRole('button', { name: '发布', exact: true }).click();
     await expect(page).toHaveURL(/\/a\/[^/?#]+$/);
     await articleContent(page, 'Verified external journey');
@@ -102,10 +102,21 @@ test('Author verifies a domain to publish and edit an external article', async (
   });
   await test.step('Edit the title and original URL and reload', async () => {
     await page.getByRole('link', { name: '编辑', exact: true }).click();
-    await expect(page.locator('input[name="url"]')).toHaveValue(url);
-    await expect(page.locator('input[name="title"]')).toHaveValue('Verified external journey');
-    await page.locator('input[name="url"]').fill('https://crows.moe/e2e-revised');
-    await page.locator('input[name="title"]').fill('Revised external journey');
+    await expect(page.locator('input[name^="url/"]')).toHaveValue(url);
+    await expect(page.locator('input[name^="title/"]')).toHaveValue('Verified external journey');
+    await page.locator('input[name^="url/"]').fill('https://crows.moe/e2e-revised');
+    const duplicateTitle = (
+      await db.query('SELECT title FROM article WHERE user_id = $1 AND title != $2 LIMIT 1', [
+        'user_author_1',
+        'Verified external journey',
+      ])
+    ).rows[0].title;
+    await page.locator('input[name^="title/"]').fill(duplicateTitle);
+    await page.getByRole('button', { name: '发布', exact: true }).click();
+    await expect(page.locator('input[name^="title/"]')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByText('你已经发布过同名文章', { exact: true })).toBeVisible();
+    await expect(page.locator('input[name^="url/"]')).toHaveValue('https://crows.moe/e2e-revised');
+    await page.locator('input[name^="title/"]').fill('Revised external journey');
     await page.getByRole('button', { name: '发布', exact: true }).click();
     await articleContent(page, 'Revised external journey');
     await expect(page.getByRole('link', { name: '阅读原文' })).toHaveAttribute('href', 'https://crows.moe/e2e-revised');

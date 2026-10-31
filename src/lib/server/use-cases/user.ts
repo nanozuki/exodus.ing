@@ -1,14 +1,14 @@
-import type { LoggedInUser } from '$lib/models/user';
-import type { Session } from '$lib/models/session';
-import { throwError } from '$lib/errors';
-import type { AppDatabase } from '$lib/server/db/schema';
+import type { LoggedInUser } from '#lib/models/user.js';
+import type { Session } from '#lib/models/session.js';
+import { throwError } from '#lib/errors.js';
+import type { AppDatabase } from '#lib/server/db/schema.js';
 import {
   findUserByUsername,
   findUserByName,
   findUserByGitHubId,
   createUser,
   updateUser,
-} from '$lib/server/repositories/user';
+} from '#lib/server/repositories/user.js';
 import { createSession } from './session';
 
 // This preflight does not reserve names; creation still relies on database uniqueness constraints.

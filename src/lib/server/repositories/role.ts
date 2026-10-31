@@ -1,7 +1,7 @@
-import type { Relation, Role, UserRole } from '$lib/models/role';
-import { throwError } from '$lib/errors';
+import type { Relation, Role, UserRole } from '#lib/models/role.js';
+import { throwError } from '#lib/errors.js';
 import { and, desc, eq } from 'drizzle-orm';
-import { tInviteCode, tUser, tUserRole, type AppDatabase } from '$lib/server/db/schema';
+import { tInviteCode, tUser, tUserRole, type AppDatabase } from '#lib/server/db/schema.js';
 import { wrap } from './utils';
 
 const user = { id: tUser.id, username: tUser.username, name: tUser.name };
@@ -53,8 +53,8 @@ export async function createRoleOfUserByInviteCode(
   return wrap('createRoleOfUserByInviteCode', () =>
     db.transaction(async (tx) => {
       const [code] = await tx.select().from(tInviteCode).where(eq(tInviteCode.code, params.code)).for('update');
-      if (!code) return throwError('BAD_REQUEST', '邀请码不存在');
-      if (code.usedAt) return throwError('BAD_REQUEST', '邀请码已被使用');
+      if (!code) return throwError('PARAMETER_INVALID', { inviteCode: '邀请码不存在' });
+      if (code.usedAt) return throwError('PARAMETER_INVALID', { inviteCode: '邀请码已被使用' });
       // Different codes can concurrently grant the same role; preserve the winning relationship.
       await tx
         .insert(tUserRole)

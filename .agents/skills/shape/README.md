@@ -47,10 +47,11 @@ codebase at `$XDG_DATA_HOME/shapes/<project-key>/<worktree-key>/`.
 
 Use `$HOME/.local/share` when `XDG_DATA_HOME` is unset. Resolve the project root
 to an absolute physical path without a trailing slash. `project-key` is
-`{md5-of-project-root-path}-{project-name}`: hash the path's UTF-8 bytes, without
-a newline, as lowercase MD5; use the root directory's basename as `project-name`.
-Use the checkout directory's basename as `worktree-key`, including for the
-primary checkout. For a project without Git, use the project root's basename.
+`{md5-of-project-root-path}-{project-name}`: hash the path's UTF-8 bytes,
+without a newline, as lowercase MD5; use the root directory's basename as
+`project-name`. Use the checkout directory's basename as `worktree-key`,
+including for the primary checkout. For a project without Git, use the project
+root's basename.
 
 Look for in-project shape first. Once in-project shape exists, use it
 exclusively and stop looking in external locations. Report incomplete local
@@ -93,10 +94,10 @@ covers root-level source and tooling files. A route directory such as
 ### Directories without code
 
 When an eligible directory has no direct covered code files, including one
-containing only excluded tests, write its directory heading followed only by
-the exact line `no code files`. Omit a module description and file/declaration
-sections; its child directories are still assessed separately.
-For example, `static.md` can contain:
+containing only excluded tests, write its directory heading followed only by the
+exact line `no code files`. Omit a module description and file/declaration
+sections; its child directories are still assessed separately. For example,
+`static.md` can contain:
 
 ```markdown
 # static

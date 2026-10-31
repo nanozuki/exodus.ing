@@ -1,12 +1,12 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { getInviteQuota, createInviteCode as createInviteCodeUseCase } from '$lib/server/use-cases/invite_code';
-import { findInviterOfUser, getInviteesOfUser } from '$lib/server/repositories/role';
+import { getInviteQuota, createInviteCode as createInviteCodeUseCase } from '#lib/server/use-cases/invite_code.js';
+import { findInviterOfUser, getInviteesOfUser } from '#lib/server/repositories/role.js';
 import {
   getUnusedInviteCodesOfUser,
   deleteInviteCode as deleteInviteCodeRepository,
-} from '$lib/server/repositories/invite_code';
-import { Permission } from '$lib/models/role';
-import { db } from '$lib/server/registry';
+} from '#lib/server/repositories/invite_code.js';
+import { Permission } from '#lib/models/role.js';
+import { db } from '#lib/server/registry.js';
 import z from 'zod';
 
 export const loadPageData = query(z.object({}), async () => {

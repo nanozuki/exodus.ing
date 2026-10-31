@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Markdown from '$lib/component/Markdown.svelte';
+  import Markdown from '#lib/component/Markdown.svelte';
   import MdiArrowTopRight from '~icons/mdi/arrow-top-right';
   import { format, formatISO } from 'date-fns';
   import Replies from './Replies.svelte';

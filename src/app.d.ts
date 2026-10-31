@@ -1,11 +1,12 @@
-import type { Permission } from '$lib/models/role';
-import type { LoggedInUser } from '$lib/models/user';
-import type { AppError, ErrorTag } from '$lib/errors';
+import type { Permission } from '#lib/models/role.js';
+import type { LoggedInUser } from '#lib/models/user.js';
+import type { ErrorDetail } from '#lib/errors.js';
 
 declare global {
   namespace App {
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface Error extends AppError<ErrorTag> {}
+    interface Error {
+      detail?: ErrorDetail;
+    }
     interface Locals {
       loggedInUser: LoggedInUser | null;
       requireLoggedInUser: (context: string) => LoggedInUser;

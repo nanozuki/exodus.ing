@@ -1,8 +1,8 @@
 import { form, getRequestEvent, query } from '$app/server';
-import type { Comment } from '$lib/models/comment';
-import { getCommentsOfArticle } from '$lib/server/repositories/comment';
-import { saveComment } from '$lib/server/use-cases/comment';
-import { db } from '$lib/server/registry';
+import type { Comment } from '#lib/models/comment.js';
+import { getCommentsOfArticle } from '#lib/server/repositories/comment.js';
+import { saveComment } from '#lib/server/use-cases/comment.js';
+import { db } from '#lib/server/registry.js';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 

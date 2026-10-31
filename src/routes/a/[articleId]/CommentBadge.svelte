@@ -1,6 +1,6 @@
 <script lang="ts">
   import MdiCommentTextOutline from '~icons/mdi/comment-text-outline';
-  import Action from '$lib/component/Action.svelte';
+  import Action from '#lib/component/Action.svelte';
 
   interface CommentBadgeProps {
     count: number;

@@ -1,17 +1,26 @@
-import { attachLocals } from '$lib/server/auth';
-import { getConfig } from '$lib/server/config';
-import { buildServices, adapters, db } from '$lib/server/registry';
-import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
+import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
+import { building, dev } from '$app/env';
+import { attachLocals } from '#lib/server/auth.js';
+import { getConfig } from '#lib/server/config.js';
+import { buildServices, adapters, db } from '#lib/server/registry.js';
 
-function ensureHost(request: Request) {
-  const host = getConfig().appUrl;
-  if (!request.url.startsWith(host)) {
-    throw redirect(303, host);
-  }
+function redirectToCanonicalOrigin(request: Request) {
+  if (dev || building) return;
+
+  const url = new URL(request.url);
+  const canonicalUrl = new URL(getConfig().appUrl);
+  if (url.origin === canonicalUrl.origin) return;
+
+  url.protocol = canonicalUrl.protocol;
+  url.host = canonicalUrl.host;
+  url.port = canonicalUrl.port;
+  redirect(308, url, { external: [canonicalUrl.origin] });
 }
 
+// Canonicalize deployment requests before authentication or route handling.
 export const handle: Handle = async ({ event, resolve }) => {
-  ensureHost(event.request);
+  redirectToCanonicalOrigin(event.request);
   const start = Date.now();
   await attachLocals(event);
   const response = await resolve(event);

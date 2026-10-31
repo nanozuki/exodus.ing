@@ -1,19 +1,19 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTestDatabase, type TestDatabase } from '$lib/server/testing/database';
-import { Role } from '$lib/models/role';
-import { findUserByUsername } from '$lib/server/repositories/user';
-import { findSessionById, createSession as persistSession } from '$lib/server/repositories/session';
-import { getArticleById } from '$lib/server/repositories/article';
-import { tArticle } from '$lib/server/db/schema';
+import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
+import { Role } from '#lib/models/role.js';
+import { findUserByUsername } from '#lib/server/repositories/user.js';
+import { findSessionById, createSession as persistSession } from '#lib/server/repositories/session.js';
+import { getArticleById } from '#lib/server/repositories/article.js';
+import { tArticle } from '#lib/server/db/schema.js';
 import { createSession, validateSession } from './session';
 import { getEditableArticle, saveExternalArticle, saveMarkdownArticle, verifyDomainOwnership } from './article';
 import { saveComment } from './comment';
 import { getInviteQuota, createInviteCode, acceptInviteCode } from './invite_code';
 import { loginWithGitHub, updateUsername, validateSignUp } from './user';
-import type { LoggedInUser } from '$lib/models/user';
+import type { LoggedInUser } from '#lib/models/user.js';
 
-vi.mock('$lib/server/repositories/utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('$lib/server/repositories/utils')>();
+vi.mock('#lib/server/repositories/utils.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#lib/server/repositories/utils.js')>();
   let sequence = 0;
   return {
     ...actual,
@@ -183,13 +183,18 @@ describe('business operations', () => {
     expect(now).toHaveBeenCalledTimes(1);
     await expect(acceptInviteCode({ db, now }, { actor: reader, code: invite.code })).rejects.toMatchObject({
       status: 400,
+      body: { detail: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码已被使用' } } },
+    });
+    await expect(acceptInviteCode({ db, now }, { actor: reader, code: 'absent' })).rejects.toMatchObject({
+      status: 400,
+      body: { detail: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码不存在' } } },
     });
   });
 
   it('validates identities and reuses a GitHub account without overwriting profile', async () => {
     const db = database.db;
     await expect(validateSignUp({ db }, { username: '@invalid' })).rejects.toMatchObject({
-      body: { tag: 'PARAMETER_INVALID' },
+      body: { detail: { tag: 'PARAMETER_INVALID' } },
     });
     await expect(validateSignUp({ db }, { username: author.username })).rejects.toMatchObject({ status: 400 });
     await expect(validateSignUp({ db }, { name: author.name })).rejects.toMatchObject({ status: 400 });

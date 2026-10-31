@@ -1,9 +1,9 @@
 import { form, getRequestEvent } from '$app/server';
-import { adapters, db } from '$lib/server/registry';
-import { validateSignUp } from '$lib/server/use-cases/user';
-import { createGitHubAuthUrl } from '$lib/server/auth';
-import { redirect } from '@sveltejs/kit';
-import type { OAuthCookieDataInput } from '$lib/server/auth';
+import { adapters, db } from '#lib/server/registry.js';
+import { validateSignUp } from '#lib/server/use-cases/user.js';
+import { createGitHubAuthUrl } from '#lib/server/auth.js';
+import { invalid, isHttpError, redirect } from '@sveltejs/kit';
+import type { OAuthCookieDataInput } from '#lib/server/auth.js';
 import z from 'zod';
 
 const registerByGithubSchema = z.object({
@@ -24,11 +24,20 @@ const normalizeOptional = (value: string | undefined) => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
-export const registerByGithub = form(registerByGithubSchema, async ({ next, username, name }) => {
+export const registerByGithub = form(registerByGithubSchema, async ({ next, username, name }, issue) => {
   const { cookies } = getRequestEvent();
   const normalizedUsername = normalizeOptional(username);
   const normalizedName = normalizeOptional(name);
-  await validateSignUp({ db }, { username: normalizedUsername, name: normalizedName });
+  try {
+    await validateSignUp({ db }, { username: normalizedUsername, name: normalizedName });
+  } catch (error) {
+    if (isHttpError(error) && error.body.detail?.tag === 'PARAMETER_INVALID') {
+      const fields = error.body.detail.value;
+      if (fields.username) invalid(issue.username(fields.username));
+      if (fields.name) invalid(issue.name(fields.name));
+    }
+    throw error;
+  }
 
   const input: OAuthCookieDataInput = {};
   if (next && next.length > 0) {
@@ -45,7 +54,7 @@ export const registerByGithub = form(registerByGithubSchema, async ({ next, user
   }
 
   const authUrl = createGitHubAuthUrl(cookies, adapters.githubOAuth, input);
-  redirect(302, authUrl.toString());
+  redirect(302, authUrl.toString(), { external: ['https://github.com'] });
 });
 
 export const loginByGithub = form(loginByGithubSchema, async ({ next }) => {
@@ -55,5 +64,5 @@ export const loginByGithub = form(loginByGithubSchema, async ({ next }) => {
     input.next = next;
   }
   const authUrl = createGitHubAuthUrl(cookies, adapters.githubOAuth, input);
-  redirect(302, authUrl.toString());
+  redirect(302, authUrl.toString(), { external: ['https://github.com'] });
 });

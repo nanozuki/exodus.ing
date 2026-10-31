@@ -78,7 +78,7 @@ export const test = base.extend<Fixtures>({
         HOST: '127.0.0.1',
         PORT: String(port),
         SHUTDOWN_TIMEOUT: '1',
-        ORIGIN: origin,
+        PROTOCOL_HEADER: 'x-forwarded-proto',
         APP_URL: origin,
         PGDATABASE: `exodus-${databaseSuffix(info.title)}`,
         GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ?? 'e2e-client',
@@ -105,7 +105,10 @@ export const test = base.extend<Fixtures>({
         if (app.exitCode !== null || app.signalCode !== null)
           throw new Error(`Application exited during startup:\n${logs}`);
         try {
-          const response = await fetch(origin, { signal: AbortSignal.timeout(1000) });
+          const response = await fetch(origin, {
+            headers: { 'x-forwarded-proto': 'http' },
+            signal: AbortSignal.timeout(1000),
+          });
           if (response.ok) break;
         } catch {
           /* The deployment server may not have bound its socket yet. */
@@ -125,13 +128,14 @@ export const test = base.extend<Fixtures>({
   baseURL: async ({ app }, use) => {
     await use(app);
   },
+  extraHTTPHeaders: { 'x-forwarded-proto': 'http' },
   actor: async ({ browser, app, sessions }, use) => {
     const contexts: BrowserContext[] = [];
     try {
       await use(async (username) => {
         const session = sessions.get(username);
         if (!session) throw new Error(`No prepared session for ${username}`);
-        const context = await browser.newContext({ baseURL: app });
+        const context = await browser.newContext({ baseURL: app, extraHTTPHeaders: { 'x-forwarded-proto': 'http' } });
         contexts.push(context);
         await context.addCookies([{ name: 'auth_session', value: session, url: app, httpOnly: true, sameSite: 'Lax' }]);
         return context.newPage();

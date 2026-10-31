@@ -1,7 +1,7 @@
-import type { InviteCode, InviteCodeSummary, InviteStats } from '$lib/models/invite_code';
-import { throwError } from '$lib/errors';
+import type { InviteCode, InviteCodeSummary, InviteStats } from '#lib/models/invite_code.js';
+import { throwError } from '#lib/errors.js';
 import { and, eq, isNull, sql } from 'drizzle-orm';
-import { tArticle, tInviteCode, tUserRole, type AppDatabase } from '$lib/server/db/schema';
+import { tArticle, tInviteCode, tUserRole, type AppDatabase } from '#lib/server/db/schema.js';
 import { newCode, wrap } from './utils';
 
 type QueryDatabase = Pick<AppDatabase, 'select'>;

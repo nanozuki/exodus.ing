@@ -1,6 +1,12 @@
 # src/lib/server/db
 
-Own PostgreSQL connection construction, schema declarations, inferred storage row types, and the generated SQL schema used by local database tooling. Consumers are repositories, the server composition boundary, and database management scripts. This module owns no business workflows or repository registry. Moving the schema preserves table and column definitions, indexes, nullability, defaults, and the existing absence of foreign keys; no database migration is part of this extraction.
+Own PostgreSQL connection construction, schema declarations, inferred storage
+row types, and the generated SQL schema used by local database tooling.
+Consumers are repositories, the server composition boundary, and database
+management scripts. This module owns no business workflows or repository
+registry. Moving the schema preserves table and column definitions, indexes,
+nullability, defaults, and the existing absence of foreign keys; no database
+migration is part of this extraction.
 
 ## Files
 
@@ -12,16 +18,19 @@ Own PostgreSQL connection construction, schema declarations, inferred storage ro
 export declare function getDatabase(config: Config): Promise<AppDatabase>;
 ```
 
-Construct a node-postgres Drizzle database using `config.database`, the exported schema, and SQL logging. Log
-construction duration; this function does not explicitly issue a readiness query or expose pool cleanup.
+Construct a node-postgres Drizzle database using `config.database`, the exported
+schema, and SQL logging. Log construction duration; this function does not
+explicitly issue a readiness query or expose pool cleanup.
 
 ### `src/lib/server/db/schema.ts`
 
-These declarations specify table builders and inferred public row types. The shared timestamps fields default to now and
-are required. Tables have no declared foreign keys. Columns are mutable through Drizzle query APIs; row/insert shapes
-come from the corresponding $inferSelect/$inferInsert members.
+These declarations specify table builders and inferred public row types. The
+shared timestamps fields default to now and are required. Tables have no
+declared foreign keys. Columns are mutable through Drizzle query APIs;
+row/insert shapes come from the corresponding $inferSelect/$inferInsert members.
 
-Supporting types and declarations used by the public signatures below (not additional exports):
+Supporting types and declarations used by the public signatures below (not
+additional exports):
 
 ```typescript
 const timestamps = {
@@ -56,7 +65,10 @@ export const tSession = pgTable(
     userId: text('user_id').notNull(),
     expiresAt: timestamp('expires_at').notNull(),
   },
-  (table) => [index('session_user_id_idx').on(table.userId), index('expires_at_idx').on(table.expiresAt)],
+  (table) => [
+    index('session_user_id_idx').on(table.userId),
+    index('expires_at_idx').on(table.expiresAt),
+  ],
 );
 ```
 
@@ -75,7 +87,10 @@ export const tUserAuth = pgTable(
     createdAt: timestamps.createdAt,
   },
   (table) => [
-    uniqueIndex('user_auth_provider_user_id_idx').on(table.provider, table.providerUserId),
+    uniqueIndex('user_auth_provider_user_id_idx').on(
+      table.provider,
+      table.providerUserId,
+    ),
     index('user_auth_user_id_idx').on(table.userId),
   ],
 );
@@ -108,8 +123,8 @@ export const tPendingAuth = pgTable(
 );
 ```
 
-Nullable provider and signup/state fields support pending authentication data. Expiry is required; state is uniquely
-indexed.
+Nullable provider and signup/state fields support pending authentication data.
+Expiry is required; state is uniquely indexed.
 
 #### `tInviteCode`
 
@@ -152,8 +167,9 @@ export const tArticle = pgTable(
 );
 ```
 
-Title is unique per user. Interaction counts default to zero. Paths are stored as trailing-slash strings; the database
-does not validate ancestry or contentType values.
+Title is unique per user. Interaction counts default to zero. Paths are stored
+as trailing-slash strings; the database does not validate ancestry or
+contentType values.
 
 #### `tComment`
 
@@ -186,11 +202,15 @@ export const tBookmark = pgTable(
     articleId: text('article_id').notNull(),
     createdAt: timestamps.createdAt,
   },
-  (table) => [index('bookmark_user_id_idx').on(table.userId), index('bookmark_article_id_idx').on(table.articleId)],
+  (table) => [
+    index('bookmark_user_id_idx').on(table.userId),
+    index('bookmark_article_id_idx').on(table.articleId),
+  ],
 );
 ```
 
-Indexes support user/article lookup; there is no primary key or unique pair constraint.
+Indexes support user/article lookup; there is no primary key or unique pair
+constraint.
 
 #### `tUserRole`
 
@@ -210,7 +230,8 @@ export const tUserRole = pgTable(
 );
 ```
 
-The primary key is (userId, roleKey); inviter is nullable. This table is exported but omitted from the `schema` object.
+The primary key is (userId, roleKey); inviter is nullable. This table is
+exported but omitted from the `schema` object.
 
 #### `schema`
 
@@ -227,7 +248,8 @@ export const schema = {
 };
 ```
 
-Contains the eight listed tables and omits tUserRole. Repositories still import tUserRole directly.
+Contains the eight listed tables and omits tUserRole. Repositories still import
+tUserRole directly.
 
 #### `ArticleRow`
 
@@ -289,11 +311,13 @@ export type UserRoleRow = typeof tUserRole.$inferSelect;
 export type AppDatabase = NodePgDatabase<typeof schema>;
 ```
 
-Use the node-postgres Drizzle database parameterized by the exported schema. Transaction contexts remain internal to
-repository operations.
+Use the node-postgres Drizzle database parameterized by the exported schema.
+Transaction contexts remain internal to repository operations.
 
 ### `src/lib/server/db/database.sql`
 
-Implicit entry point: provisioning executes this SQL in a newly created template database. It creates the same nine
-tables, keys, defaults, and indexes described by schema.ts. Statements are unconditional CREATE statements, not an
-idempotent migration or an upgrade path. It contains no foreign keys; existing databases are not automatically upgraded.
+Implicit entry point: provisioning executes this SQL in a newly created template
+database. It creates the same nine tables, keys, defaults, and indexes described
+by schema.ts. Statements are unconditional CREATE statements, not an idempotent
+migration or an upgrade path. It contains no foreign keys; existing databases
+are not automatically upgraded.

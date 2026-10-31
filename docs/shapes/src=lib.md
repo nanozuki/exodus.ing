@@ -1,7 +1,8 @@
 # src/lib
 
-Provide tagged application errors and Markdown compilation shared by server operations, remotes, and components. Storage
-and request orchestration belong to their owning directories.
+Provide tagged application errors and Markdown compilation shared by server
+operations, remotes, and components. Storage and request orchestration belong to
+their owning directories.
 
 ## Files
 
@@ -9,165 +10,83 @@ and request orchestration belong to their owning directories.
 
 #### `ErrorValue`
 
-```typescript
-export type ErrorValue = {
-  BAD_REQUEST: string;
-  PARAMETER_INVALID: Record<string, string>;
-  FORBIDDEN: {
-    operation: string;
-  };
-  UNAUTHORIZED: {
-    operation: string;
-  };
-  NOT_FOUND: {
-    resource: string;
-  };
-  INTERNAL_SERVER_ERROR: string;
-  DATABASE_ERROR: {
-    operation: string;
-    cause: string;
-  };
-  MISSING_CONFIG: {
-    item: string;
-  };
-  EXTERNAL_API_ERROR: {
-    operation: string;
-    message: string;
-  };
-};
-```
+Map each business error tag to its parameter type:
+
+| Tag                     | Parameters                                 | HTTP status |
+| ----------------------- | ------------------------------------------ | ----------- |
+| `BAD_REQUEST`           | `string`                                   | 400         |
+| `PARAMETER_INVALID`     | `Record<string, string>` of field messages | 400         |
+| `UNAUTHORIZED`          | `{ operation: string }`                    | 401         |
+| `FORBIDDEN`             | `{ operation: string }`                    | 403         |
+| `NOT_FOUND`             | `{ resource: string }`                     | 404         |
+| `INTERNAL_SERVER_ERROR` | `string`                                   | 500         |
+| `DATABASE_ERROR`        | `{ operation: string; cause: string }`     | 500         |
+| `MISSING_CONFIG`        | `{ item: string }`                         | 500         |
+| `EXTERNAL_API_ERROR`    | `{ operation: string; message: string }`   | 502         |
 
 #### `ErrorTag`
 
-```typescript
-export type ErrorTag = keyof ErrorValue;
-```
+`keyof ErrorValue`: the supported business error tags.
 
 #### `errorTagTitle`
 
-```typescript
-export declare const errorTagTitle: {
-  [Tag in ErrorTag]: string;
-};
-```
+Mutable record mapping every `ErrorTag` to its Chinese UI title.
 
-Map every error tag to its Chinese UI title. The record is exported and mutable.
+#### `ErrorDetail`
 
-#### `AppError`
-
-```typescript
-export interface AppError<Tag extends keyof ErrorValue> {
-  tag: Tag;
-  value: ErrorValue[Tag];
-  code: number;
-  message: string;
-}
-```
-
-#### `createError`
-
-```typescript
-export declare function createError<Tag extends ErrorTag>(tag: Tag, value: ErrorValue[Tag]): AppError<Tag>;
-```
-
-Produce `{ tag, value, code, message }`. BAD_REQUEST/PARAMETER_INVALID map to 400, UNAUTHORIZED to 401, FORBIDDEN to
-403, NOT_FOUND to 404, EXTERNAL_API_ERROR to 502, and the remaining tags to 500. Messages are built from the
-tag-specific values.
-
-#### `throwAppError`
-
-```typescript
-export declare function throwAppError<Tag extends ErrorTag>(appError: AppError<Tag>): never;
-```
-
-Throw via SvelteKit `error` using the application error’s code and structured body.
+Discriminated union of `{ tag, value }` pairs from `ErrorValue`. Checking `tag`
+narrows `value` to that tag's parameters; mismatched pairs are rejected.
 
 #### `throwError`
 
-```typescript
-export declare function throwError<Tag extends ErrorTag>(tag: Tag, value: ErrorValue[Tag]): never;
-```
+`throwError(...args: ErrorArgs): never`. The private `ErrorArgs` type is a union
+of `[tag, value]` tuples preserving the same relationship as `ErrorDetail`.
 
-Construct the tagged application error and throw it through `throwAppError`.
-
-#### `isHttpError`
-
-```typescript
-export declare function isHttpError(e: unknown): e is HttpError;
-```
-
-Use a structural check for a non-null object with numeric `status` and non-null object `body`; the body’s
-application-error fields are not validated.
-
-#### `catchError`
-
-```typescript
-export declare function catchError(e: unknown): AppError<ErrorTag>;
-```
-
-Return the body of a structurally recognized HTTP error unchanged. Log ordinary `Error` objects and convert them to
-INTERNAL_SERVER_ERROR with their message. Log and rethrow non-Error values.
+Build the tag-specific message and throw through SvelteKit
+`error(status, message, { detail: { tag, value } })`, using the status mapping
+above. Preserve the established messages. HTTP status is provided by the
+framework's `status`, without a duplicate `code` property. Callers recognize
+HTTP errors with SvelteKit's `isHttpError`.
 
 ### `src/lib/markdown.ts`
 
-Supporting types and declarations used by the public signatures below (not additional exports):
-
-```typescript
-type IssueMessage = {
-  title: string;
-  description: string;
-};
-```
-
 #### `compileMarkdown`
 
-```typescript
-export declare const compileMarkdown: (content: string) => Promise<Value>;
-```
+`compileMarkdown(content: string): Promise<Value>`.
 
-Return an empty string for empty input; otherwise parse Markdown, YAML frontmatter, GFM and raw HTML, sanitize through
-the default rehype policy, and serialize HTML. Does not remove an article title. Parser/processor failures reject.
+Return an empty string for empty input; otherwise parse Markdown, YAML
+frontmatter, GFM and raw HTML, sanitize through the default rehype policy, and
+serialize HTML. Does not remove an article title. Parser/processor failures
+reject.
 
 #### `MarkdownArticleIssue`
 
-```typescript
-export declare enum MarkdownArticleIssue {
-  MissingTitle = 'MissingTitle',
-}
-```
+Enum with `MissingTitle = 'MissingTitle'`.
 
 #### `articleIssueMessages`
 
-```typescript
-export declare const articleIssueMessages: Record<MarkdownArticleIssue, IssueMessage>;
-```
-
-MissingTitle reports “缺少标题” and explains “标题为第一个一级标题”. The exported record is mutable.
+Mutable `Record<MarkdownArticleIssue, IssueMessage>`, where the private
+`IssueMessage` contains string `title` and `description`. MissingTitle reports
+“缺少标题” and explains “标题为第一个一级标题”.
 
 #### `throwArticleIssue`
 
-```typescript
-export declare function throwArticleIssue(issue: MarkdownArticleIssue, field: string): never;
-```
+`throwArticleIssue(issue: MarkdownArticleIssue, field: string): never`.
 
-Throw PARAMETER_INVALID for the named field, using the issue’s title from `articleIssueMessages`.
+Throw PARAMETER_INVALID for the named field, using the issue's title from
+`articleIssueMessages`.
 
 #### `CompiledArticle`
 
-```typescript
-export type CompiledArticle = {
-  markup: string;
-  title: string;
-  issues: MarkdownArticleIssue[];
-};
-```
+Result with `markup: string`, `title: string`, and
+`issues: MarkdownArticleIssue[]`.
 
 #### `compileArticle`
 
-```typescript
-export declare const compileArticle: (article: string) => Promise<CompiledArticle>;
-```
+`compileArticle(article: string): Promise<CompiledArticle>`.
 
-Use the first top-level H1 as title, taking only its direct text children. Remove that heading and all preceding nodes
-from the body; sanitize and serialize the remaining Markdown. A missing or empty extracted title produces MissingTitle
-and an empty title string. No input-heading normalization or custom sanitizer policy is added.
+Use the first top-level H1 as title, taking only its direct text children.
+Remove that heading and all preceding nodes from the body; sanitize and
+serialize the remaining Markdown. A missing or empty extracted title produces
+MissingTitle and an empty title string. No input-heading normalization or custom
+sanitizer policy is added.

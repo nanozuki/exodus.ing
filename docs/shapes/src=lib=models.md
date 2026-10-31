@@ -1,16 +1,18 @@
 # src/lib/models
 
 Define shared business records, projections, aggregates, and pure functions used
-by client and server modules. Group related data by business concept; replace the former `domain/entities` and `domain/values`
-directories with this one module.
+by client and server modules. Group related data by business concept; replace
+the former `domain/entities` and `domain/values` directories with this one
+module.
 
 Models neither obtain external capabilities nor perform observable effects. They
-must not import server infrastructure, SvelteKit request APIs, or component code.
-Repository-specific SQL, transaction mechanisms, and operation parameters stay
-in repositories; use-case dependency/parameter/result types stay beside their
-operation. Page-only `ArticleDetail` and `CommentView` belong beside their remote functions. Cookie
-transport data and cookie writers belong to the server request-boundary helper.
-Invitation quota calculation belongs directly in the relevant use case.
+must not import server infrastructure, SvelteKit request APIs, or component
+code. Repository-specific SQL, transaction mechanisms, and operation parameters
+stay in repositories; use-case dependency/parameter/result types stay beside
+their operation. Page-only `ArticleDetail` and `CommentView` belong beside their
+remote functions. Cookie transport data and cookie writers belong to the server
+request-boundary helper. Invitation quota calculation belongs directly in the
+relevant use case.
 
 Imports have no observable effects.
 
@@ -34,8 +36,9 @@ export interface Article {
 }
 ```
 
-`path` is the root-to-self article identity path. `replyTo` is the direct parent projection when present. Markdown
-content stores source; external content stores the original URL. The author summary comes from the current user record.
+`path` is the root-to-self article identity path. `replyTo` is the direct parent
+projection when present. Markdown content stores source; external content stores
+the original URL. The author summary comes from the current user record.
 
 #### `ArticleContentType`
 
@@ -72,7 +75,8 @@ export interface ArticleListItem {
 }
 ```
 
-Interaction counts are persisted projections. `replyCount` counts direct article responses, not every descendant.
+Interaction counts are persisted projections. `replyCount` counts direct article
+responses, not every descendant.
 
 #### `ArticleFeedsItem`
 
@@ -132,8 +136,8 @@ export interface Comment {
 }
 ```
 
-`path` identifies the root-to-self comment chain; `articleId` identifies the discussion. Text content is rendered as
-text, preserving line breaks.
+`path` identifies the root-to-self comment chain; `articleId` identifies the
+discussion. Text content is rendered as text, preserving line breaks.
 
 #### `CommentSummary`
 
@@ -154,8 +158,8 @@ export interface CommentListItem {
 }
 ```
 
-Group a page of a user’s comment records by their owning article. Pagination counts individual comments rather than
-these grouped items.
+Group a page of a user’s comment records by their owning article. Pagination
+counts individual comments rather than these grouped items.
 
 ### `src/lib/models/invite_code.ts`
 
@@ -187,7 +191,9 @@ export interface InviteStats {
 }
 ```
 
-Count articles authored by the inviter, unused invitation codes issued by that inviter, and role assignments attributed to that inviter. All three counts describe the same database snapshot. Quota policy is calculated by use cases.
+Count articles authored by the inviter, unused invitation codes issued by that
+inviter, and role assignments attributed to that inviter. All three counts
+describe the same database snapshot. Quota policy is calculated by use cases.
 
 ### `src/lib/models/role.ts`
 
@@ -215,16 +221,20 @@ export const rolePermissions: Record<Role, Permission[]> = {
 };
 ```
 
-The exported record is mutable; the current author role grants only article creation.
+The exported record is mutable; the current author role grants only article
+creation.
 
 #### `hasPermission`
 
 ```typescript
-export declare function hasPermission(roles: Role[], permission: Permission): boolean;
+export declare function hasPermission(
+  roles: Role[],
+  permission: Permission,
+): boolean;
 ```
 
-Return true when any supplied role grants the permission. The implementation assumes each role exists in
-`rolePermissions`; unknown runtime values can throw.
+Return true when any supplied role grants the permission. The implementation
+assumes each role exists in `rolePermissions`; unknown runtime values can throw.
 
 #### `Relation`
 
@@ -255,7 +265,9 @@ export interface UserRole {
 }
 ```
 
-Represent one assigned user–role relationship. A null inviter denotes an assignment without an inviter. The pair `(userId, roleKey)` identifies the relationship.
+Represent one assigned user–role relationship. A null inviter denotes an
+assignment without an inviter. The pair `(userId, roleKey)` identifies the
+relationship.
 
 ### `src/lib/models/session.ts`
 
@@ -292,11 +304,14 @@ export interface LoggedInUser extends User {
 #### `userHasPermission`
 
 ```typescript
-export declare function userHasPermission(user: LoggedInUser | null, permission: Permission): boolean;
+export declare function userHasPermission(
+  user: LoggedInUser | null,
+  permission: Permission,
+): boolean;
 ```
 
-Return false for `null`; otherwise test whether any assigned role grants the permission. As with `hasPermission`,
-runtime role keys are assumed to be known.
+Return false for `null`; otherwise test whether any assigned role grants the
+permission. As with `hasPermission`, runtime role keys are assumed to be known.
 
 #### `UserSummary`
 
@@ -326,8 +341,8 @@ export type IdPath = string[];
 export declare function encodeIdPath(path: IdPath): string;
 ```
 
-Join segments with `/` and append a trailing slash. An empty path encodes as `/`; segment contents are not validated or
-escaped.
+Join segments with `/` and append a trailing slash. An empty path encodes as
+`/`; segment contents are not validated or escaped.
 
 #### `decodeIdPath`
 
@@ -335,7 +350,8 @@ escaped.
 export declare function decodeIdPath(path: string): IdPath;
 ```
 
-Split on `/` and discard empty segments, tolerating repeated or absent trailing separators.
+Split on `/` and discard empty segments, tolerating repeated or absent trailing
+separators.
 
 #### `PathEncoded`
 
@@ -371,7 +387,8 @@ export declare function decodePathField<
 >(item: T): PathDecoded<T>;
 ```
 
-Return a shallow copy with only `path` decoded to segments; leave the input object unchanged.
+Return a shallow copy with only `path` decoded to segments; leave the input
+object unchanged.
 
 #### `encodePathField`
 
@@ -383,7 +400,8 @@ export declare function encodePathField<
 >(item: T): PathEncoded<T>;
 ```
 
-Return a shallow copy with only `path` converted to its string representation; leave the input object unchanged.
+Return a shallow copy with only `path` converted to its string representation;
+leave the input object unchanged.
 
 #### `getPathParent`
 
@@ -391,7 +409,8 @@ Return a shallow copy with only `path` converted to its string representation; l
 export declare function getPathParent(path: IdPath): string | undefined;
 ```
 
-Return the penultimate segment, or `undefined` when fewer than two segments exist.
+Return the penultimate segment, or `undefined` when fewer than two segments
+exist.
 
 ### `src/lib/models/page.ts`
 
@@ -404,8 +423,8 @@ export interface Pagination {
 }
 ```
 
-`pageNumber` is one-based. These interfaces impose no runtime validation; consumers and query boundaries determine
-acceptable values.
+`pageNumber` is one-based. These interfaces impose no runtime validation;
+consumers and query boundaries determine acceptable values.
 
 #### `Paginated`
 
@@ -421,5 +440,5 @@ export interface Paginated<T> {
 `pageNumber` and `pageSize` describe the requested page. `count` is the total
 matching record count before pagination; `items` is the selected page. Grouping
 comment records can produce fewer items than `pageSize`, which still counts raw
-comment records. Page-size choices belong to remote functions and route handlers,
-not shared models.
+comment records. Page-size choices belong to remote functions and route
+handlers, not shared models.

@@ -1,4 +1,4 @@
-import type { Config } from '$lib/server/config';
+import type { Config } from '#lib/server/config.js';
 import { GitHubOAuth } from './github_auth';
 import { resolveTxt } from './name_resolver';
 

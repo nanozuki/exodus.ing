@@ -54,8 +54,8 @@ an asynchronous signature alone does not establish an external dependency.
   server infrastructure, request context, and frontend components.
 - Place business functions requiring external capabilities in use cases, with
   database access performed through repository functions.
-- Perform database reads, writes, and result mapping in repositories. Provide one
-  repository operation for related data that must be read consistently, then
+- Perform database reads, writes, and result mapping in repositories. Provide
+  one repository operation for related data that must be read consistently, then
   apply business calculations outside that operation.
 
 For example:
@@ -73,11 +73,11 @@ For example:
 
 ### Data and Type Placement
 
-Group model types by business concept. Models may represent records, projections,
-aggregates, or compositions of other models. Use `Summary` for general summary
-projections, such as `ArticleSummary` and `UserSummary`; reserve presentation
-names such as `Card` for components. Projections serving a specific role retain
-descriptive names such as `ArticleListItem` and `ArticleContent`.
+Group model types by business concept. Models may represent records,
+projections, aggregates, or compositions of other models. Use `Summary` for
+general summary projections, such as `ArticleSummary` and `UserSummary`; reserve
+presentation names such as `Card` for components. Projections serving a specific
+role retain descriptive names such as `ArticleListItem` and `ArticleContent`.
 
 Place a type used by only one function beside that function. Operation-specific
 parameters may be declared inline; when defining a separate parameter type, name
@@ -90,8 +90,8 @@ For example, invite statistics are an aggregate; `CreateArticleParams` belongs
 beside the repository's `createArticle` function; a page's tabs and selected tab
 belong beside its remote function.
 
-Name Drizzle-inferred storage types `XxxRow`, such as `ArticleRow`, and keep them
-in the database module. Repositories map these storage records into models.
+Name Drizzle-inferred storage types `XxxRow`, such as `ArticleRow`, and keep
+them in the database module. Repositories map these storage records into models.
 
 ## Use Cases
 
@@ -102,16 +102,18 @@ operation's successful return type.
 
 - `deps` declares only the external capabilities the operation needs, such as
   `db`, a DNS resolver, or a clock. Repositories are application functions:
-  import them and pass the database instead of injecting a repository set. Acquire
-  dependencies through this argument rather than a global service registry.
+  import them and pass the database instead of injecting a repository set.
+  Acquire dependencies through this argument rather than a global service
+  registry.
 - `params` contains the data for this invocation, including an authenticated
   actor when needed.
 
 When an operation needs the current time, accept a clock such as
 `deps.now: () => Date`. Request entry points supply the clock adapter's `now`;
-tests can supply a fixed clock. Read it once when related decisions need the same
-instant, and use that value throughout the operation. Persistence timestamps
-managed by database defaults or repository writes remain persistence concerns.
+tests can supply a fixed clock. Read it once when related decisions need the
+same instant, and use that value throughout the operation. Persistence
+timestamps managed by database defaults or repository writes remain persistence
+concerns.
 
 ## Request Boundaries and Remote Functions
 
@@ -127,10 +129,10 @@ when business decisions or workflows require external capabilities. A single
 repository call can still require a use case. Keep component-specific
 aggregation, display state, and form feedback in the remote.
 
-For example, an article list remote parses pagination and calls a repository.
-An edit remote parses form fields, obtains the trusted actor, calls an editing
-use case, then maps its validation result or redirects. For domain verification,
-the remote parses the URL; the use case resolves DNS and checks the TXT records.
+For example, an article list remote parses pagination and calls a repository. An
+edit remote parses form fields, obtains the trusted actor, calls an editing use
+case, then maps its validation result or redirects. For domain verification, the
+remote parses the URL; the use case resolves DNS and checks the TXT records.
 
 ### File Placement
 
@@ -160,8 +162,9 @@ does not authorize later operations. Keep session validation and cookie refresh
 in hooks, and refresh affected remote query data after mutations.
 
 Choose pagination size directly in the owning remote function. Pass it to the
-repository as pagination input and return the effective size to consumers through
-`Paginated<T>`. Its fields are defined in the [models contract](shapes/src=lib=models.md).
+repository as pagination input and return the effective size to consumers
+through `Paginated<T>`. Its fields are defined in the
+[models contract](shapes/src=lib=models.md).
 
 ## Repositories
 
@@ -194,9 +197,9 @@ Start each operation name with its action and include the model or relationship
 name. Use `By<Condition>` for lookup criteria and `<Relation>Of<Model>` for
 relationships between tables.
 
-The signatures below are naming templates. `Model` and `Relation` are placeholders
-for concrete approved result types, not TypeScript type parameters. Replace names
-and parameter types with the concrete types for the operation.
+The signatures below are naming templates. `Model` and `Relation` are
+placeholders for concrete approved result types, not TypeScript type parameters.
+Replace names and parameter types with the concrete types for the operation.
 Arrays and `Paginated<T>` wrap approved types without defining new models.
 
 | Template                              | Return type                    | Contract                                                                                  |
@@ -232,8 +235,8 @@ transaction contexts remain internal. Separate repository calls from a use case
 or remote function do not promise a shared transaction.
 
 Use one transaction for multiple database statements that must succeed or fail
-as a unit. Include reads that must be consistent with the writes they govern.
-A single SQL statement affecting multiple rows does not by itself require an
+as a unit. Include reads that must be consistent with the writes they govern. A
+single SQL statement affecting multiple rows does not by itself require an
 additional transaction. When related reads require a consistent snapshot, choose
 the query and transaction behavior inside the repository to provide it.
 

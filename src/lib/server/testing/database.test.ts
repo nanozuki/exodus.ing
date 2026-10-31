@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createTestDatabase } from './database';
-import { tUser } from '$lib/server/db/schema';
+import { tUser } from '#lib/server/db/schema.js';
 
 it('isolates concurrent clones, preserves connection environment, and closes only its owned clone', async () => {
   const environment = { ...process.env };

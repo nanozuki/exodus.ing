@@ -12,9 +12,10 @@ containing covered code, follow the remaining derivation steps.
 
 Read each directory's source, consumers, and relevant tests. Account for every
 covered code file in scope in its directory's contract or identify an explicit
-coverage gap. Preserve unaffected covered file sections when updating an existing contract.
-Apply the README's [testing boundary](../README.md#tests-and-shared-test-infrastructure)
-when separating test evidence from covered infrastructure.
+coverage gap. Preserve unaffected covered file sections when updating an
+existing contract. Apply the README's
+[testing boundary](../README.md#tests-and-shared-test-infrastructure) when
+separating test evidence from covered infrastructure.
 
 ## Derive contracts
 
@@ -27,8 +28,8 @@ future redesigns, conflicts with project conventions, and improvement
 suggestions separately from the current-code contract. Use the implementation as
 evidence for the behavior being recorded.
 
-Complete derivation when every covered code file and public declaration in
-scope has coverage or an explicit gap, and every behavioral claim has supporting
+Complete derivation when every covered code file and public declaration in scope
+has coverage or an explicit gap, and every behavioral claim has supporting
 evidence or is identified as uncertain. Check patterns against their shared
 structure and behavior as well as their names.
 
@@ -40,8 +41,8 @@ source scope, evidence, coverage gaps, and decisions about uncertain or future
 behavior.
 
 Within the authorized scope, remove contracts for excluded directories and
-sections for excluded files or test-case declarations.
-Complete this operation when every eligible directory in scope has a saved
-contract or marker and every remaining gap or uncertain claim is reported. If
-implementation is also requested, continue with [Apply](apply.md); deriving
-alone leaves code unchanged.
+sections for excluded files or test-case declarations. Complete this operation
+when every eligible directory in scope has a saved contract or marker and every
+remaining gap or uncertain claim is reported. If implementation is also
+requested, continue with [Apply](apply.md); deriving alone leaves code
+unchanged.

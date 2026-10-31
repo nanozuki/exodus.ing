@@ -1,6 +1,6 @@
 <script lang="ts">
   import MdiReplyOutline from '~icons/mdi/reply-outline';
-  import Action from '$lib/component/Action.svelte';
+  import Action from '#lib/component/Action.svelte';
 
   interface ReplyBadgeProps {
     count: number;

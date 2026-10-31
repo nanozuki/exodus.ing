@@ -1,10 +1,10 @@
 import { query } from '$app/server';
 import z from 'zod';
-import type { Article } from '$lib/models/article';
-import { compileArticle } from '$lib/markdown';
-import { throwError } from '$lib/errors';
-import { db } from '$lib/server/registry';
-import { getArticleById, getRepliesOfArticle } from '$lib/server/repositories/article';
+import type { Article } from '#lib/models/article.js';
+import { compileArticle } from '#lib/markdown.js';
+import { throwError } from '#lib/errors.js';
+import { db } from '#lib/server/registry.js';
+import { getArticleById, getRepliesOfArticle } from '#lib/server/repositories/article.js';
 
 export interface ArticleDetail extends Article {
   markup: string;

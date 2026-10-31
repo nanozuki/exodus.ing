@@ -1,8 +1,8 @@
 <script lang="ts">
   import ArticleListItem from './ArticleListItem.svelte';
-  import type { ArticleListItem as ArticleItem } from '$lib/models/article';
+  import type { ArticleListItem as ArticleItem } from '#lib/models/article.js';
   import Pager from './Pager.svelte';
-  import type { Paginated } from '$lib/models/page';
+  import type { Paginated } from '#lib/models/page.js';
   import { twMerge } from 'tailwind-merge';
 
   interface Props {

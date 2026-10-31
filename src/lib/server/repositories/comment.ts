@@ -1,9 +1,9 @@
-import type { Comment, CommentListItem } from '$lib/models/comment';
-import { decodeIdPath, decodePathField, encodeIdPath } from '$lib/models/id_path';
-import type { Pagination, Paginated } from '$lib/models/page';
-import { throwError } from '$lib/errors';
+import type { Comment, CommentListItem } from '#lib/models/comment.js';
+import { decodeIdPath, decodePathField, encodeIdPath } from '#lib/models/id_path.js';
+import type { Pagination, Paginated } from '#lib/models/page.js';
+import { throwError } from '#lib/errors.js';
 import { desc, eq, sql } from 'drizzle-orm';
-import { tArticle, tComment, tUser, type AppDatabase } from '$lib/server/db/schema';
+import { tArticle, tComment, tUser, type AppDatabase } from '#lib/server/db/schema.js';
 import { newNanoId, wrap } from './utils';
 
 type QueryDatabase = Pick<AppDatabase, 'select'>;
@@ -108,10 +108,12 @@ export async function createComment(db: AppDatabase, params: CreateCommentParams
         createdAt: now,
         updatedAt: now,
       });
-      await tx
+      const [article] = await tx
         .update(tArticle)
         .set({ commentCount: sql`${tArticle.commentCount} + 1` })
-        .where(eq(tArticle.id, params.articleId));
+        .where(eq(tArticle.id, params.articleId))
+        .returning({ id: tArticle.id });
+      if (!article) return throwError('NOT_FOUND', { resource: '文章' });
       // Resolve the author before commit so mapping failures roll back the write and counter.
       return readComment(tx, id);
     }),

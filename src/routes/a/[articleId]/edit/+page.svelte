@@ -1,7 +1,7 @@
 <script lang="ts">
-  import ArticleCard from '$lib/component/ArticleCard.svelte';
-  import Button from '$lib/component/Button.svelte';
-  import ButtonLink from '$lib/component/ButtonLink.svelte';
+  import ArticleCard from '#lib/component/ArticleCard.svelte';
+  import Button from '#lib/component/Button.svelte';
+  import ButtonLink from '#lib/component/ButtonLink.svelte';
   import MarkdownEditor from './MarkdownEditor.svelte';
   import { createOrUpdateMarkdownArticle, loadPageData } from './page.remote';
   import { page } from '$app/state';
@@ -49,9 +49,13 @@
     <MarkdownEditor bind:content {onValidateChange} {onTitleChange} />
 
     <form {...createOrUpdateMarkdownArticle}>
-      <input type="hidden" name="articleId" value={articleId} />
-      <input type="hidden" name="replyToId" value={replyToId} />
-      <input type="hidden" name="content" value={content} />
+      {#if articleId}
+        <input {...createOrUpdateMarkdownArticle.fields.articleId.as('hidden', articleId)} />
+      {/if}
+      {#if replyToId}
+        <input {...createOrUpdateMarkdownArticle.fields.replyToId.as('hidden', replyToId)} />
+      {/if}
+      <input {...createOrUpdateMarkdownArticle.fields.content.as('hidden', content)} />
       <Button variant="primary" disabled={!valid} {pending} type="submit">发布</Button>
     </form>
   </div>

@@ -2,12 +2,12 @@
   import { page } from '$app/state';
   import AddIcon from '~icons/mdi/add';
   import MdiLogout from '~icons/mdi/logout';
-  import ArticleList from '$lib/component/ArticleList.svelte';
-  import CommentList from '$lib/component/CommentList.svelte';
-  import Markdown from '$lib/component/Markdown.svelte';
+  import ArticleList from '#lib/component/ArticleList.svelte';
+  import CommentList from '#lib/component/CommentList.svelte';
+  import Markdown from '#lib/component/Markdown.svelte';
   import SettingIcon from '~icons/mdi/settings-outline';
   import { loadPageData, logout } from './page.remote';
-  import Action from '$lib/component/Action.svelte';
+  import Action from '#lib/component/Action.svelte';
 
   const { params } = $props();
 

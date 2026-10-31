@@ -1,8 +1,8 @@
 <script lang="ts">
   import ArticleCard from './ArticleCard.svelte';
   import Pager from './Pager.svelte';
-  import { type CommentListItem } from '$lib/models/comment';
-  import type { Paginated } from '$lib/models/page';
+  import { type CommentListItem } from '#lib/models/comment.js';
+  import type { Paginated } from '#lib/models/page.js';
   import { format } from 'date-fns';
   import { twMerge } from 'tailwind-merge';
 

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Action from '$lib/component/Action.svelte';
+  import Action from '#lib/component/Action.svelte';
   import MdiReplyOutline from '~icons/mdi/reply-outline';
   import { consoleRoutes } from '../../console/routes';
-  import { Permission } from '$lib/models/role';
-  import type { ArticleSummary } from '$lib/models/article';
-  import { userHasPermission, type LoggedInUser } from '$lib/models/user';
+  import { Permission } from '#lib/models/role.js';
+  import type { ArticleSummary } from '#lib/models/article.js';
+  import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
 
   type Props = {
     articleId: string;

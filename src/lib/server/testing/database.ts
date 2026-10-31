@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { schema, type AppDatabase } from '$lib/server/db/schema';
+import { schema, type AppDatabase } from '#lib/server/db/schema.js';
 import { ensureDatabase, resetDatabase } from '../../../scripts/lib/database';
 
 // Call close in teardown, including after failures. Repeated cleanup is harmless.

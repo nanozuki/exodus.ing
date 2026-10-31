@@ -1,4 +1,4 @@
-import { error, type HttpError } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 
 export type ErrorValue = {
   BAD_REQUEST: string;
@@ -26,104 +26,47 @@ export const errorTagTitle: { [Tag in ErrorTag]: string } = {
   EXTERNAL_API_ERROR: '外部API错误',
 };
 
-type ErrorTagConfig<Tag extends ErrorTag> = {
-  code: number;
-  messageBuilder: (value: ErrorValue[Tag]) => string;
-};
+// Each union member keeps an error tag paired with its own parameters.
+export type ErrorDetail = {
+  [Tag in ErrorTag]: {
+    tag: Tag;
+    value: ErrorValue[Tag];
+  };
+}[ErrorTag];
 
-const errorTagConfigs: { [Tag in ErrorTag]: ErrorTagConfig<Tag> } = {
-  BAD_REQUEST: {
-    code: 400,
-    messageBuilder: (value) => value,
-  },
-  PARAMETER_INVALID: {
-    code: 400,
-    messageBuilder: (value) => {
+type ErrorArgs = {
+  [Tag in ErrorTag]: [tag: Tag, value: ErrorValue[Tag]];
+}[ErrorTag];
+
+// Interrupt request handling with a business error. Catch with Kit's isHttpError;
+// body.detail carries the parameters and body.status carries the HTTP status.
+export function throwError(...[tag, value]: ErrorArgs): never {
+  // Switching on the tuple discriminant narrows value without type assertions.
+  switch (tag) {
+    case 'BAD_REQUEST':
+      return error(400, value, { detail: { tag, value } });
+    case 'PARAMETER_INVALID': {
       const messages = ['参数错误'];
       for (const [key, message] of Object.entries(value)) {
         messages.push(`- ${key}: ${message}`);
       }
-      return messages.join('\n');
-    },
-  },
-  UNAUTHORIZED: {
-    code: 401,
-    messageBuilder: (value) => `未登录，不能${value.operation}`,
-  },
-  FORBIDDEN: {
-    code: 403,
-    messageBuilder: (value) => `没有权限，不能${value.operation}`,
-  },
-  NOT_FOUND: {
-    code: 404,
-    messageBuilder: (value) => `${value.resource}不存在`,
-  },
-  INTERNAL_SERVER_ERROR: {
-    code: 500,
-    messageBuilder: (value) => `服务器内部错误: ${value}`,
-  },
-  DATABASE_ERROR: {
-    code: 500,
-    messageBuilder: (value) => `${value.operation} 失败: ${value.cause}`,
-  },
-  MISSING_CONFIG: {
-    code: 500,
-    messageBuilder: (value) => `缺少配置项: ${value.item}`,
-  },
-  EXTERNAL_API_ERROR: {
-    code: 502,
-    messageBuilder: (value) => `${value.operation} 失败: ${value.message}`,
-  },
-};
-
-export interface AppError<Tag extends keyof ErrorValue> {
-  tag: Tag;
-  value: ErrorValue[Tag];
-  code: number;
-  message: string;
-}
-
-export function createError<Tag extends ErrorTag>(tag: Tag, value: ErrorValue[Tag]): AppError<Tag> {
-  const { code, messageBuilder } = errorTagConfigs[tag];
-  const message = messageBuilder(value);
-  return {
-    tag,
-    value,
-    code,
-    message,
-  };
-}
-
-export function throwAppError<Tag extends ErrorTag>(appError: AppError<Tag>): never {
-  error(appError.code, appError);
-}
-
-export function throwError<Tag extends ErrorTag>(tag: Tag, value: ErrorValue[Tag]): never {
-  const appError = createError(tag, value);
-  throwAppError(appError);
-}
-
-export function isHttpError(e: unknown): e is HttpError {
-  return (
-    typeof e === 'object' &&
-    e !== null &&
-    'status' in e &&
-    typeof e.status === 'number' &&
-    'body' in e &&
-    typeof e.body === 'object' &&
-    e.body !== null
-  );
-}
-
-export function catchError(e: unknown): AppError<ErrorTag> {
-  if (isHttpError(e)) {
-    return e.body;
+      return error(400, messages.join('\n'), { detail: { tag, value } });
+    }
+    case 'UNAUTHORIZED':
+      return error(401, `未登录，不能${value.operation}`, { detail: { tag, value } });
+    case 'FORBIDDEN':
+      return error(403, `没有权限，不能${value.operation}`, { detail: { tag, value } });
+    case 'NOT_FOUND':
+      return error(404, `${value.resource}不存在`, { detail: { tag, value } });
+    case 'INTERNAL_SERVER_ERROR':
+      return error(500, `服务器内部错误: ${value}`, { detail: { tag, value } });
+    case 'DATABASE_ERROR':
+      return error(500, `${value.operation} 失败: ${value.cause}`, { detail: { tag, value } });
+    case 'MISSING_CONFIG':
+      return error(500, `缺少配置项: ${value.item}`, { detail: { tag, value } });
+    case 'EXTERNAL_API_ERROR':
+      return error(502, `${value.operation} 失败: ${value.message}`, { detail: { tag, value } });
+    default:
+      throw new Error(`Unknown error tag: ${tag satisfies never}`);
   }
-  if (e instanceof Error) {
-    console.error('Unknown error caught', e);
-    return createError('INTERNAL_SERVER_ERROR', e.message);
-  }
-  console.log('Unknown thing caught:', e);
-  // Upstream handlers may recognize non-Error control-flow values.
-  throw e;
 }

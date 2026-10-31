@@ -1,2 +1,5 @@
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  esbuild: true
+engineStrict: true
+minimumReleaseAgeExclude:
+  - tslib@2.9.1

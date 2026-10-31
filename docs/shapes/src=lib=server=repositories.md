@@ -1,46 +1,78 @@
 # src/lib/server/repositories
 
-Provide database reads, writes, model mapping, and internal transactions for articles, bookmarks, comments, invitations, roles, sessions, and users. Consumers pass `AppDatabase` from `src/lib/server/db/schema.ts` directly to standalone exported functions. There are no repository classes, repository sets, or global database reads.
+Provide database reads, writes, model mapping, and internal transactions for
+articles, bookmarks, comments, invitations, roles, sessions, and users.
+Consumers pass `AppDatabase` from `src/lib/server/db/schema.ts` directly to
+standalone exported functions. There are no repository classes, repository sets,
+or global database reads.
 
 Repository operations return models from `src/lib/models/`, or compositions of
 those models. Operation-specific object parameters are exported as `XxxParams`
 beside their function; inputs need not be models. Shared model values may also
-serve directly as inputs. Use cases own permissions, business decisions, quota calculation, and session lifetime policy. Repositories own SQL, consistency, generated storage identifiers, and persistence timestamps. Do not access request context, cookies, DNS, or frontend state.
+serve directly as inputs. Use cases own permissions, business decisions, quota
+calculation, and session lifetime policy. Repositories own SQL, consistency,
+generated storage identifiers, and persistence timestamps. Do not access request
+context, cookies, DNS, or frontend state.
 
-Every exported database operation wraps its complete body with `wrap`, using its exact exported function name as the operation label. Throw expected HTTP errors inside that wrapper; it preserves those errors and normalizes unexpected failures. All internal helpers execute within their owning operation's wrapper. Do not query at import time.
+Every exported database operation wraps its complete body with `wrap`, using its
+exact exported function name as the operation label. Throw expected HTTP errors
+inside that wrapper; it preserves those errors and normalizes unexpected
+failures. All internal helpers execute within their owning operation's wrapper.
+Do not query at import time.
 
-Required singular reads throw `NOT_FOUND`; optional reads return `null`. Complete collections return all matches, including `[]`; paginated collections use the one-based `Pagination`/`Paginated<T>` contract,
-return the requested `pageNumber` and `pageSize`, and return empty `items` when
-appropriate. Empty relationship collections do not establish whether their owner exists. Updates and deletes perform no additional existence checks.
+Required singular reads throw `NOT_FOUND`; optional reads return `null`.
+Complete collections return all matches, including `[]`; paginated collections
+use the one-based `Pagination`/`Paginated<T>` contract, return the requested
+`pageNumber` and `pageSize`, and return empty `items` when appropriate. Empty
+relationship collections do not establish whether their owner exists. Updates
+and deletes perform no additional existence checks.
 
-All transaction contexts remain internal. Related writes and reads governing them use one transaction. Related result/count queries use a consistent snapshot, including paginated lists and invite statistics. Separate calls made by a use case or remote do not share a transaction. Preserve current table constraints and identifier formats.
+All transaction contexts remain internal. Related writes and reads governing
+them use one transaction. Related result/count queries use a consistent
+snapshot, including paginated lists and invite statistics. Separate calls made
+by a use case or remote do not share a transaction. Preserve current table
+constraints and identifier formats.
 
 ## Files
 
 ### `src/lib/server/repositories/article.ts`
 
-Read article models and projections; insert/update persisted articles and their direct-parent reply count.
+Read article models and projections; insert/update persisted articles and their
+direct-parent reply count.
 
 #### `getArticleById`
 
 ```typescript
-export declare function getArticleById(db: AppDatabase, articleId: string): Promise<Article>;
+export declare function getArticleById(
+  db: AppDatabase,
+  articleId: string,
+): Promise<Article>;
 ```
 
-Map the current author to `UserSummary`, decode the ancestry path, and attach its direct parent summary. Missing article throws `NOT_FOUND`; a stored path referencing an unavailable parent is an `INTERNAL_SERVER_ERROR`. Related mapping reads use a consistent snapshot.
+Map the current author to `UserSummary`, decode the ancestry path, and attach
+its direct parent summary. Missing article throws `NOT_FOUND`; a stored path
+referencing an unavailable parent is an `INTERNAL_SERVER_ERROR`. Related mapping
+reads use a consistent snapshot.
 
 #### `getArticleContentById`
 
 ```typescript
-export declare function getArticleContentById(db: AppDatabase, articleId: string): Promise<ArticleContent>;
+export declare function getArticleContentById(
+  db: AppDatabase,
+  articleId: string,
+): Promise<ArticleContent>;
 ```
 
-Read editable content without requiring an author join. Missing article throws `NOT_FOUND`.
+Read editable content without requiring an author join. Missing article throws
+`NOT_FOUND`.
 
 #### `getArticleSummaryById`
 
 ```typescript
-export declare function getArticleSummaryById(db: AppDatabase, articleId: string): Promise<ArticleSummary>;
+export declare function getArticleSummaryById(
+  db: AppDatabase,
+  articleId: string,
+): Promise<ArticleSummary>;
 ```
 
 Map the current author to `UserSummary`; missing result throws `NOT_FOUND`.
@@ -48,10 +80,14 @@ Map the current author to `UserSummary`; missing result throws `NOT_FOUND`.
 #### `listArticles`
 
 ```typescript
-export declare function listArticles(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleListItem>>;
+export declare function listArticles(
+  db: AppDatabase,
+  page: Pagination,
+): Promise<Paginated<ArticleListItem>>;
 ```
 
-Order by creation time descending, decode paths, and populate parent summaries. Return the total count and requested page from a consistent snapshot.
+Order by creation time descending, decode paths, and populate parent summaries.
+Return the total count and requested page from a consistent snapshot.
 
 #### `listArticlesOfUser`
 
@@ -63,7 +99,8 @@ export declare function listArticlesOfUser(
 ): Promise<Paginated<ArticleListItem>>;
 ```
 
-Apply the same mapping, ordering, and snapshot rules as `listArticles`, restricted to the author.
+Apply the same mapping, ordering, and snapshot rules as `listArticles`,
+restricted to the author.
 
 #### `listBookmarkedArticlesOfUser`
 
@@ -75,23 +112,33 @@ export declare function listBookmarkedArticlesOfUser(
 ): Promise<Paginated<ArticleListItem>>;
 ```
 
-Apply the article list mapping and creation-descending ordering. Count bookmark relationships; existing duplicate relationships may duplicate returned rows, preserving the unchanged schema behavior.
+Apply the article list mapping and creation-descending ordering. Count bookmark
+relationships; existing duplicate relationships may duplicate returned rows,
+preserving the unchanged schema behavior.
 
 #### `getRepliesOfArticle`
 
 ```typescript
-export declare function getRepliesOfArticle(db: AppDatabase, articleId: string): Promise<ArticleSummary[]>;
+export declare function getRepliesOfArticle(
+  db: AppDatabase,
+  articleId: string,
+): Promise<ArticleSummary[]>;
 ```
 
-Return every direct response at any ancestry depth, without truncation. Result order is unspecified.
+Return every direct response at any ancestry depth, without truncation. Result
+order is unspecified.
 
 #### `listArticleFeeds`
 
 ```typescript
-export declare function listArticleFeeds(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleFeedsItem>>;
+export declare function listArticleFeeds(
+  db: AppDatabase,
+  page: Pagination,
+): Promise<Paginated<ArticleFeedsItem>>;
 ```
 
-Return a page ordered by update time descending and a consistent total. The feed route requests its existing limit as the first page and consumes `items`.
+Return a page ordered by update time descending and a consistent total. The feed
+route requests its existing limit as the first page and consumes `items`.
 
 #### `CreateArticleParams`
 
@@ -110,10 +157,19 @@ Supply the author, content, and optional direct parent for a new article.
 #### `createArticle`
 
 ```typescript
-export declare function createArticle(db: AppDatabase, params: CreateArticleParams): Promise<Article>;
+export declare function createArticle(
+  db: AppDatabase,
+  params: CreateArticleParams,
+): Promise<Article>;
 ```
 
-Generate a unique six-character storage ID and capture the persistence timestamp. Read any parent and its ancestry inside the transaction that inserts the article and increments that direct parent’s reply count. A missing parent throws `NOT_FOUND`. Complete author lookup and result mapping within that same transaction before commit, then return the mapped article; authorization and content policy belong to use cases.
+Generate a unique six-character storage ID and capture the persistence
+timestamp. Read any parent and its ancestry inside the transaction that inserts
+the article and increments that direct parent’s reply count. A missing parent
+throws `NOT_FOUND`. Complete author lookup and result mapping within that same
+transaction before commit, then return the mapped article; author/title
+uniqueness conflicts become `title` field errors; authorization and content
+policy belong to use cases.
 
 #### `UpdateArticleParams`
 
@@ -132,14 +188,20 @@ These parameters do not provide authorization or existence guarantees.
 #### `updateArticle`
 
 ```typescript
-export declare function updateArticle(db: AppDatabase, params: UpdateArticleParams): Promise<void>;
+export declare function updateArticle(
+  db: AppDatabase,
+  params: UpdateArticleParams,
+): Promise<void>;
 ```
 
-Update the supplied title/content fields by ID without checking existence. Preserve the current behavior of not explicitly advancing `updatedAt`.
+Update the supplied title/content fields by ID without checking existence.
+Author/title uniqueness conflicts become `title` field errors. Preserve the
+current behavior of not explicitly advancing `updatedAt`.
 
 ### `src/lib/server/repositories/bookmark.ts`
 
-Read bookmark state and keep relationship changes consistent with the article’s persisted bookmark count.
+Read bookmark state and keep relationship changes consistent with the article’s
+persisted bookmark count.
 
 #### `GetBookmarkStateOfArticleParams`
 
@@ -180,13 +242,16 @@ Identify the user–article relationship to insert.
 #### `createBookmark`
 
 ```typescript
-export declare function createBookmark(db: AppDatabase, params: CreateBookmarkParams): Promise<BookmarkState>;
+export declare function createBookmark(
+  db: AppDatabase,
+  params: CreateBookmarkParams,
+): Promise<BookmarkState>;
 ```
 
-Insert one relationship with the persistence timestamp and increment the
-article count in one transaction. Read and return the updated `BookmarkState`
-for the supplied article and user within that same transaction before commit;
-`count` counts actual relationship rows and `bookmarked` is true. Preserve current
+Insert one relationship with the persistence timestamp and increment the article
+count in one transaction. Read and return the updated `BookmarkState` for the
+supplied article and user within that same transaction before commit; `count`
+counts actual relationship rows and `bookmarked` is true. Preserve current
 duplicate-insertion semantics and do not add an existence check or a unique
 constraint in this refactor.
 
@@ -204,22 +269,33 @@ Identify all user–article relationships to delete.
 #### `deleteBookmark`
 
 ```typescript
-export declare function deleteBookmark(db: AppDatabase, params: DeleteBookmarkParams): Promise<void>;
+export declare function deleteBookmark(
+  db: AppDatabase,
+  params: DeleteBookmarkParams,
+): Promise<void>;
 ```
 
-Delete all matching user/article relationships in one transaction and decrement the article’s persisted count by the number of rows actually deleted. Deleting zero rows leaves the count unchanged. This intentionally fixes the prior unconditional single decrement.
+Delete all matching user/article relationships in one transaction and decrement
+the article’s persisted count by the number of rows actually deleted. Deleting
+zero rows leaves the count unchanged. This intentionally fixes the prior
+unconditional single decrement.
 
 ### `src/lib/server/repositories/comment.ts`
 
-Read comment records and per-user grouped projections; insert/update comments while preserving article counts.
+Read comment records and per-user grouped projections; insert/update comments
+while preserving article counts.
 
 #### `getCommentsOfArticle`
 
 ```typescript
-export declare function getCommentsOfArticle(db: AppDatabase, articleId: string): Promise<Comment[]>;
+export declare function getCommentsOfArticle(
+  db: AppDatabase,
+  articleId: string,
+): Promise<Comment[]>;
 ```
 
-Return all comments ordered by creation ascending, join their authors, and decode ancestry paths. Never truncate the complete collection.
+Return all comments ordered by creation ascending, join their authors, and
+decode ancestry paths. Never truncate the complete collection.
 
 #### `listCommentsOfUser`
 
@@ -231,15 +307,21 @@ export declare function listCommentsOfUser(
 ): Promise<Paginated<CommentListItem>>;
 ```
 
-Page raw comments by update time descending, then group each page by article. `count` is the number of raw matching comments, not groups; a group can recur on another page. Read count and rows consistently.
+Page raw comments by update time descending, then group each page by article.
+`count` is the number of raw matching comments, not groups; a group can recur on
+another page. Read count and rows consistently.
 
 #### `getCommentById`
 
 ```typescript
-export declare function getCommentById(db: AppDatabase, commentId: string): Promise<Comment>;
+export declare function getCommentById(
+  db: AppDatabase,
+  commentId: string,
+): Promise<Comment>;
 ```
 
-Join the author and decode the ancestry path; missing comment throws `NOT_FOUND`.
+Join the author and decode the ancestry path; missing comment throws
+`NOT_FOUND`.
 
 #### `CreateCommentParams`
 
@@ -257,10 +339,19 @@ Supply the discussion, author, text, and optional parent comment.
 #### `createComment`
 
 ```typescript
-export declare function createComment(db: AppDatabase, params: CreateCommentParams): Promise<Comment>;
+export declare function createComment(
+  db: AppDatabase,
+  params: CreateCommentParams,
+): Promise<Comment>;
 ```
 
-Generate a unique six-character ID and persistence timestamp. Read any reply parent in the same transaction as insertion and article comment-count increment; missing reply parent throws `NOT_FOUND`. Complete author lookup and result mapping within that same transaction before commit, then return the mapped comment. Preserve current reply-path behavior; this refactor does not introduce new cross-article reply validation.
+Generate a unique six-character ID and persistence timestamp. Read any reply
+parent in the same transaction as insertion and article comment-count increment;
+missing reply parent throws `NOT_FOUND`. The article count update must affect an
+existing article; otherwise throw `NOT_FOUND` and roll back the comment.
+Complete author lookup and result mapping within that same transaction before
+commit, then return the mapped comment. Preserve current reply-path behavior;
+this refactor does not introduce new cross-article reply validation.
 
 #### `UpdateCommentParams`
 
@@ -277,36 +368,52 @@ ancestry remain unchanged.
 #### `updateComment`
 
 ```typescript
-export declare function updateComment(db: AppDatabase, params: UpdateCommentParams): Promise<void>;
+export declare function updateComment(
+  db: AppDatabase,
+  params: UpdateCommentParams,
+): Promise<void>;
 ```
 
-Update supplied content and advance `updatedAt` using the persistence clock, without checking existence.
+Update supplied content and advance `updatedAt` using the persistence clock,
+without checking existence.
 
 ### `src/lib/server/repositories/invite_code.ts`
 
-Persist invitation codes and expose consistent quota inputs. Quota arithmetic belongs to the invitation use case.
+Persist invitation codes and expose consistent quota inputs. Quota arithmetic
+belongs to the invitation use case.
 
 #### `findInviteCodeByCode`
 
 ```typescript
-export declare function findInviteCodeByCode(db: AppDatabase, code: string): Promise<InviteCode | null>;
+export declare function findInviteCodeByCode(
+  db: AppDatabase,
+  code: string,
+): Promise<InviteCode | null>;
 ```
 
 #### `getUnusedInviteCodesOfUser`
 
 ```typescript
-export declare function getUnusedInviteCodesOfUser(db: AppDatabase, userId: string): Promise<InviteCodeSummary[]>;
+export declare function getUnusedInviteCodesOfUser(
+  db: AppDatabase,
+  userId: string,
+): Promise<InviteCodeSummary[]>;
 ```
 
-Return every unused code/role projection for the inviter; ordering is unspecified.
+Return every unused code/role projection for the inviter; ordering is
+unspecified.
 
 #### `getInviteStatsOfUser`
 
 ```typescript
-export declare function getInviteStatsOfUser(db: AppDatabase, userId: string): Promise<InviteStats>;
+export declare function getInviteStatsOfUser(
+  db: AppDatabase,
+  userId: string,
+): Promise<InviteStats>;
 ```
 
-Read authored article count, unused invitation count, and invited role-row count from one consistent snapshot. Do not calculate quota.
+Read authored article count, unused invitation count, and invited role-row count
+from one consistent snapshot. Do not calculate quota.
 
 #### `CreateInviteCodeParams`
 
@@ -320,16 +427,25 @@ export interface CreateInviteCodeParams {
 
 `expectedStats` is the consistent invitation-statistics snapshot on which the
 use case approved creation. The repository atomically compares current
-statistics with this snapshot before inserting. It is a concurrency precondition,
-not a quota policy callback.
+statistics with this snapshot before inserting. It is a concurrency
+precondition, not a quota policy callback.
 
 #### `createInviteCode`
 
 ```typescript
-export declare function createInviteCode(db: AppDatabase, params: CreateInviteCodeParams): Promise<InviteCode>;
+export declare function createInviteCode(
+  db: AppDatabase,
+  params: CreateInviteCodeParams,
+): Promise<InviteCode>;
 ```
 
-Inside a serializable transaction, read all three statistics and require equality with `params.expectedStats`, then generate a 16-character code and insert the unused invitation. A changed snapshot throws `BAD_REQUEST` with retry guidance before writing. The caller computes and checks quota before passing the snapshot; this operation does not receive or execute a quota algorithm. Serialization failures remain normalized database failures with no automatic retry.
+Inside a serializable transaction, read all three statistics and require
+equality with `params.expectedStats`, then generate a 16-character code and
+insert the unused invitation. A changed snapshot throws `BAD_REQUEST` with retry
+guidance before writing. The caller computes and checks quota before passing the
+snapshot; this operation does not receive or execute a quota algorithm.
+Serialization failures remain normalized database failures with no automatic
+retry.
 
 #### `DeleteInviteCodeParams`
 
@@ -346,40 +462,57 @@ actor.
 #### `deleteInviteCode`
 
 ```typescript
-export declare function deleteInviteCode(db: AppDatabase, params: DeleteInviteCodeParams): Promise<void>;
+export declare function deleteInviteCode(
+  db: AppDatabase,
+  params: DeleteInviteCodeParams,
+): Promise<void>;
 ```
 
-Scope deletion by inviter and code, including used codes, without checking existence.
+Scope deletion by inviter and code, including used codes, without checking
+existence.
 
 ### `src/lib/server/repositories/role.ts`
 
-Read assigned roles and invitation relationships, and atomically persist invitation redemption.
+Read assigned roles and invitation relationships, and atomically persist
+invitation redemption.
 
 #### `getRolesOfUser`
 
 ```typescript
-export declare function getRolesOfUser(db: AppDatabase, userId: string): Promise<Role[]>;
+export declare function getRolesOfUser(
+  db: AppDatabase,
+  userId: string,
+): Promise<Role[]>;
 ```
 
-Return all assigned role keys without runtime validation or specified ordering, retaining the existing storage contract.
+Return all assigned role keys without runtime validation or specified ordering,
+retaining the existing storage contract.
 
 #### `findInviterOfUser`
 
 ```typescript
-export declare function findInviterOfUser(db: AppDatabase, userId: string): Promise<Relation | null>;
+export declare function findInviterOfUser(
+  db: AppDatabase,
+  userId: string,
+): Promise<Relation | null>;
 ```
 
 Return the first matching inviter as `Relation.user: UserSummary` with its
-invitation time, or `null`. No choice ordering is guaranteed when several role rows match; callers normalize any existing UI-level optionality.
+invitation time, or `null`. No choice ordering is guaranteed when several role
+rows match; callers normalize any existing UI-level optionality.
 
 #### `getInviteesOfUser`
 
 ```typescript
-export declare function getInviteesOfUser(db: AppDatabase, userId: string): Promise<Relation[]>;
+export declare function getInviteesOfUser(
+  db: AppDatabase,
+  userId: string,
+): Promise<Relation[]>;
 ```
 
 Return role-based invitee relationships with `user: UserSummary`, ordered by
-invitation time descending. Several roles may produce several rows for the same user.
+invitation time descending. Several roles may produce several rows for the same
+user.
 
 #### `CreateRoleOfUserByInviteCodeParams`
 
@@ -403,25 +536,40 @@ export declare function createRoleOfUserByInviteCode(
 ): Promise<UserRole>;
 ```
 
-Within one transaction, lock and require the matching unused code, create its user-role relationship if absent, and set `usedAt` to the supplied instant. Missing or already used codes throw `BAD_REQUEST`. If the user already has the role, retain and return that relationship and still consume the code, preserving current behavior. The role and inviter are read from the code. A failed role write leaves the code unused; concurrent attempts cannot both redeem it. This replaces the separate code-consumption and role-grant writes.
+Within one transaction, lock and require the matching unused code, create its
+user-role relationship if absent, and set `usedAt` to the supplied instant.
+Missing or already used codes throw `PARAMETER_INVALID` with the `inviteCode`
+field, including competing redemption. If the user already has the role, retain
+and return that relationship and still consume the code, preserving current
+behavior. The role and inviter are read from the code. A failed role write
+leaves the code unused; concurrent attempts cannot both redeem it. This replaces
+the separate code-consumption and role-grant writes.
 
 ### `src/lib/server/repositories/session.ts`
 
-Persist supplied session data. Use cases own ID generation, current-time reads, expiration decisions, and renewal policy.
+Persist supplied session data. Use cases own ID generation, current-time reads,
+expiration decisions, and renewal policy.
 
 #### `findSessionById`
 
 ```typescript
-export declare function findSessionById(db: AppDatabase, sessionId: string): Promise<Session | null>;
+export declare function findSessionById(
+  db: AppDatabase,
+  sessionId: string,
+): Promise<Session | null>;
 ```
 
 #### `createSession`
 
 ```typescript
-export declare function createSession(db: AppDatabase, session: Session): Promise<Session>;
+export declare function createSession(
+  db: AppDatabase,
+  session: Session,
+): Promise<Session>;
 ```
 
-Persist and return the supplied ID, user, and expiration without applying lifetime policy.
+Persist and return the supplied ID, user, and expiration without applying
+lifetime policy.
 
 #### `UpdateSessionParams`
 
@@ -438,7 +586,10 @@ remain in the use case.
 #### `updateSession`
 
 ```typescript
-export declare function updateSession(db: AppDatabase, params: UpdateSessionParams): Promise<void>;
+export declare function updateSession(
+  db: AppDatabase,
+  params: UpdateSessionParams,
+): Promise<void>;
 ```
 
 Update expiration by session ID without checking existence.
@@ -446,10 +597,14 @@ Update expiration by session ID without checking existence.
 #### `deleteSession`
 
 ```typescript
-export declare function deleteSession(db: AppDatabase, sessionId: string): Promise<void>;
+export declare function deleteSession(
+  db: AppDatabase,
+  sessionId: string,
+): Promise<void>;
 ```
 
-Delete by session ID without checking existence. This is also the persistence step for expiration detected by a use case.
+Delete by session ID without checking existence. This is also the persistence
+step for expiration detected by a use case.
 
 ### `src/lib/server/repositories/user.ts`
 
@@ -458,15 +613,22 @@ Read user identity/profile data and persist supplied profile changes.
 #### `findUserById`
 
 ```typescript
-export declare function findUserById(db: AppDatabase, id: string): Promise<User | null>;
+export declare function findUserById(
+  db: AppDatabase,
+  id: string,
+): Promise<User | null>;
 ```
 
-Retain legacy lookup behavior: an ID of exactly 16 characters is shortened to its first six characters before querying.
+Retain legacy lookup behavior: an ID of exactly 16 characters is shortened to
+its first six characters before querying.
 
 #### `findUserByUsername`
 
 ```typescript
-export declare function findUserByUsername(db: AppDatabase, username: string): Promise<User | null>;
+export declare function findUserByUsername(
+  db: AppDatabase,
+  username: string,
+): Promise<User | null>;
 ```
 
 Perform an exact optional lookup.
@@ -474,7 +636,10 @@ Perform an exact optional lookup.
 #### `findUserByName`
 
 ```typescript
-export declare function findUserByName(db: AppDatabase, name: string): Promise<User | null>;
+export declare function findUserByName(
+  db: AppDatabase,
+  name: string,
+): Promise<User | null>;
 ```
 
 Perform an exact optional lookup.
@@ -482,7 +647,10 @@ Perform an exact optional lookup.
 #### `findUserByGitHubId`
 
 ```typescript
-export declare function findUserByGitHubId(db: AppDatabase, githubId: number): Promise<User | null>;
+export declare function findUserByGitHubId(
+  db: AppDatabase,
+  githubId: number,
+): Promise<User | null>;
 ```
 
 Perform an exact optional lookup.
@@ -511,10 +679,15 @@ Supply the identity and profile fields for a new user.
 #### `createUser`
 
 ```typescript
-export declare function createUser(db: AppDatabase, params: CreateUserParams): Promise<User>;
+export declare function createUser(
+  db: AppDatabase,
+  params: CreateUserParams,
+): Promise<User>;
 ```
 
-Generate a unique six-character ID and a 32-character verification code, capture persistence timestamps, and insert the identity/profile. Return the public `User` model. Normalize uniqueness failures through `wrap`.
+Generate a unique six-character ID and a 32-character verification code, capture
+persistence timestamps, and insert the identity/profile. Return the public
+`User` model. Normalize uniqueness failures through `wrap`.
 
 #### `UpdateUserParams`
 
@@ -527,29 +700,45 @@ export interface UpdateUserParams {
 }
 ```
 
-Identify the user and supplied editable fields. Omitted fields remain
-unchanged; GitHub identity and verification code are not editable through this
-operation.
+Identify the user and supplied editable fields. Omitted fields remain unchanged;
+GitHub identity and verification code are not editable through this operation.
 
 #### `updateUser`
 
 ```typescript
-export declare function updateUser(db: AppDatabase, params: UpdateUserParams): Promise<void>;
+export declare function updateUser(
+  db: AppDatabase,
+  params: UpdateUserParams,
+): Promise<void>;
 ```
 
-Apply supplied username/name/about-me fields without existence checks or an explicit `updatedAt` change. Username rules and acting-user authorization belong to callers.
+Apply supplied username/name/about-me fields without existence checks or an
+explicit `updatedAt` change. Known username/name uniqueness conflicts are field
+errors through `wrap`. Username rules and acting-user authorization belong to
+callers.
 
 ### `src/lib/server/repositories/utils.ts`
 
-Shared operation wrapping and storage identifier generation. These helpers are module collaboration exports, not database operations themselves.
+Shared operation wrapping and storage identifier generation. These helpers are
+module collaboration exports, not database operations themselves.
 
 #### `wrap`
 
 ```typescript
-export declare function wrap<T>(operation: string, fn: () => Promise<T>): Promise<T>;
+export declare function wrap<T>(
+  operation: string,
+  fn: () => Promise<T>,
+): Promise<T>;
 ```
 
-Time and log successful operations. Preserve HTTP errors; normalize ordinary errors to `DATABASE_ERROR` with the operation name and message, and other thrown values using JSON serialization. Preserve current serialization failure behavior.
+Time and log successful operations. Before normalizing failures, inspect
+PostgreSQL error causes for code `23505` and known constraints: `updateUser`
+maps username/name uniqueness to PARAMETER_INVALID `username`/`name`;
+`createArticle` and `updateArticle` map author/title uniqueness to
+PARAMETER_INVALID `title`. Other constraints and operations retain
+DATABASE_ERROR. Preserve HTTP errors; normalize ordinary errors to
+`DATABASE_ERROR` with the operation name and message, and other thrown values
+using JSON serialization. Preserve current serialization failure behavior.
 
 #### `newNanoId`
 
@@ -557,7 +746,8 @@ Time and log successful operations. Preserve HTTP errors; normalize ordinary err
 export declare function newNanoId(): string;
 ```
 
-Generate six lowercase alphanumeric characters. Uniqueness checking belongs to the owning insert operation.
+Generate six lowercase alphanumeric characters. Uniqueness checking belongs to
+the owning insert operation.
 
 #### `newCode`
 

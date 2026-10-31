@@ -24,7 +24,9 @@ export async function withControlLock<T>(fn: () => Promise<T>): Promise<T> {
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
       if (Date.now() >= deadline)
-        throw new Error('Timed out waiting for .direnv/pg-control.lock; check other callers or remove a stale lock.');
+        throw new Error('Timed out waiting for .direnv/pg-control.lock; check other callers or remove a stale lock.', {
+          cause: error,
+        });
       await delay(100);
     }
   }

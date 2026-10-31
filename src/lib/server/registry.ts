@@ -1,6 +1,6 @@
-import { createAdapterSet, type AdapterSet } from '$lib/server/adapters';
-import { getDatabase } from '$lib/server/db';
-import type { AppDatabase } from '$lib/server/db/schema';
+import { createAdapterSet, type AdapterSet } from '#lib/server/adapters/index.js';
+import { getDatabase } from '#lib/server/db/index.js';
+import type { AppDatabase } from '#lib/server/db/schema.js';
 import { getConfig } from './config';
 
 // Await startup before using the exported bindings. Rebuilding replaces them without closing the old pool.

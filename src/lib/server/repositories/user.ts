@@ -1,6 +1,6 @@
-import type { User } from '$lib/models/user';
+import type { User } from '#lib/models/user.js';
 import { asc, eq } from 'drizzle-orm';
-import { tUser, type AppDatabase, type UserRow } from '$lib/server/db/schema';
+import { tUser, type AppDatabase, type UserRow } from '#lib/server/db/schema.js';
 import { newNanoId, newVerifyCode, wrap } from './utils';
 
 function model(row: UserRow): User {

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { articleIssueMessages, compileArticle, type CompiledArticle } from '$lib/markdown';
+  import { articleIssueMessages, compileArticle, type CompiledArticle } from '#lib/markdown.js';
   import { resource } from 'runed';
-  import Markdown from '$lib/component/Markdown.svelte';
+  import Markdown from '#lib/component/Markdown.svelte';
 
   interface Props {
     content?: ReturnType<typeof $bindable<string>>;

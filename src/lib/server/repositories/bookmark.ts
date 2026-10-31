@@ -1,6 +1,6 @@
-import type { BookmarkState } from '$lib/models/bookmark';
+import type { BookmarkState } from '#lib/models/bookmark.js';
 import { and, eq, sql } from 'drizzle-orm';
-import { tArticle, tBookmark, type AppDatabase } from '$lib/server/db/schema';
+import { tArticle, tBookmark, type AppDatabase } from '#lib/server/db/schema.js';
 import { wrap } from './utils';
 
 type QueryDatabase = Pick<AppDatabase, 'select'>;

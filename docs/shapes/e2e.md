@@ -8,5 +8,6 @@ the shape inventory.
 
 ### `e2e/tsconfig.json`
 
-Type-check browser tests and support code using the root compiler configuration, including playwright.config.ts and the
-application ambient types. No runtime registration occurs.
+Type-check browser tests and support code using the root compiler configuration,
+including playwright.config.ts and the application ambient types. No runtime
+registration occurs.

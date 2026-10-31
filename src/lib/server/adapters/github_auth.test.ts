@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { OAuth2RequestError } from 'arctic';
 import { GitHubOAuth } from './github_auth';
-import type { Config } from '$lib/server/config';
+import type { Config } from '#lib/server/config.js';
 
 const provider = vi.hoisted(() => ({ authorize: vi.fn(), exchange: vi.fn() }));
 
@@ -43,7 +43,10 @@ it('maps a trusted provider identity with the existing request headers', async (
 it('preserves provider rejection and unexpected failure error categories', async () => {
   const adapter = new GitHubOAuth(config);
   provider.exchange.mockRejectedValue(new OAuth2RequestError('invalid_grant', 'bad code', null, null));
-  await expect(adapter.getUser('bad')).rejects.toMatchObject({ status: 400, body: { tag: 'BAD_REQUEST' } });
+  await expect(adapter.getUser('bad')).rejects.toMatchObject({ status: 400, body: { detail: { tag: 'BAD_REQUEST' } } });
   provider.exchange.mockRejectedValue(new Error('offline'));
-  await expect(adapter.getUser('bad')).rejects.toMatchObject({ status: 500, body: { tag: 'INTERNAL_SERVER_ERROR' } });
+  await expect(adapter.getUser('bad')).rejects.toMatchObject({
+    status: 500,
+    body: { detail: { tag: 'INTERNAL_SERVER_ERROR' } },
+  });
 });
