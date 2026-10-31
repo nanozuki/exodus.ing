@@ -54,8 +54,8 @@ export function buildServices(): Promise<void>;
 
 Read configuration, construct the database through `src/lib/server/db` and the
 adapter set, and assign the exported bindings. Await successful startup before
-using either binding. Repeated calls replace them, matching the current
-lifecycle; this refactor does not add pool shutdown behavior.
+using either binding. Repeated calls replace them without shutting down the
+previous pool.
 
 #### `db`
 
@@ -64,8 +64,7 @@ export let db: AppDatabase;
 ```
 
 The application database binding initialized by `buildServices`. Request entry
-points pass it explicitly to repository operations and use cases. No global
-repository instances or repository-set factory remain.
+points pass it explicitly to repository operations and use cases.
 
 #### `adapters`
 
@@ -115,8 +114,7 @@ export function setAuthCookie(cookies: Cookies, session: Session): void;
 ```
 
 Set `auth_session` with the session ID, `/` path, HTTP-only flag, supplied
-expiry, and production-only secure flag. Preserve existing cookie behavior; no
-new same-site option is introduced.
+expiry, and production-only secure flag. Leave the same-site option unset.
 
 #### `createGitHubAuthUrl`
 
@@ -144,11 +142,11 @@ export function readGitHubCallbackData(request: RequestEvent): {
 ```
 
 Read callback `code` and `state`, require the state cookie, parse and validate
-it, and require an exact state match. Preserve existing BAD_REQUEST messages for
-missing fields, missing cookie, schema-invalid cookie, or mismatched state. As
-currently implemented, malformed cookie JSON propagates its parse error to the
-route's error normalization. This helper neither exchanges provider credentials
-nor deletes the state cookie on success.
+it, and require an exact state match. Missing fields, missing cookie,
+schema-invalid cookie, or mismatched state produce the established BAD_REQUEST
+messages. Malformed cookie JSON propagates its parse error to the route's error
+normalization. This helper does not exchange provider credentials or delete the
+state cookie.
 
 #### `attachLocals`
 

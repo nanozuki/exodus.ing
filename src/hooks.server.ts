@@ -18,8 +18,10 @@ function redirectToCanonicalOrigin(request: Request) {
   redirect(308, url, { external: [canonicalUrl.origin] });
 }
 
-// Canonicalize deployment requests before authentication or route handling.
+// Internal health probes bypass canonicalization and authentication.
 export const handle: Handle = async ({ event, resolve }) => {
+  if (event.url.pathname === '/healthcheck') return resolve(event);
+
   redirectToCanonicalOrigin(event.request);
   const start = Date.now();
   await attachLocals(event);

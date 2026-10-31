@@ -34,10 +34,9 @@ supplied state and no scopes. `getUser` exchanges the supplied code, fetches
 `https://api.github.com/user` with the access token and existing headers, and
 maps provider id/login to GitHubUser. Preserve existing error mapping:
 OAuth2RequestError becomes BAD_REQUEST; other failures in the exchange/fetch
-block become INTERNAL_SERVER_ERROR. HTTP status/provider JSON validation remain
-as before. Neither method reads/writes cookies or inspects a request.
-`OAuthResult` is removed because request transport and provider identity no
-longer share an adapter result.
+block become INTERNAL_SERVER_ERROR. The user response is parsed without checking
+HTTP status or validating its JSON shape. Both methods operate independently of
+requests and cookies.
 
 ### `src/lib/server/adapters/index.ts`
 
@@ -72,8 +71,8 @@ Fetch Cloudflare DNS-over-HTTPS at
 `accept: application/dns-json`. DNS Status 3 (nonexistent domain) returns `[]`;
 other nonzero statuses and unsuccessful HTTP responses throw EXTERNAL_API_ERROR.
 Return each answer's raw `data`, or `[]` when Answer is absent. Transport/JSON
-failures propagate. TXT chunk/unquote handling and answer-type filtering are
-unchanged.
+failures propagate. Return raw TXT quoting and chunking without normalization or
+answer-type filtering.
 
 ### `src/lib/server/adapters/session_id.ts`
 
@@ -84,10 +83,9 @@ export function generateSessionId(): string;
 ```
 
 Generate a 32-character session identifier from
-`0123456789abcdefghijklmnopqrstuvwxyz` using Nano ID, preserving the existing
-session-code generator's behavior. Request entry points inject this capability
-into session/account use cases. No identifier is generated merely by importing
-the module.
+`0123456789abcdefghijklmnopqrstuvwxyz` using Nano ID. Request entry points
+inject this capability into session/account use cases. No identifier is
+generated merely by importing the module.
 
 ### `src/lib/server/adapters/clock.ts`
 

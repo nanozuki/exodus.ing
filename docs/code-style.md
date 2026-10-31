@@ -16,8 +16,8 @@ purpose changes. A multiline initializer alone does not create a new group.
 Preserve declaration order when adjusting whitespace: initialization and async
 boundaries can depend on it.
 
-A normal Svelte `<script>` contains component-instance logic. Apply the same
-logical grouping as in a function body; `<script module>` contains module logic.
+In Svelte, group `<script>` declarations as a function body and
+`<script module>` declarations as module logic.
 
 ```typescript
 const { count, pageSize, page }: Props = $props();
@@ -71,22 +71,16 @@ recognize. Update or remove a comment when its explanation stops applying.
 
 Keep imports together, separated from the implementation by one blank line.
 
-Code executed outside SvelteKit/Vite uses relative paths for all local imports.
-This includes standalone scripts, tooling configuration, their integration
-tests, and shared modules loaded by those entry points. Apply this rule
-throughout their local dependency graph, including type-only imports, so the
-entry points work without generated `.svelte-kit` configuration or an alias
-setup step. This rule takes precedence over the application import convention
-below.
+For local imports, use a relative path when the target file is in the same
+directory as the importing file or has no configured alias. Otherwise, use the
+configured alias, such as `#lib/...`. A child directory is a different
+directory. This rule applies throughout the project, including standalone
+scripts, tooling configuration, tests, and shared modules. Keep package imports
+and framework aliases such as `$app/...` as provided by their owners.
 
-For a target under `src/lib`, use a relative path when its file is in the same
-directory as the importing file; otherwise use `#lib/...`. A child directory is
-a different directory. For other local targets, use relative paths. Keep package
-imports and framework aliases such as `$app/...` as provided by their owners.
-
-Apply the same path convention to dynamic imports and module-mock specifiers.
-Filesystem paths and `new URL(..., import.meta.url)` references are resource
-locations, not import specifiers.
+Apply the same path convention to type-only imports, dynamic imports, and
+module-mock specifiers. Filesystem paths and `new URL(..., import.meta.url)`
+references are resource locations, not import specifiers.
 
 ## Review
 

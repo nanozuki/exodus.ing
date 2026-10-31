@@ -5,6 +5,9 @@ interaction controls. Remote operations adapt requests and delegate business
 authorization to use cases; components preserve independent form instances and
 direct-parent links.
 
+For remote request adaptation, follow the
+[request-boundary conventions](../architecture.md#request-boundaries-and-remote-functions).
+
 ## Files
 
 ### `src/routes/a/[articleId]/+page.svelte`
@@ -60,9 +63,8 @@ declare const component: Component<CommentBadgeProps>;
 export default component;
 ```
 
-Render the comment action and positive count. Observed destination is
-#reply-section, the article-response section, rather than #comment-section; the
-current destination targets the article-response section.
+Render the comment action targeting #reply-section (the article-response
+section) and show a positive count when nonzero.
 
 ### `src/routes/a/[articleId]/Comments.svelte`
 
@@ -168,11 +170,6 @@ any direct parent’s author UserSummary to UserBadge.
 
 ### `src/routes/a/[articleId]/page.remote.ts`
 
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
-
 #### `ArticleDetail`
 
 ```typescript
@@ -181,9 +178,8 @@ export interface ArticleDetail extends Article {
 }
 ```
 
-Article-page presentation result. Markdown source is compiled into sanitized
-markup and its display title; external articles retain their stored title and
-use empty markup. Consumers import this type from the owning page remote.
+Article-page presentation result. `loadPageData` defines title and markup
+conversion.
 
 #### `loadPageData`
 
@@ -199,16 +195,11 @@ Preserve the existing detail lookup's six-character conversion for exactly
 16-character legacy IDs; the replies lookup keeps the supplied ID as before.
 Compile Markdown into sanitized markup and its H1 display title; external
 articles retain their stored title and empty markup. Unknown content types throw
-INTERNAL_SERVER_ERROR and missing details retain NOT_FOUND. ArticleDetail
-belongs to this page remote. Comments and bookmark state remain independently
-refreshable queries owned by their components.
+INTERNAL_SERVER_ERROR and missing details retain NOT_FOUND. Comments and
+bookmark state remain independently refreshable queries owned by their
+components.
 
 ### `src/routes/a/[articleId]/BookmarkBadge.remote.ts`
-
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
 
 #### `getArticleBookmarkStatus`
 
@@ -243,15 +234,10 @@ Accept add/remove and a string articleId. Anonymous submissions redirect 303 to
 CreateBookmarkParams or deleteBookmark with DeleteBookmarkParams, both scoped to
 the viewer. createBookmark returns the updated BookmarkState and deleteBookmark
 returns void; refresh the status query after either mutation and return
-success=true. Preserve duplicate-add behavior; deleting a missing bookmark no
-longer decrements stored counters, as required by repository consistency.
+success=true. Preserve duplicate-add behavior; deleting a missing bookmark
+leaves stored counters unchanged.
 
 ### `src/routes/a/[articleId]/Comments.remote.ts`
-
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
 
 #### `CommentView`
 
@@ -260,8 +246,7 @@ export type CommentView = Comment & { replyTo?: Comment };
 ```
 
 Comment presentation with its direct reply target attached when present in the
-loaded article's comments. Missing targets leave `replyTo` undefined. Consumers
-import this type from the owning component remote.
+loaded article's comments. Missing targets leave `replyTo` undefined.
 
 #### `listCommentsOfArticle`
 
@@ -272,10 +257,8 @@ export declare const listCommentsOfArticle: RemoteQueryFunction<
 >;
 ```
 
-Read all article comments in creation order through getCommentsOfArticle. Attach
-each non-root comment's direct parent when found in the same result; otherwise
-leave replyTo undefined. CommentView and this display composition belong to
-Comments.remote.ts.
+Read all article comments in creation order through getCommentsOfArticle and
+compose CommentView results.
 
 #### `postComment`
 

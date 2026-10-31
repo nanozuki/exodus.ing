@@ -2,14 +2,8 @@
 
 Render the shared application shell, homepage article list, and application
 error page. Layout and page remote queries supply viewer identity and homepage
-data. Components call these queries directly; there are no page/layout load
-functions or inherited loader data in this application.
-
-Page/layout query arguments explicitly carry route and search values needed for
-their result. Read trusted actor/session data from request locals. Initial
-rendering awaits queries during SSR; client rendering uses reactive query
-arguments. Loader `data`, `parent()`, and implicit URL dependencies do not form
-part of this contract.
+data. Components call these queries directly, following the
+[initial-data conventions](../architecture.md#initial-data-and-pagination).
 
 ## Files
 
@@ -42,8 +36,7 @@ returned by that query. Import the application stylesheet, request Google Fonts
 through head links, and render the shared header plus children. Show a
 navigation spinner while navigating. Signed-in viewers pass the returned user to
 UserBadge for their profile link; visitors get an encoded current
-path/query/hash as the authentication next destination. No loader `data` prop is
-consumed.
+path/query/hash as the authentication next destination.
 
 ### `src/routes/+page.svelte`
 
@@ -75,9 +68,8 @@ Parse the supplied URL value with the existing parseInt behavior; absent,
 invalid, or zero values default to 1. Reject negative values through the
 existing minimum-page validation. Keep pageSize = 20 private to this remote
 function, pass it to `listArticles`, and return the parsed page together with
-its articles, including the effective pageSize. Input parsing and page
-composition belong here; no use-case wrapper is introduced. The explicit
-argument controls query identity on navigation.
+its articles, including the effective pageSize. The explicit argument controls
+query identity on navigation.
 
 ### `src/routes/layout.remote.ts`
 
@@ -94,8 +86,7 @@ Return the viewer from trusted request locals, or null for anonymous requests.
 The hook has already validated the session and handled cookie renewal; this read
 query does not write cookies. The root layout and descendant consumers may call
 the same query and share its framework cache; it is not a module-global user
-cache. Viewer-sensitive pages may consume this ancestor layout query directly
-without loader `data` or `parent()`.
+cache. Viewer-sensitive pages may consume this ancestor layout query directly.
 
 After a mutation changes the active session, profile, username, or roles, obtain
 viewer-dependent query results through a fresh request. Preserve default

@@ -2,9 +2,11 @@
 
 Implement server business operations that require external capabilities. Callers
 supply capabilities in `deps` and invocation data in `params`; use cases import
-repository functions and pass `deps.db`, never import the service registry, own
-transactions, read request context/environment, set cookies, redirect, or
-refresh remote queries. Repository operations own persistence consistency.
+repository functions and pass `deps.db`. Repositories own transactions and
+persistence consistency. Request boundaries own request context, cookies,
+redirects, and remote-query refreshes. Use cases neither import the service
+registry nor read environment variables.
+
 Deterministic Markdown compilation and business calculations stay in their
 owning operations; only actual shared business scenarios receive separate
 exported functions.
@@ -77,9 +79,8 @@ issues without writes when validation fails. Derive the title from that same
 compilation. With `articleId`, require the existing article's author to equal
 the actor, preserving BAD_REQUEST for another author's article, then update
 title and content. Without `articleId`, create a Markdown article attributed to
-the actor, including an optional reply relationship. Return the saved ID; never
-redirect. As before, updating content does not change the stored content type or
-parent.
+the actor, including an optional reply relationship. Return the saved ID.
+Updating content preserves the stored content type and parent.
 
 #### `verifyDomainOwnership`
 
@@ -116,15 +117,14 @@ export function saveExternalArticle(
 ```
 
 `content` is the original validated URL string; `url` must be parsed from that
-same string by the request boundary. Keeping both preserves the currently stored
-text instead of normalizing it through `URL.toString()`. Require
-`CreateArticle`, verify the actor's verification code through
-`verifyDomainOwnership`, and return `unverified-domain` without writes when
-verification fails. Preserve validation order: verification precedes loading an
-existing article. Updating requires ownership and changes title/content;
-creation records an external article with the actor and optional parent.
-Preserve BAD_REQUEST for another author's article; return the saved ID on
-success.
+same string by the request boundary. Store the original string without
+normalizing it through `URL.toString()`. Require `CreateArticle`, verify the
+actor's verification code through `verifyDomainOwnership`, and return
+`unverified-domain` without writes when verification fails. Preserve validation
+order: verification precedes loading an existing article. Updating requires
+ownership and changes title/content; creation records an external article with
+the actor and optional parent. Preserve BAD_REQUEST for another author's
+article; return the saved ID on success.
 
 ### `src/lib/server/use-cases/comment.ts`
 
@@ -199,8 +199,8 @@ invitation-redemption repository operation with the authenticated actor ID and
 timestamp. That operation rechecks unused state inside its transaction, grants
 the code's role, and marks it used together. A competing redemption cannot grant
 another role; any failed write rolls back both effects. Preserve consumption
-when the actor already has that role; do not introduce new self-invite or
-role-policy restrictions in this refactor.
+when the actor already has that role. Self-invitation and additional role
+restrictions are outside this operation's policy.
 
 ### `src/lib/server/use-cases/session.ts`
 
@@ -298,8 +298,8 @@ export function loginWithGitHub(
 Consume a trusted GitHub identity returned by the OAuth adapter. Reuse an
 account with the provider ID, or create one using the supplied signup
 username/name with GitHub username fallbacks and an empty biography. Reject a
-chosen username starting with `@` as before. Existing account data is not
-overwritten by signup hints. Create a session through `createSession` and return
-it. Provider exchange, OAuth state/cookie parsing, cookie updates, and next-URL
-redirects stay in request code. As before, account creation and session
-insertion are separate persistence calls.
+chosen username starting with `@`. Existing account data is not overwritten by
+signup hints. Create a session through `createSession` and return it. Provider
+exchange, OAuth state/cookie parsing, cookie updates, and next-URL redirects
+stay in request code. Account creation and session insertion are separate
+persistence calls.

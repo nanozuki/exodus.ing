@@ -1,0 +1,58 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "enabledManagers": ["npm", "nix", "github-actions", "custom.regex"],
+  "nix": { "enabled": true },
+  "automerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "platformAutomerge": true,
+  "prCreation": "immediate",
+  "draftPR": false,
+  "prConcurrentLimit": 3,
+  "rebaseWhen": "behind-base-branch",
+  "rangeStrategy": "bump",
+  "semanticCommitType": "chore",
+  "prFooter": "",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "timezone": "Europe/Berlin",
+  "packageRules": [
+    {
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
+    },
+    {
+      "matchManagers": ["nix"],
+      "groupName": "Nix environment",
+      "postUpgradeTasks": {
+        "commands": ["nix develop --command node src/scripts/sync-node-version.ts --write"],
+        "fileFilters": ["Dockerfile"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "matchPackageNames": ["vitest", "@vitest/**"],
+      "groupName": "Vitest"
+    },
+    {
+      "matchPackageNames": ["playwright", "@playwright/test"],
+      "groupName": "Playwright"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/dependencies\\.yml$/"],
+      "matchStrings": ["RENOVATE_VERSION: '(?<currentValue>[^']+)'"],
+      "depNameTemplate": "renovate",
+      "datasourceTemplate": "npm"
+    }
+  ]
+}

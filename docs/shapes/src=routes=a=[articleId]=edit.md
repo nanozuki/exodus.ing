@@ -4,6 +4,9 @@ Guard article creation/editing and render the selected Markdown or external-link
 editor, preserving reply context. Remotes own publication writes and final
 redirects.
 
+For remote request adaptation, follow the
+[request-boundary conventions](../architecture.md#request-boundaries-and-remote-functions).
+
 ## Files
 
 ### `src/routes/a/[articleId]/edit/+page.svelte`
@@ -22,8 +25,7 @@ parent summary, resolved content type, and identifiers. Await server
 authorization before rendering editing controls. Offer Markdown/external
 selection for a new unselected type and preserve reply links. Markdown uses its
 bindable editor and hidden fields; external mode delegates to
-ExternalArticleForm. No inherited loader data or separate initial
-article-content/summary queries remain.
+ExternalArticleForm.
 
 ### `src/routes/a/[articleId]/edit/ExternalArticleForm.svelte`
 
@@ -66,19 +68,14 @@ declare const component: Component<Props>;
 export default component;
 ```
 
-Expose optional bindable content with default empty string, validation callback,
-and title callback. Compile source with a 500ms debounce through runed resource.
-Toggle editing/preview, show extracted title and sanitized markup, and display
-compilation issues. Effects notify callbacks from current issues/title; the
-initial fallback has no issues until a compilation result is available.
-Rejection behavior is owned by the resource library and is unverified here.
+Default bindable content to an empty string. Compile source with a 500ms
+debounce through runed resource. Toggle editing/preview, show extracted title
+and sanitized markup, and display compilation issues. Effects notify callbacks
+from current issues/title; the initial fallback has no issues until a
+compilation result is available. Rejection behavior is owned by the resource
+library and is unverified here.
 
 ### `src/routes/a/[articleId]/edit/page.remote.ts`
-
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
 
 #### `loadPageData`
 
@@ -129,11 +126,6 @@ decisions, and persistence orchestration live in the use case. Updating does not
 change or verify the stored content type.
 
 ### `src/routes/a/[articleId]/edit/ExternalArticleForm.remote.ts`
-
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
 
 #### `createOrUpdateExternalArticle`
 

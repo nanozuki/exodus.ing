@@ -1,7 +1,10 @@
 # src/routes/auth/testing
 
-Render the development/test simulated-login selector; its remote operations
-enforce environment restrictions.
+Render the development/test simulated-login selector. Both remote operations
+reject when PROD is true and MODE is not test.
+
+For remote request adaptation, follow the
+[request-boundary conventions](../architecture.md#request-boundaries-and-remote-functions).
 
 ## Files
 
@@ -22,11 +25,6 @@ propagate to the error page.
 
 ### `src/routes/auth/testing/page.remote.ts`
 
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
-
 #### `loadPageData`
 
 ```typescript
@@ -43,9 +41,8 @@ export declare const loadPageData: RemoteQueryFunction<
 >;
 ```
 
-Reject when PROD is true and MODE is not test. Otherwise getUsers and concurrent
-getRolesOfUser calls supply every stored user's id, username, name, and roles.
-Environment gating and page projection stay at this remote boundary.
+Compose getUsers with concurrent getRolesOfUser calls to list every stored user
+with their roles.
 
 #### `simulateTestingLogin`
 
@@ -59,8 +56,7 @@ export declare const simulateTestingLogin: RemoteForm<
 >;
 ```
 
-Use the same environment restriction. Require a nonempty userId, find the user
-or throw NOT_FOUND, and call
+Require a nonempty userId, find the user or throw NOT_FOUND, and call
 `createSession({ db, now, generateSessionId }, { userId })` using the clock and
 session-ID adapter functions. Set its cookie through the server auth request
 helper. Redirect 303 to next when it starts with /, otherwise /. Preserve the

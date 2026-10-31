@@ -66,7 +66,8 @@ export declare const handle: Handle;
 Keep deployed page requests on APP_URL's canonical origin with a 308 redirect,
 preserving paths and queries before authentication. Skip canonicalization during
 development and building; static assets bypass this hook. Attach authentication
-locals before route handling.
+locals before route handling. The exact `/healthcheck` path bypasses
+canonicalization and authentication so internal HTTP probes reach its route.
 
 #### `init`
 

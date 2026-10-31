@@ -3,6 +3,9 @@
 Render separate registration and login forms using GitHub OAuth and preserve the
 requested return destination.
 
+For remote request adaptation, follow the
+[request-boundary conventions](../architecture.md#request-boundaries-and-remote-functions).
+
 ## Files
 
 ### `src/routes/auth/+page.svelte`
@@ -21,11 +24,6 @@ exceptions propagate to the error page. Show simulated-login navigation only
 when PROD is false; the remote independently checks its environment.
 
 ### `src/routes/auth/page.remote.ts`
-
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
 
 #### `registerByGithub`
 

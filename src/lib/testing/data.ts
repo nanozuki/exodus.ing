@@ -1,6 +1,6 @@
-import { Role } from '../models/role';
-import { encodeIdPath, type IdPath } from '../models/id_path';
-import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '../server/db/schema';
+import { Role } from '#lib/models/role.js';
+import { encodeIdPath, type IdPath } from '#lib/models/id_path.js';
+import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '#lib/server/db/schema.js';
 
 export type UserSeed = typeof tUser.$inferInsert;
 

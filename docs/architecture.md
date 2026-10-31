@@ -1,8 +1,10 @@
 # Architecture and Development Conventions
 
 Use this document to decide responsibility and dependency boundaries. Before
-changing a module's interfaces or behavior, read its directory contract in
-[shapes/](shapes/) for the concrete design.
+changing or reviewing a module's interfaces or behavior, read its directory
+contract in [shapes/](shapes/). For directory coverage and filename mapping, use
+the shape skill's
+[lookup rules](../.agents/skills/shape/README.md#modules-storage-and-naming).
 
 ## Responsibilities and Placement
 
@@ -123,6 +125,9 @@ points. This includes `getRequestEvent()`, cookies, redirects, input parsing,
 serialization, and remote-query refreshes. Entry points supply explicit
 dependencies and parameters to use cases.
 
+Preserve the framework query refresh, form fields, enhancement, and pending APIs
+for remote interactions.
+
 Remotes may directly call or compose repositories and use cases. Call a
 repository when only data access and result mapping are needed; call a use case
 when business decisions or workflows require external capabilities. A single
@@ -185,7 +190,8 @@ models, including projections, aggregates, arrays, and paginated results. The
 Inputs describe an operation's needs and need not be models; use the
 [type placement rules](#data-and-type-placement).
 
-For a proposed public shape change, follow the shape skill's
+For a proposed public shape change or an exception to the operation contracts,
+follow the shape skill's
 [approval boundary](../.agents/skills/shape/SKILL.md#approval-boundary).
 Existing approval covers implementation of the agreed contract. This applies
 equally to named types, anonymous object types, and shapes derived with `Pick`
@@ -226,7 +232,7 @@ entity is absent. Complete-collection operations must not silently truncate
 results with a limit.
 
 Use these action prefixes and contracts for every new or modified exported
-database operation. Propose exceptions through the same approval boundary.
+database operation.
 
 ### Transactions and Consistency
 

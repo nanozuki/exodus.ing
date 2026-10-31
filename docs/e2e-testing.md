@@ -1,9 +1,8 @@
 # E2E Testing
 
-This document defines the intended E2E coverage and test lifecycle. It is a
-specification for implementing and maintaining the suite, rather than a claim
-that every case below is already implemented. Read it when adding E2E coverage
-or changing its fixtures and execution environment.
+Read this specification when adding E2E coverage or changing its fixtures or
+execution environment. It defines the intended coverage and lifecycle; compare
+the suite with the [test cases](#test-cases) to identify implementation gaps.
 
 ## Responsibilities
 
@@ -53,14 +52,14 @@ the meaningful test name: `exodus-e2e-<test-slug>`. Normalize the name into the
 supported character set and length. Check for slug collisions before execution
 and report conflicting test names.
 
-For every test, perform these steps in order:
+For every test, perform these steps in order. Run cleanup on setup and assertion
+failures as well as success:
 
 1. Delete its previous database, then clone a fresh database from the template.
 2. Prepare scenario-specific data and authentication, and start its application
    process connected to that database.
 3. Execute the browser journey and its assertions.
-4. Stop the application and close test-owned database connections on every exit
-   path, including setup and assertion failures.
+4. Stop the application and close test-owned database connections.
 5. After success, delete the database. After failure, preserve any database
    created for the test, retain the browser trace, and report the database name
    alongside the failure.
@@ -102,7 +101,7 @@ below does not imply execution dependencies. The public-read cases also cover
 representative titles, authors, dates, and counts; other journeys focus their
 assertions on the behavior they change.
 
-**test: Visitor browses articles and an author profile**
+### Visitor browses articles and an author profile
 
 - operation: Open the homepage as a visitor.
 - assertion: The expected first-page articles and representative metadata appear
@@ -119,7 +118,7 @@ assertions on the behavior they change.
 - operation: Reload the profile.
 - assertion: The selected tab, page, and content remain consistent.
 
-**test: Visitor reads Markdown and external articles**
+### Visitor reads Markdown and external articles
 
 - operation: Open an article containing representative Markdown features.
 - assertion: Its title is correct and is not duplicated as the extracted title
@@ -130,7 +129,7 @@ assertions on the behavior they change.
 - assertion: Its title, author, external-content notice, and original-article
   link are correct, and interaction sections remain available.
 
-**test: Reader profiles and empty collections remain usable**
+### Reader profiles and empty collections remain usable
 
 - operation: Open a non-author's profile containing comments.
 - assertion: The profile shows the reader's information and comments without
@@ -140,13 +139,13 @@ assertions on the behavior they change.
 - operation: Open bookmarks as a user with no saved articles.
 - assertion: An understandable empty state appears.
 
-**test: Missing articles and users show a not-found result**
+### Missing articles and users show a not-found result
 
 - operation: Visit a nonexistent article, then a nonexistent user.
 - assertion: Each visit shows a not-found result without exposing another
   resource's content.
 
-**test: Author publishes and edits a Markdown article**
+### Author publishes and edits a Markdown article
 
 - operation: As an author, enter the creation flow and choose Markdown.
 - operation: Enter a title and formatted body.
@@ -160,7 +159,7 @@ assertions on the behavior they change.
 - operation: Visit the homepage and the author's article list.
 - assertion: Both show the updated title and link to the saved article.
 
-**test: Author corrects invalid Markdown before publishing**
+### Author corrects invalid Markdown before publishing
 
 - operation: As an author, enter a body without the required title.
 - assertion: The editor explains the missing title and prevents successful
@@ -170,7 +169,7 @@ assertions on the behavior they change.
 - operation: Publish.
 - assertion: The resulting article contains the corrected title and body.
 
-**test: Author verifies a domain to publish and edit an external article**
+### Author verifies a domain to publish and edit an external article
 
 - operation: As an author with a nonmatching verification code, enter a title
   and article URL on the configured domain.
@@ -186,7 +185,7 @@ assertions on the behavior they change.
   reload.
 - assertion: The updated title and link persist.
 
-**test: Author creates and follows nested article responses**
+### Author creates and follows nested article responses
 
 - operation: As an author, start a response from an existing article.
 - assertion: The editor identifies the article being answered.
@@ -199,7 +198,7 @@ assertions on the behavior they change.
 - operation: Reload the affected articles.
 - assertion: Relationships and counts persist.
 
-**test: Two users exchange comments and replies**
+### Two users exchange comments and replies
 
 - operation: As user A, submit a multiline comment on an article.
 - assertion: The comment shows the correct author and text, the count increases,
@@ -213,7 +212,7 @@ assertions on the behavior they change.
 - assertion: The discussion persists and A's comments link to the correct
   article.
 
-**test: User cancels and saves edits to an existing comment**
+### User cancels and saves edits to an existing comment
 
 - operation: As the comment author, open editing.
 - assertion: The input contains the saved comment.
@@ -226,7 +225,7 @@ assertions on the behavior they change.
 - operation: View the comment as another user.
 - assertion: Editing the other user's comment is unavailable.
 
-**test: User adds and removes a bookmark**
+### User adds and removes a bookmark
 
 - operation: As a user, bookmark an article that is not yet saved.
 - assertion: Its bookmark state changes and its count increases by one.
@@ -238,7 +237,7 @@ assertions on the behavior they change.
 - assertion: The removal persists and the article is absent from the saved
   collection.
 
-**test: User updates profile and account identity**
+### User updates profile and account identity
 
 - operation: As a user, change the display name and Markdown biography and save.
 - operation: Open and reload the public profile.
@@ -259,7 +258,7 @@ assertions on the behavior they change.
 - assertion: The username persists and current profile links use the new
   address.
 
-**test: Username dialog fits its content while opening and typing**
+### Username dialog fits its content while opening and typing
 
 - operation: Open username editing at desktop and narrow viewport widths.
 - assertion: The dialog has no horizontal or vertical content overflow when its
@@ -270,14 +269,14 @@ assertions on the behavior they change.
 - assertion: Focus changes and typing do not introduce horizontal or vertical
   overflow.
 
-**test: Autofill controls stay aligned inside the username dialog**
+### Autofill controls stay aligned inside the username dialog
 
 - operation: Open username editing and inject a fixed-position control using
   viewport coordinates, as password managers do.
 - assertion: The control stays aligned with the input and does not introduce
   horizontal or vertical dialog overflow.
 
-**test: User corrects invalid profile and account input**
+### User corrects invalid profile and account input
 
 - operation: As a user, attempt to save an empty display name.
 - assertion: Required-field feedback appears and saved profile data remains
@@ -290,7 +289,7 @@ assertions on the behavior they change.
 - operation: Correct the username to an available value and submit.
 - assertion: The update succeeds and opens the correct profile.
 
-**test: Author manages invitations and invites a new author**
+### Author manages invitations and invites a new author
 
 - operation: As author A with available quota, create an invitation.
 - assertion: The unused invitation appears and remaining quota decreases.
@@ -304,7 +303,7 @@ assertions on the behavior they change.
 - assertion: B's permissions persist, A lists B as an invitee, and the redeemed
   code is absent from unused invitations.
 
-**test: Reader corrects an invalid invitation before becoming an author**
+### Reader corrects an invalid invitation before becoming an author
 
 - operation: As a reader, submit a nonexistent invitation code.
 - assertion: An appropriate error appears and author privileges remain
@@ -314,7 +313,7 @@ assertions on the behavior they change.
 - operation: Submit a valid prepared invitation code.
 - assertion: Redemption succeeds and author features become available.
 
-**test: Visitor receives authentication guidance for protected actions**
+### Visitor receives authentication guidance for protected actions
 
 - operation: As a visitor, attempt to bookmark an article.
 - assertion: Authentication is requested with the article retained as the return
@@ -328,7 +327,7 @@ assertions on the behavior they change.
 - assertion: Registration, sign-in, and GitHub authorization entry points are
   available.
 
-**test: Reader and author cannot edit another author's article**
+### Reader and author cannot edit another author's article
 
 - operation: As a reader, view an author's article and directly visit article
   creation and invitation management.
@@ -339,7 +338,7 @@ assertions on the behavior they change.
 - assertion: Editing is unavailable, access is restricted, and the original
   article remains unchanged.
 
-**test: User signs out and loses authenticated access**
+### User signs out and loses authenticated access
 
 - operation: As a signed-in user, open account settings.
 - assertion: The current user's information and permitted navigation appear.

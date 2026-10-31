@@ -56,8 +56,7 @@ HTTP errors with SvelteKit's `isHttpError`.
 
 Return an empty string for empty input; otherwise parse Markdown, YAML
 frontmatter, GFM and raw HTML, sanitize through the default rehype policy, and
-serialize HTML. Does not remove an article title. Parser/processor failures
-reject.
+serialize HTML, retaining article titles. Parser/processor failures reject.
 
 #### `MarkdownArticleIssue`
 
@@ -88,5 +87,5 @@ Result with `markup: string`, `title: string`, and
 Use the first top-level H1 as title, taking only its direct text children.
 Remove that heading and all preceding nodes from the body; sanitize and
 serialize the remaining Markdown. A missing or empty extracted title produces
-MissingTitle and an empty title string. No input-heading normalization or custom
-sanitizer policy is added.
+MissingTitle and an empty title string. Source headings pass to the compiler
+without extra normalization; sanitization uses the default policy.
