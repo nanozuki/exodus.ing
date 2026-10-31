@@ -11,19 +11,6 @@ function ensureHost(request: Request) {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-  // Temporary proxy diagnostics before redirects; omit query strings containing OAuth credentials.
-  const url = new URL(event.request.url);
-  console.log(
-    '[REQUEST_ORIGIN]',
-    JSON.stringify({
-      url: `${url.origin}${url.pathname}`,
-      host: event.request.headers.get('host'),
-      'x-forwarded-proto': event.request.headers.get('x-forwarded-proto'),
-      'x-forwarded-host': event.request.headers.get('x-forwarded-host'),
-      'fly-forwarded-port': event.request.headers.get('fly-forwarded-port'),
-    }),
-  );
-
   ensureHost(event.request);
   const start = Date.now();
   await attachLocals(event);
