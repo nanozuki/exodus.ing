@@ -44,6 +44,7 @@
             };
             services.postgres.pg = {
               enable = true;
+              package = pkgs.postgresql_18;
               port = 62545;
               dataDir = ".direnv/pg";
               superuser = "exodus";
