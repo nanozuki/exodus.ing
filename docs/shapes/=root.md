@@ -39,7 +39,7 @@ runtime does not load this file.
 
 ### `Dockerfile`
 
-Tool entry point: multi-stage Node 22.17 slim build. Enable Corepack, install
+Tool entry point: multi-stage Node 24.21.0 slim build. Enable Corepack, install
 production dependencies and full build dependencies with frozen lockfiles using
 cached pnpm storage, run the application build, and copy package metadata,
 production dependencies, and build output to the runner. Run `node build` in
