@@ -99,10 +99,10 @@ build uses Vite; preview supplies its local APP_URL. check/check:e2e sync
 generated SvelteKit types before checking. test runs unit, script-integration,
 then browser suites; database export/push/pull/studio and explicit pg lifecycle
 commands remain distinct. `db:export` writes to
-`src/lib/server/db/database.sql`; provisioning and schema tools use the
-extracted db module. Observed side effect: the script named lint runs Prettier
-with --check --write before ESLint, so it can modify files. Dependency versions
-remain authoritative in this file and the lockfile.
+`src/lib/server/db/database.sql`; provisioning and schema tools use the db
+module. The script named lint runs Prettier with --check --write before ESLint,
+so it can modify files. Dependency versions remain authoritative in this file
+and the lockfile.
 
 ### `playwright.config.ts`
 
@@ -138,8 +138,8 @@ export default config;
 
 Configure Vite preprocessing, the Node deployment adapter, experimental remote
 functions, and asynchronous component compilation. Remote imports use their
-owning page/component paths; no `$remotes` alias remains. Tool evaluation
-constructs preprocessors/adapter, not application services.
+owning page/component paths. Tool evaluation constructs preprocessors/adapter,
+not application services.
 
 ### `tsconfig.json`
 
@@ -162,13 +162,13 @@ sourcemaps. Require assertions in tests. The client project runs
 \*.svelte.test/spec files in headless Chromium, excluding server modules; the
 server project runs other src test/spec files in Node, including repository
 integration and use-case unit tests. Repository suites use explicitly bounded
-setup/test timeouts sufficient for local database provisioning. This file does
-not register vitest-setup-client.ts as setupFiles.
+setup/test timeouts sufficient for local database provisioning. The separate
+vitest-setup-client.ts entry point is not registered as setupFiles.
 
 ### `vitest-setup-client.ts`
 
 Import-time test-environment effect: register jest-dom assertions and overwrite
 window.matchMedia with a writable/enumerable vi.fn stub returning matches=false,
 supplied media, and mocked listener/dispatch methods. Requires a window/Vitest
-environment. No public exports. Current vite.config.ts does not connect this
-file to a test project.
+environment. No public exports. Registration status is specified under
+vite.config.ts above.

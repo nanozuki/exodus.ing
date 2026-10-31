@@ -23,10 +23,9 @@ writes.
 
 ### `src/routes/console/invites/page.remote.ts`
 
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
+Apply the
+[request-boundary conventions](../architecture.md#request-boundaries-and-remote-functions)
+to this remote entry point.
 
 #### `loadPageData`
 

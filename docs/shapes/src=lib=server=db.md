@@ -3,10 +3,8 @@
 Own PostgreSQL connection construction, schema declarations, inferred storage
 row types, and the generated SQL schema used by local database tooling.
 Consumers are repositories, the server composition boundary, and database
-management scripts. This module owns no business workflows or repository
-registry. Moving the schema preserves table and column definitions, indexes,
-nullability, defaults, and the existing absence of foreign keys; no database
-migration is part of this extraction.
+management scripts. Business workflows and repository composition belong to
+their owning modules.
 
 ## Files
 
@@ -52,8 +50,6 @@ export const tUser = pgTable('user', {
   verifyCode: text('verify_code').notNull(),
 });
 ```
-
-Username, GitHub ID, and display name are unique; GitHub ID is nullable.
 
 #### `tSession`
 
@@ -123,9 +119,6 @@ export const tPendingAuth = pgTable(
 );
 ```
 
-Nullable provider and signup/state fields support pending authentication data.
-Expiry is required; state is uniquely indexed.
-
 #### `tInviteCode`
 
 ```typescript
@@ -167,9 +160,8 @@ export const tArticle = pgTable(
 );
 ```
 
-Title is unique per user. Interaction counts default to zero. Paths are stored
-as trailing-slash strings; the database does not validate ancestry or
-contentType values.
+Paths are stored as trailing-slash strings; the database does not validate
+ancestry or contentType values.
 
 #### `tComment`
 
@@ -209,8 +201,7 @@ export const tBookmark = pgTable(
 );
 ```
 
-Indexes support user/article lookup; there is no primary key or unique pair
-constraint.
+Duplicate user/article pairs are permitted.
 
 #### `tUserRole`
 
@@ -230,9 +221,6 @@ export const tUserRole = pgTable(
 );
 ```
 
-The primary key is (userId, roleKey); inviter is nullable. This table is
-exported but omitted from the `schema` object.
-
 #### `schema`
 
 ```typescript
@@ -248,8 +236,7 @@ export const schema = {
 };
 ```
 
-Contains the eight listed tables and omits tUserRole. Repositories still import
-tUserRole directly.
+Omits `tUserRole`; repositories import that table directly.
 
 #### `ArticleRow`
 

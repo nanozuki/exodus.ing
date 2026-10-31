@@ -1,9 +1,7 @@
 # src/lib/models
 
 Define shared business records, projections, aggregates, and pure functions used
-by client and server modules. Group related data by business concept; replace
-the former `domain/entities` and `domain/values` directories with this one
-module.
+by client and server modules. Group related data by business concept.
 
 Models neither obtain external capabilities nor perform observable effects. They
 must not import server infrastructure, SvelteKit request APIs, or component
@@ -221,8 +219,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
 };
 ```
 
-The exported record is mutable; the current author role grants only article
-creation.
+The exported record is mutable.
 
 #### `hasPermission`
 

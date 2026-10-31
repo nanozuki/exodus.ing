@@ -16,8 +16,8 @@ purpose changes. A multiline initializer alone does not create a new group.
 Preserve declaration order when adjusting whitespace: initialization and async
 boundaries can depend on it.
 
-A normal Svelte `<script>` contains component-instance logic. Apply the same
-logical grouping as in a function body; `<script module>` contains module logic.
+In Svelte, group `<script>` declarations as a function body and
+`<script module>` declarations as module logic.
 
 ```typescript
 const { count, pageSize, page }: Props = $props();

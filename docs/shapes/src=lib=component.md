@@ -183,9 +183,8 @@ export default component;
 
 Forward standard input attributes and events, bind value both ways, and render
 label, optional description/error, and supplied issue messages. A supplied name
-is used for the label’s for attribute; an ID is not synthesized. issues is
-optional in the declared props; its omitted-value behavior was not separately
-exercised.
+is used for the label’s for attribute; an ID is not synthesized. Omitted
+`issues` behavior has not been verified.
 
 ### `src/lib/component/InputTextArea.svelte`
 
@@ -206,8 +205,7 @@ export default component;
 
 Bind value both ways, forward standard textarea attributes/events, and render
 label, optional description/error, supplied issue messages, and an optional
-addition snippet. issues is optional in the declared props; its omitted-value
-behavior was not separately exercised.
+addition snippet. Omitted `issues` behavior has not been verified.
 
 ### `src/lib/component/Loading.svelte`
 
@@ -271,7 +269,7 @@ Compute total pages with ceil(count/pageSize), use one-based page, and default
 siblingCount to 1. Always include page 1, include the last page when distinct,
 and shift the sibling window at boundaries with ellipsis markers. Use pageLink
 for destinations; omit href and set aria-disabled for unavailable previous/next
-links. No runtime range or zero-size validation is added.
+links. Page ranges and zero page sizes are not validated at runtime.
 
 ### `src/lib/component/UserBadge.svelte`
 

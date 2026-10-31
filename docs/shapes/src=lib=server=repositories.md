@@ -3,35 +3,23 @@
 Provide database reads, writes, model mapping, and internal transactions for
 articles, bookmarks, comments, invitations, roles, sessions, and users.
 Consumers pass `AppDatabase` from `src/lib/server/db/schema.ts` directly to
-standalone exported functions. There are no repository classes, repository sets,
-or global database reads.
+standalone exported functions.
 
-Repository operations return models from `src/lib/models/`, or compositions of
-those models. Operation-specific object parameters are exported as `XxxParams`
-beside their function; inputs need not be models. Shared model values may also
-serve directly as inputs. Use cases own permissions, business decisions, quota
-calculation, and session lifetime policy. Repositories own SQL, consistency,
-generated storage identifiers, and persistence timestamps. Do not access request
-context, cookies, DNS, or frontend state.
+Before changing or reviewing repository operations, apply the
+[repository conventions](../architecture.md#repositories) for function
+structure, data shapes, naming, errors, and transactions. Export
+operation-specific object parameter types as `XxxParams` beside their function;
+shared model values may also serve directly as inputs.
 
-Every exported database operation wraps its complete body with `wrap`, using its
-exact exported function name as the operation label. Throw expected HTTP errors
-inside that wrapper; it preserves those errors and normalizes unexpected
-failures. All internal helpers execute within their owning operation's wrapper.
-Do not query at import time.
+Use cases own permissions, business decisions, quota calculation, and session
+lifetime policy. This module owns generated storage identifiers and persistence
+timestamps; request context, cookies, DNS, and frontend state belong to callers.
+Imports perform no queries.
 
-Required singular reads throw `NOT_FOUND`; optional reads return `null`.
-Complete collections return all matches, including `[]`; paginated collections
-use the one-based `Pagination`/`Paginated<T>` contract, return the requested
-`pageNumber` and `pageSize`, and return empty `items` when appropriate. Empty
-relationship collections do not establish whether their owner exists. Updates
-and deletes perform no additional existence checks.
-
-All transaction contexts remain internal. Related writes and reads governing
-them use one transaction. Related result/count queries use a consistent
-snapshot, including paginated lists and invite statistics. Separate calls made
-by a use case or remote do not share a transaction. Preserve current table
-constraints and identifier formats.
+Paginated results follow the [models contract](src=lib=models.md#paginated),
+including requested page values and empty `items`. Related result/count queries
+use a consistent snapshot, including paginated lists and invite statistics.
+Preserve table constraints and identifier formats.
 
 ## Files
 
@@ -113,8 +101,8 @@ export declare function listBookmarkedArticlesOfUser(
 ```
 
 Apply the article list mapping and creation-descending ordering. Count bookmark
-relationships; existing duplicate relationships may duplicate returned rows,
-preserving the unchanged schema behavior.
+relationships; existing duplicate relationships may duplicate returned rows, as
+permitted by the schema.
 
 #### `getRepliesOfArticle`
 
@@ -151,8 +139,6 @@ export interface CreateArticleParams {
   replyToId?: string;
 }
 ```
-
-Supply the author, content, and optional direct parent for a new article.
 
 #### `createArticle`
 
@@ -195,8 +181,8 @@ export declare function updateArticle(
 ```
 
 Update the supplied title/content fields by ID without checking existence.
-Author/title uniqueness conflicts become `title` field errors. Preserve the
-current behavior of not explicitly advancing `updatedAt`.
+Author/title uniqueness conflicts become `title` field errors. Leave `updatedAt`
+unchanged.
 
 ### `src/lib/server/repositories/bookmark.ts`
 
@@ -237,8 +223,6 @@ export interface CreateBookmarkParams {
 }
 ```
 
-Identify the user–article relationship to insert.
-
 #### `createBookmark`
 
 ```typescript
@@ -251,9 +235,8 @@ export declare function createBookmark(
 Insert one relationship with the persistence timestamp and increment the article
 count in one transaction. Read and return the updated `BookmarkState` for the
 supplied article and user within that same transaction before commit; `count`
-counts actual relationship rows and `bookmarked` is true. Preserve current
-duplicate-insertion semantics and do not add an existence check or a unique
-constraint in this refactor.
+counts actual relationship rows and `bookmarked` is true. Insert duplicates
+without an existence check; the schema permits repeated relationships.
 
 #### `DeleteBookmarkParams`
 
@@ -263,8 +246,6 @@ export interface DeleteBookmarkParams {
   userId: string;
 }
 ```
-
-Identify all user–article relationships to delete.
 
 #### `deleteBookmark`
 
@@ -277,8 +258,7 @@ export declare function deleteBookmark(
 
 Delete all matching user/article relationships in one transaction and decrement
 the article’s persisted count by the number of rows actually deleted. Deleting
-zero rows leaves the count unchanged. This intentionally fixes the prior
-unconditional single decrement.
+zero rows leaves the count unchanged.
 
 ### `src/lib/server/repositories/comment.ts`
 
@@ -334,8 +314,6 @@ export interface CreateCommentParams {
 }
 ```
 
-Supply the discussion, author, text, and optional parent comment.
-
 #### `createComment`
 
 ```typescript
@@ -350,8 +328,8 @@ parent in the same transaction as insertion and article comment-count increment;
 missing reply parent throws `NOT_FOUND`. The article count update must affect an
 existing article; otherwise throw `NOT_FOUND` and roll back the comment.
 Complete author lookup and result mapping within that same transaction before
-commit, then return the mapped comment. Preserve current reply-path behavior;
-this refactor does not introduce new cross-article reply validation.
+commit, then return the mapped comment. A supplied reply parent is not checked
+for membership in the same article.
 
 #### `UpdateCommentParams`
 
@@ -485,8 +463,7 @@ export declare function getRolesOfUser(
 ): Promise<Role[]>;
 ```
 
-Return all assigned role keys without runtime validation or specified ordering,
-retaining the existing storage contract.
+Return all assigned role keys without runtime validation or specified ordering.
 
 #### `findInviterOfUser`
 
@@ -540,10 +517,9 @@ Within one transaction, lock and require the matching unused code, create its
 user-role relationship if absent, and set `usedAt` to the supplied instant.
 Missing or already used codes throw `PARAMETER_INVALID` with the `inviteCode`
 field, including competing redemption. If the user already has the role, retain
-and return that relationship and still consume the code, preserving current
-behavior. The role and inviter are read from the code. A failed role write
-leaves the code unused; concurrent attempts cannot both redeem it. This replaces
-the separate code-consumption and role-grant writes.
+and return that relationship and still consume the code. The role and inviter
+are read from the code. A failed role write leaves the code unused; concurrent
+attempts cannot both redeem it.
 
 ### `src/lib/server/repositories/session.ts`
 
@@ -619,8 +595,8 @@ export declare function findUserById(
 ): Promise<User | null>;
 ```
 
-Retain legacy lookup behavior: an ID of exactly 16 characters is shortened to
-its first six characters before querying.
+Shorten an ID of exactly 16 characters to its first six characters before
+querying; leave other lengths unchanged.
 
 #### `findUserByUsername`
 
@@ -673,8 +649,6 @@ export interface CreateUserParams {
   aboutMe: string;
 }
 ```
-
-Supply the identity and profile fields for a new user.
 
 #### `createUser`
 
@@ -738,7 +712,8 @@ maps username/name uniqueness to PARAMETER_INVALID `username`/`name`;
 PARAMETER_INVALID `title`. Other constraints and operations retain
 DATABASE_ERROR. Preserve HTTP errors; normalize ordinary errors to
 `DATABASE_ERROR` with the operation name and message, and other thrown values
-using JSON serialization. Preserve current serialization failure behavior.
+using JSON serialization. If serialization itself fails, that failure
+propagates.
 
 #### `newNanoId`
 

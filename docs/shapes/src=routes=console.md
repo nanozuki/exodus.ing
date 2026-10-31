@@ -3,12 +3,6 @@
 Guard console navigation for the authenticated viewer and provide role-dependent
 destinations to child settings pages.
 
-Page/layout query arguments explicitly carry route and search values needed for
-their result. Read trusted actor/session data from request locals. Initial
-rendering awaits queries during SSR; client rendering uses reactive query
-arguments. Loader `data`, `parent()`, and implicit URL dependencies do not form
-part of this contract.
-
 ## Files
 
 ### `src/routes/console/+layout.svelte`
@@ -50,9 +44,6 @@ export const consoleRoutes = {
 };
 ```
 
-Provide the fixed route/title entries for profile, bookmarks, account, invites,
-and becoming a writer.
-
 #### `getConsoleRoutes`
 
 ```typescript
@@ -84,11 +75,9 @@ Changing it changes query identity, including navigation within an already
 mounted console layout. Protected operations still enforce permissions
 independently.
 
-This query owns the existing `/console` index redirect as well as navigation to
-disallowed console pages. It replaces both prior loads: the parent layout's
-existing 302 already precedes the child load's redundant 301. Viewer/menu state
-follows the root layout query's fresh-request invalidation contract after
-identity or role changes.
+This query redirects both the `/console` index and disallowed console pages.
+After identity or role changes, refresh viewer/menu state according to the
+[root layout query's invalidation contract](src=routes.md).
 
 ### `src/routes/console/+page.svelte`
 
@@ -99,6 +88,5 @@ declare const component: Component<Record<string, never>>;
 export default component;
 ```
 
-Keep `/console` as a page route after removing its server-load file. It renders
-no application content; the awaited console layout query redirects this index to
-the first permitted destination. Do not introduce a second redirecting query.
+Keep `/console` as a page route with no application content. The awaited console
+layout query owns its redirect to the first permitted destination.

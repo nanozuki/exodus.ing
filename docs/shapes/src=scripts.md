@@ -32,4 +32,4 @@ ensures a clone; `reset <name|template>` deletes explicitly selected state;
 `stop` runs stopPostgres under the control lock; `status` prints process JSON or
 `{ status: "Stopped" }`. Invalid forms throw usage guidance. start/reset reject
 extra arguments; status/stop test only that name is absent. Top-level failures
-propagate to the process. Importing this module executes CLI dispatch.
+propagate to the process.

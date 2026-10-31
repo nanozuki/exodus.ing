@@ -33,28 +33,23 @@ export declare const test: TestType<
 >;
 ```
 
-Extend Playwright with scenario.prepare, a dedicated pg Client, prepared
-sessions, the app origin, and an actor(username) page factory. Each test resets
-and clones its title-derived database, prepares data, then starts build/index.js
-on a dedicated port with matching APP_URL/ORIGIN and production behavior. Kit 3
-ignores ORIGIN; configure PROTOCOL_HEADER and send x-forwarded-proto: http on
-readiness probes and browser requests so the adapter derives the local HTTP
-origin. Custom browser contexts must inherit the extraHTTPHeaders fixture. Wait
-up to 20 seconds for readiness; stop with SIGTERM and a five-second SIGKILL
-fallback. Every actor gets a separate browser context with a real stored-session
-cookie. Close contexts and database connections on exit. Delete passed-test
-databases; preserve failed-test databases and attach their name, plus failed
-application logs. Successful fixture teardown follows dependency order so
-application processes stop before database deletion. Preparation and shutdown
-failure paths were inspected but not exercised here.
+Each test resets and clones its title-derived database, prepares data, then
+starts build/index.js on a dedicated port with matching APP_URL/ORIGIN and
+production behavior. Kit 3 ignores ORIGIN; configure PROTOCOL_HEADER and send
+x-forwarded-proto: http on readiness probes and browser requests so the adapter
+derives the local HTTP origin. Custom browser contexts must inherit the
+extraHTTPHeaders fixture. Wait up to 20 seconds for readiness; stop with SIGTERM
+and a five-second SIGKILL fallback. Every actor gets a separate browser context
+with a real stored-session cookie. Close contexts and database connections on
+exit. Delete passed-test databases; preserve failed-test databases and attach
+their name, plus failed application logs. Successful fixture teardown follows
+dependency order so application processes stop before database deletion.
 
 #### `expect`
 
 ```typescript
 export { expect } from '@playwright/test';
 ```
-
-Re-export Playwright’s assertion API unchanged.
 
 ### `e2e/support/global-setup.ts`
 

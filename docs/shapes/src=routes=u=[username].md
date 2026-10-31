@@ -3,6 +3,9 @@
 Render public writer or reader profiles, preserve selected collection and
 pagination in the URL, and show owner-only account actions.
 
+For remote request adaptation, follow the
+[request-boundary conventions](../architecture.md#request-boundaries-and-remote-functions).
+
 ## Files
 
 ### `src/routes/u/[username]/+page.svelte`
@@ -24,11 +27,6 @@ collection-specific empty states.
 
 ### `src/routes/u/[username]/page.remote.ts`
 
-SvelteKit remote entry point. Validate request inputs and obtain trusted actors
-at this boundary; preserve the framework query refresh, form fields,
-enhancement, and pending APIs. Pass explicit capabilities to use cases or call
-repositories directly for data access.
-
 Supporting nonexported types used in `loadPageData`:
 
 ```typescript
@@ -45,9 +43,8 @@ type ListData = { tabs: Tab[] } & (
 export declare const logout: RemoteForm<void, never>;
 ```
 
-Delete auth_session at / and redirect 303 to /. Preserve existing behavior: the
-database session remains valid. This form is owned by the user profile page, its
-only current consumer.
+Delete auth_session at / and redirect 303 to /. The database session remains
+valid.
 
 #### `loadPageData`
 
