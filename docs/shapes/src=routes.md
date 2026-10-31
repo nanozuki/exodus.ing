@@ -22,9 +22,10 @@ declare const component: Component<Record<string, never>>;
 export default component;
 ```
 
-Use `$app/state.page` to show the HTTP status, tagged Chinese title, and message
-when an error exists; otherwise show the unknown-error text. No explicit
-component props.
+Use `$app/state.page` to show the HTTP status and message. When business
+`detail` exists, show its tagged Chinese title; otherwise show a readable
+fallback title (404: 未找到, 5xx: 服务器错误, other statuses: 请求错误). When no
+error exists, show the unknown-error text. No explicit component props.
 
 ### `src/routes/+layout.svelte`
 

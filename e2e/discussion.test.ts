@@ -133,7 +133,7 @@ test('Invalid hidden discussion context reaches the error page', async ({ actor,
   const before = (await db.query('SELECT count(*) FROM comment')).rows[0].count;
   await page.goto('/a/A25');
   await page.locator('#comment-input').fill('This must not become an orphan comment.');
-  await page.locator('#comment-section input[name="articleId"]').evaluate((input) => {
+  await page.locator('#comment-section input[name^="articleId/"]').evaluate((input) => {
     (input as HTMLInputElement).value = 'absent';
   });
   await page.getByRole('button', { name: '发表评论', exact: true }).click();

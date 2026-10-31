@@ -26,7 +26,7 @@ test('Username dialog fits its content while opening and typing', async ({ actor
         return samples;
       }, frames);
     const opening = await measure(15);
-    const input = page.locator('input[name="username"]');
+    const input = page.locator('input[name^="username/"]');
     const [focusChanges] = await Promise.all([
       measure(45),
       (async () => {
@@ -38,7 +38,7 @@ test('Username dialog fits its content while opening and typing', async ({ actor
     ]);
     const [typing] = await Promise.all([
       measure(45),
-      page.locator('input[name="username"]').pressSequentially('typing-check', { delay: 40 }),
+      page.locator('input[name^="username/"]').pressSequentially('typing-check', { delay: 40 }),
     ]);
     for (const sample of [...opening, ...focusChanges, ...typing]) {
       expect(sample.scrollWidth, `Horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(sample.width);

@@ -16,8 +16,8 @@ export const updateProfile = form(updateProfileSchema, async ({ name, aboutMe },
   try {
     await updateUser(db, { id: user.id, name, aboutMe });
   } catch (error) {
-    if (isHttpError(error) && error.body.tag === 'PARAMETER_INVALID') {
-      const fields = error.body.value as Record<string, string>;
+    if (isHttpError(error) && error.body.detail?.tag === 'PARAMETER_INVALID') {
+      const fields = error.body.detail.value;
       if (fields.name) invalid(issue.name(fields.name));
     }
     throw error;

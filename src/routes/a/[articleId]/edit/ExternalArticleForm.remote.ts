@@ -18,8 +18,8 @@ export const createOrUpdateExternalArticle = form(
       if (!result.ok) invalid(issue.url('无法验证站点所有权，请按照说明添加 TXT 记录后重试'));
       redirect(303, `/a/${result.articleId}`);
     } catch (error) {
-      if (isHttpError(error) && error.body.tag === 'PARAMETER_INVALID') {
-        const fields = error.body.value as Record<string, string>;
+      if (isHttpError(error) && error.body.detail?.tag === 'PARAMETER_INVALID') {
+        const fields = error.body.detail.value;
         if (fields.title) invalid(issue.title(fields.title));
       }
       throw error;

@@ -21,5 +21,6 @@ injecting the clock and session-ID adapter functions with the trusted provider
 identity and signup hints. That use case handles account lookup/creation and
 session creation. Set the auth cookie with `setAuthCookie`, then respond 302 to
 next when it starts with `/`, otherwise `/`. This accepts protocol-relative
-URLs. Convert failures through catchError/throwAppError. User creation and
+URLs. Let failures propagate unchanged to SvelteKit default error handling; no
+catch-and-rethrow conversion or custom error hook is added. User creation and
 session creation are not one transaction.

@@ -78,7 +78,6 @@ export const test = base.extend<Fixtures>({
         HOST: '127.0.0.1',
         PORT: String(port),
         SHUTDOWN_TIMEOUT: '1',
-        ORIGIN: origin,
         PROTOCOL_HEADER: 'x-forwarded-proto',
         APP_URL: origin,
         PGDATABASE: `exodus-${databaseSuffix(info.title)}`,

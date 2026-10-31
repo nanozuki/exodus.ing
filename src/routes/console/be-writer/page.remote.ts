@@ -15,8 +15,8 @@ export const acceptInviteCode = form(
     try {
       await acceptInviteCodeUseCase({ db, now }, { actor, code: inviteCode });
     } catch (error) {
-      if (isHttpError(error) && error.body.tag === 'PARAMETER_INVALID') {
-        const fields = error.body.value as Record<string, string>;
+      if (isHttpError(error) && error.body.detail?.tag === 'PARAMETER_INVALID') {
+        const fields = error.body.detail.value;
         if (fields.inviteCode) invalid(issue.inviteCode(fields.inviteCode));
       }
       throw error;

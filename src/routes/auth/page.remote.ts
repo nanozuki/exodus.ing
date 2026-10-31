@@ -31,8 +31,8 @@ export const registerByGithub = form(registerByGithubSchema, async ({ next, user
   try {
     await validateSignUp({ db }, { username: normalizedUsername, name: normalizedName });
   } catch (error) {
-    if (isHttpError(error) && error.body.tag === 'PARAMETER_INVALID') {
-      const fields = error.body.value as Record<string, string>;
+    if (isHttpError(error) && error.body.detail?.tag === 'PARAMETER_INVALID') {
+      const fields = error.body.detail.value;
       if (fields.username) invalid(issue.username(fields.username));
       if (fields.name) invalid(issue.name(fields.name));
     }
@@ -54,7 +54,7 @@ export const registerByGithub = form(registerByGithubSchema, async ({ next, user
   }
 
   const authUrl = createGitHubAuthUrl(cookies, adapters.githubOAuth, input);
-  redirect(302, authUrl.toString());
+  redirect(302, authUrl.toString(), { external: ['https://github.com'] });
 });
 
 export const loginByGithub = form(loginByGithubSchema, async ({ next }) => {
@@ -64,5 +64,5 @@ export const loginByGithub = form(loginByGithubSchema, async ({ next }) => {
     input.next = next;
   }
   const authUrl = createGitHubAuthUrl(cookies, adapters.githubOAuth, input);
-  redirect(302, authUrl.toString());
+  redirect(302, authUrl.toString(), { external: ['https://github.com'] });
 });

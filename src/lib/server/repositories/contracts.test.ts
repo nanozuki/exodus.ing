@@ -190,7 +190,7 @@ describe('repository contracts against PostgreSQL', () => {
         userId: 'user_reader_3',
         usedAt: new Date(),
       }),
-    ).rejects.toMatchObject({ status: 500, body: { tag: 'DATABASE_ERROR' } });
+    ).rejects.toMatchObject({ status: 500, body: { detail: { tag: 'DATABASE_ERROR' } } });
     expect((await invites.findInviteCodeByCode(db, 'contract-rollback'))?.usedAt).toBeNull();
     await db.execute(sql`ALTER TABLE user_role DROP CONSTRAINT contract_reject_role`);
   });
@@ -211,7 +211,7 @@ describe('repository contracts against PostgreSQL', () => {
     );
     await expect(
       users.createUser(db, { username: user.username, name: 'Other', githubId: null, aboutMe: '' }),
-    ).rejects.toMatchObject({ body: { tag: 'DATABASE_ERROR', value: { operation: 'createUser' } } });
+    ).rejects.toMatchObject({ body: { detail: { tag: 'DATABASE_ERROR', value: { operation: 'createUser' } } } });
     await users.updateUser(db, { id: 'absent', name: 'no-op' });
   });
 });
@@ -223,11 +223,11 @@ it('maps known write conflicts to fields without changing stored data', async ()
   const bob = all.find((user) => user.username === 'bob')!;
   await expect(users.updateUser(db, { id: alice.id, username: bob.username })).rejects.toMatchObject({
     status: 400,
-    body: { tag: 'PARAMETER_INVALID', value: { username: '用户名已存在' } },
+    body: { detail: { tag: 'PARAMETER_INVALID', value: { username: '用户名已存在' } } },
   });
   await expect(users.updateUser(db, { id: alice.id, name: bob.name })).rejects.toMatchObject({
     status: 400,
-    body: { tag: 'PARAMETER_INVALID', value: { name: '昵称已存在' } },
+    body: { detail: { tag: 'PARAMETER_INVALID', value: { name: '昵称已存在' } } },
   });
   expect(await users.findUserById(db, alice.id)).toEqual(alice);
   const params = {
@@ -239,12 +239,12 @@ it('maps known write conflicts to fields without changing stored data', async ()
   const first = await articles.createArticle(db, params);
   await expect(articles.createArticle(db, params)).rejects.toMatchObject({
     status: 400,
-    body: { tag: 'PARAMETER_INVALID', value: { title: '你已经发布过同名文章' } },
+    body: { detail: { tag: 'PARAMETER_INVALID', value: { title: '你已经发布过同名文章' } } },
   });
   const second = await articles.createArticle(db, { ...params, title: 'Other conflict contract' });
   await expect(articles.updateArticle(db, { id: second.id, title: first.title })).rejects.toMatchObject({
     status: 400,
-    body: { tag: 'PARAMETER_INVALID', value: { title: '你已经发布过同名文章' } },
+    body: { detail: { tag: 'PARAMETER_INVALID', value: { title: '你已经发布过同名文章' } } },
   });
   expect((await articles.getArticleById(db, second.id)).title).toBe('Other conflict contract');
 });
@@ -258,7 +258,7 @@ it('reports both missing and concurrently consumed invitations against inviteCod
       usedAt: new Date(),
     }),
   ).rejects.toMatchObject({
-    body: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码不存在' } },
+    body: { detail: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码不存在' } } },
   });
   await db.insert(tInviteCode).values({ code: 'field-race', inviterId: 'user_author_1', roleKey: Role.ArticleAuthor });
   const results = await Promise.allSettled(
@@ -270,7 +270,7 @@ it('reports both missing and concurrently consumed invitations against inviteCod
   const rejected = results.find((result) => result.status === 'rejected');
   expect(rejected).toMatchObject({
     status: 'rejected',
-    reason: { body: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码已被使用' } } },
+    reason: { body: { detail: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码已被使用' } } } },
   });
 });
 
@@ -279,6 +279,6 @@ it('rejects missing discussion context without saving a comment', async () => {
   const before = await db.$count(tComment);
   await expect(
     comments.createComment(db, { articleId: 'absent', userId: 'user_reader_1', content: 'orphan' }),
-  ).rejects.toMatchObject({ status: 404, body: { tag: 'NOT_FOUND' } });
+  ).rejects.toMatchObject({ status: 404, body: { detail: { tag: 'NOT_FOUND' } } });
   expect(await db.$count(tComment)).toBe(before);
 });

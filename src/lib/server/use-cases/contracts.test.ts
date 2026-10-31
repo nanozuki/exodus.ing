@@ -183,18 +183,18 @@ describe('business operations', () => {
     expect(now).toHaveBeenCalledTimes(1);
     await expect(acceptInviteCode({ db, now }, { actor: reader, code: invite.code })).rejects.toMatchObject({
       status: 400,
-      body: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码已被使用' } },
+      body: { detail: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码已被使用' } } },
     });
     await expect(acceptInviteCode({ db, now }, { actor: reader, code: 'absent' })).rejects.toMatchObject({
       status: 400,
-      body: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码不存在' } },
+      body: { detail: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码不存在' } } },
     });
   });
 
   it('validates identities and reuses a GitHub account without overwriting profile', async () => {
     const db = database.db;
     await expect(validateSignUp({ db }, { username: '@invalid' })).rejects.toMatchObject({
-      body: { tag: 'PARAMETER_INVALID' },
+      body: { detail: { tag: 'PARAMETER_INVALID' } },
     });
     await expect(validateSignUp({ db }, { username: author.username })).rejects.toMatchObject({ status: 400 });
     await expect(validateSignUp({ db }, { name: author.name })).rejects.toMatchObject({ status: 400 });
