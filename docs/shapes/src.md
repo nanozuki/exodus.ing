@@ -186,6 +186,10 @@ application exports.
 export declare const handle: Handle;
 ```
 
+Temporarily log the request URL without its query string and the Host, X-Forwarded-Proto, X-Forwarded-Host, and
+Fly-Forwarded-Port headers before the host check, including requests that redirect. Remove these diagnostics after
+verifying production origin inference.
+
 Read APP_URL through configuration for every request. If the full request URL does not start with that string, redirect
 303 to APP_URL. Otherwise use `attachLocals` from `src/lib/server/auth.ts` to attach authentication locals, resolve the request, and log pathname and elapsed milliseconds
 on success. This is a string-prefix comparison, not parsed-origin equality.
