@@ -16,7 +16,7 @@ env:
   GITHUB_CLIENT_SECRET: ci-client-secret
 
 # These jobs use separate runners and run in parallel. Keep their names stable:
-# main requires all three status checks before merging.
+# main requires each status check before merging; see docs/dependency-updates.md.
 jobs:
   check:
     name: Static checks
@@ -37,6 +37,19 @@ jobs:
 
       - name: Check end-to-end test types
         run: nix develop --command pnpm check:e2e
+
+      - name: Check Docker Node version
+        run: nix develop --command node src/scripts/sync-node-version.ts --check
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production image
+        run: docker build --tag exodus-ci .
 
   test:
     name: Unit and integration tests

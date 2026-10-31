@@ -126,25 +126,32 @@ docker build --platform linux/amd64 .
 [CI](.github/workflows/ci.yml) runs when a pull request is opened or updated,
 and can also be started manually. Its jobs run in parallel on separate runners:
 
-| Job     | Required check             | Scope                                                         |
-| ------- | -------------------------- | ------------------------------------------------------------- |
-| `check` | Static checks              | Prettier, ESLint, application and E2E type checks             |
-| `test`  | Unit and integration tests | Vitest (including browser tests) and script integration tests |
-| `e2e`   | E2E tests                  | Playwright journeys against a production build                |
+| Job      | Required check             | Scope                                                         |
+| -------- | -------------------------- | ------------------------------------------------------------- |
+| `check`  | Static checks              | Prettier, ESLint, type checks, and Node version consistency   |
+| `docker` | Docker build               | Build the production Docker image                             |
+| `test`   | Unit and integration tests | Vitest (including browser tests) and script integration tests |
+| `e2e`    | E2E tests                  | Playwright journeys against a production build                |
 
-Each job uses `nix develop` with the committed `flake.lock`. The shared
-[setup action](.github/actions/setup-project/action.yml) installs Nix, restores
-the job's Nix cache, and installs dependencies with the frozen pnpm lockfile.
-Test jobs use their own flake-managed PostgreSQL service and the lockfile's
-Playwright Chromium. E2E global setup builds the application once. Tests use
-placeholder OAuth credentials; failed runs retain diagnostics for three days.
+The static and test jobs use `nix develop` with the committed `flake.lock`. The
+shared [setup action](.github/actions/setup-project/action.yml) installs Nix,
+restores the job's Nix cache, and installs dependencies with the frozen pnpm
+lockfile. Test jobs use their own flake-managed PostgreSQL service and the
+lockfile's Playwright Chromium. E2E global setup builds the application once.
+Tests use placeholder OAuth credentials; failed runs retain diagnostics for
+three days.
 
-The `main` ruleset requires a pull request, an up-to-date branch, all three CI
-checks above, and GitGuardian Security Checks. Keep the check names stable.
+Configure the `main` ruleset to require a pull request, an up-to-date branch,
+all four CI checks above, and GitGuardian Security Checks. Keep the check names
+stable. The Docker check must be added to the existing ruleset on GitHub.
 [Deploy](.github/workflows/deploy.yml) runs on pushes to `main`: Fly.io builds
-and deploys the application, then a read-only homepage check verifies public
-HTTPS availability with retries for cold starts. It does not rerun the CI test
-suites. Deployments are serialized and are not interrupted by later pushes.
+and deploys the application using the internal HTTP health check configured in
+`fly.toml`. It does not rerun the CI test suites. Deployments are serialized and
+are not interrupted by later pushes.
+
+Scheduled dependency updates use Renovate and GitHub auto-merge. Follow
+[Dependency updates](docs/dependency-updates.md) to configure the GitHub App,
+enable merging, or repair a failed update PR.
 
 ## Stack
 

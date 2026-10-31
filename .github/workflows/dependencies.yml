@@ -1,0 +1,64 @@
+name: Update dependencies
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-updates
+  cancel-in-progress: false
+
+env:
+  RENOVATE_VERSION: '44.198.3'
+
+jobs:
+  update:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check App configuration
+        env:
+          APP_ID: ${{ vars.DEPENDENCY_APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.DEPENDENCY_APP_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$APP_ID" || -z "$APP_PRIVATE_KEY" ]]; then
+            echo 'Configure DEPENDENCY_APP_ID and DEPENDENCY_APP_PRIVATE_KEY; see docs/dependency-updates.md.' >&2
+            exit 1
+          fi
+
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-dependencies-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock') }}
+          restore-prefixes-first-match: nix-dependencies-${{ runner.os }}-
+          gc-max-store-size-linux: 4G
+
+      - name: Validate dependency configuration
+        run: |
+          nix develop --command pnpm --allow-build=re2 --package="renovate@${RENOVATE_VERSION}" dlx renovate-config-validator --strict --no-global renovate.json
+          nix develop --command pnpm --allow-build=re2 --package="renovate@${RENOVATE_VERSION}" dlx renovate-config-validator --strict .github/renovate-config.cjs
+
+      - name: Create installation token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DEPENDENCY_APP_ID }}
+          private-key: ${{ secrets.DEPENDENCY_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Update dependencies
+        env:
+          RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_CONFIG_FILE: ${{ github.workspace }}/.github/renovate-config.cjs
+        run: nix develop --command pnpm --allow-build=re2 --package="renovate@${RENOVATE_VERSION}" dlx renovate

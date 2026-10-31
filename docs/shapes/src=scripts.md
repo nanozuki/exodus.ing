@@ -1,8 +1,9 @@
 # src/scripts
 
-Dispatch checkout-local PostgreSQL maintenance commands and expose the
-import-executed article-count migration. Child directory lib owns provisioning,
-process lifecycle, and seeding.
+Dispatch checkout-local PostgreSQL maintenance commands, synchronize Docker's
+Node version after Nix updates, and expose the import-executed article-count
+migration. Child directory lib owns provisioning, process lifecycle, and
+seeding.
 
 ## Files
 
@@ -33,3 +34,13 @@ ensures a clone; `reset <name|template>` deletes explicitly selected state;
 `{ status: "Stopped" }`. Invalid forms throw usage guidance. start/reset reject
 extra arguments; status/stop test only that name is absent. Top-level failures
 propagate to the process.
+
+### `src/scripts/sync-node-version.ts`
+
+Implicit CLI entry point: run from the repository root inside `nix develop`
+after updating Nix so the active Node runtime supplies the expected version.
+`--write` synchronizes Dockerfile's single `node:<version>-slim AS base` image;
+`--check` checks it without changing files. Preserve the rest of the file and
+fail on invalid arguments, an unsupported or ambiguous base image, or a version
+mismatch in check mode. Renovate runs write mode after Nix updates; the script
+uses Node built-ins and needs no installed project dependencies.
