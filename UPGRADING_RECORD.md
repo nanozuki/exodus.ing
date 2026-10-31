@@ -1,5 +1,28 @@
 # Upgrading Record
 
+## Progress — 2026-10-31
+
+- Completed the remaining requested updates: adapter-node 6.0.1, Kit 3.1.1,
+  @types/node 26.6.6, ESLint 10.14.0, tslib 2.9.1, @flydotio/dockerfile 0.7.15,
+  material-symbols-light 1.2.98, and pnpm 12.16.1. Raised the manifest minimums
+  to the already installed vite-plugin-svelte 7.3.1, Vite 8.3.5, and
+  svelte-check 4.7.7. TypeScript remains at 6.0.3.
+- pnpm added the exact-version release-age exception `tslib@2.9.1` for this
+  requested update; no other release-age exceptions are configured.
+- Completed the SvelteKit group: Kit 3.1.0, adapter-node 6.0.0,
+  vite-plugin-svelte 7.3.1, Vite 8.3.5, svelte-check 4.7.7, and runed 0.38.0.
+- TypeScript is installed at 6.0.3. The requested TS6 migration is complete;
+  TypeScript 7 remains a separate adoption decision, documented in the
+  [TypeScript assessment](upgrade/requires-code-changes/typescript.md).
+- runed 0.38.0 now satisfies the Kit 3 peer requirement. Its existing resource
+  consumer needs no application changes.
+- Validation: frozen-lockfile installation, application/E2E type checks, ESLint,
+  repository formatting, and production build passed. All 126 tests passed: 89
+  unit/component/database, 12 script integration, and 25 E2E. Existing
+  mdast-util-to-hast module-directive bundling warnings remain non-fatal.
+- Production origin/CSRF verification remains a deployment follow-up in
+  [post-deployment checks](upgrade/post-deployment-checks.md).
+
 ## Progress — 2026-10-29
 
 - Upgraded SvelteKit from 2.50.1 to 2.70.3 as the recommended transition before
@@ -50,9 +73,9 @@
 ## major npm packages
 
 - [x] @eslint/js ^9.39.2 → ^10.0.1
-- [ ] @sveltejs/adapter-node ^5.5.2 → ^6.0.0
-- [ ] @sveltejs/kit ^2.50.1 → ^3.1.0
-- [ ] @sveltejs/vite-plugin-svelte ^6.2.4 → ^7.3.1
+- [x] @sveltejs/adapter-node ^5.5.2 → ^6.0.0
+- [x] @sveltejs/kit ^2.50.1 → ^3.1.0
+- [x] @sveltejs/vite-plugin-svelte ^6.2.4 → ^7.3.1
 - [x] @testing-library/jest-dom ^6.9.1 → ^7.0.1
 - [x] @types/node ^25.1.0 → ^26.6.5
 - [x] @vitest/browser-playwright ^4.0.18 → ^5.0.5
@@ -60,9 +83,9 @@
 - [x] jsdom ^27.4.0 → ^30.1.3
 - [x] nanoid ^5.1.6 → ^6.0.2
 - [x] prettier-plugin-svelte ^3.4.1 → ^4.1.1
-- [ ] typescript ^5.9.3 → ^7.0.2
+- [x] typescript ^5.9.3 → ^6.0.0 (revised target; installed 6.0.3)
 - [x] unplugin-icons ^23.0.1 → ^24.0.0
-- [ ] vite ^7.3.1 → ^8.3.5
+- [x] vite ^7.3.1 → ^8.3.5
 - [x] vitest ^4.0.18 → ^5.0.5
 - [x] vitest-browser-svelte ^2.0.2 → ^3.1.0
 
@@ -72,7 +95,7 @@
 - [x] drizzle-kit ^0.31.8 → ^0.31.11
 - [x] drizzle-orm ^0.45.1 → ^0.45.4
 - [x] prettier-plugin-tailwindcss ^0.7.2 → ^0.8.1
-- [ ] runed ^0.37.1 → ^0.38.0
+- [x] runed ^0.37.1 → ^0.38.0
 
 ## Minor Backwards-compatible features
 
@@ -87,7 +110,7 @@
 - [x] playwright ^1.58.1 → ^1.64.1
 - [x] prettier ^3.8.1 → ^3.9.10
 - [x] svelte ^5.49.1 → ^5.57.3
-- [ ] svelte-check ^4.3.6 → ^4.7.7
+- [x] svelte-check ^4.3.6 → ^4.7.7
 - [x] tailwind-merge ^3.4.0 → ^3.7.0
 - [x] tailwindcss ^4.1.18 → ^4.3.3
 - [x] typescript-eslint ^8.54.0 → ^8.72.1

@@ -1,30 +1,23 @@
-# 剩余依赖升级
+# 依赖升级状态
 
-本目录跟踪尚未完成的7个依赖，并保留已完成的浏览器测试组迁移报告。版本与进度以
-[UPGRADING_RECORD.md](../UPGRADING_RECORD.md)
-为准；每份报告保留原始当前版本、目标版本、官方证据和迁移资料。
+截至 2026-10-31，SvelteKit 与检查工具组已完成升级。实际安装版本如下；历史调研报告中的原始版本和迁移清单不代表当前待办。
 
-- `requires-code-changes/`：4个待办，需要修改应用、测试、配置或脚本。
-- `no-code-changes/`：3个待办，未发现独立代码迁移点，但因配套版本不兼容已回撤，需等待关联迁移，不能单独批量更新。
-- [版本依赖关系](version-constraints.md)记录剩余依赖应如何配套。
-- [部署后检查](post-deployment-checks.md)跟踪 SvelteKit 3 origin 与反向代理核验。
+| 依赖                                                                           | 已安装 | 状态                                 |
+| ------------------------------------------------------------------------------ | ------ | ------------------------------------ |
+| [@sveltejs/kit](requires-code-changes/sveltejs-kit.md)                         | 3.1.0  | 已完成 Kit 3 应用、配置与测试迁移    |
+| [@sveltejs/adapter-node](requires-code-changes/sveltejs-adapter-node.md)       | 6.0.0  | 已完成本地迁移，生产入口检查另行跟踪 |
+| [@sveltejs/vite-plugin-svelte](no-code-changes/sveltejs-vite-plugin-svelte.md) | 7.3.1  | 已完成                               |
+| [vite](no-code-changes/vite.md)                                                | 8.3.5  | 已完成                               |
+| [svelte-check](requires-code-changes/svelte-check.md)                          | 4.7.7  | 已完成，使用 TS6 检查                |
+| [runed](no-code-changes/runed.md)                                              | 0.38.0 | 已完成，与 Kit 3 的 peer 匹配        |
+| [typescript](requires-code-changes/typescript.md)                              | 6.0.3  | TS6 目标已完成；TS7 另行评估         |
 
-## 需要代码迁移
+TypeScript 7 的收益、兼容成本和本项目对比结果见
+[TypeScript 评估](requires-code-changes/typescript.md)。本轮不安装 TS7 到项目依赖。
 
-| 依赖                                                                     | 当前版本  | 目标版本 | 待办                                                           |
-| ------------------------------------------------------------------------ | --------- | -------- | -------------------------------------------------------------- |
-| [@sveltejs/adapter-node](requires-code-changes/sveltejs-adapter-node.md) | `^5.5.2`  | `^6.0.0` | 迁移origin配置及现有测试夹具；随Kit3升级。                     |
-| [@sveltejs/kit](requires-code-changes/sveltejs-kit.md)                   | `^2.50.1` | `^3.1.0` | 迁移Vite配置、别名、tsconfig、类型导入、remote forms及重定向。 |
-| [typescript](requires-code-changes/typescript.md)                        | `^5.9.3`  | `^7.0.2` | 处理原生编译器、Compiler API兼容和双版本检查脚本。             |
-| [svelte-check](requires-code-changes/svelte-check.md)                    | `^4.3.6`  | `^4.7.7` | 配合Kit3配置读取和TS7原生检查模式调整脚本。                    |
-
-## 等待配套升级
-
-| 依赖                                                                           | 当前版本  | 目标版本  | 待办                              |
-| ------------------------------------------------------------------------------ | --------- | --------- | --------------------------------- |
-| [@sveltejs/vite-plugin-svelte](no-code-changes/sveltejs-vite-plugin-svelte.md) | `^6.2.4`  | `^7.3.1`  | 已回撤；等待Kit3/Vite8配套。      |
-| [vite](no-code-changes/vite.md)                                                | `^7.3.1`  | `^8.3.5`  | 已回撤；当前Kit2不支持目标Vite8。 |
-| [runed](no-code-changes/runed.md)                                              | `^0.37.1` | `^0.38.0` | 已回撤；目标0.38要求Kit3。        |
+- [升级记录](../UPGRADING_RECORD.md)保留各阶段进度。
+- [版本依赖关系](version-constraints.md)记录当前组合的约束。
+- [部署后检查](post-deployment-checks.md)仍需在真实 Fly.io 入口验证 origin、CSRF 和重定向。
 
 ## 已完成的浏览器测试组
 

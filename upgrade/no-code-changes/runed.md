@@ -1,8 +1,10 @@
 # runed
 
-执行状态：本次目标升级已因配套版本不满足而回撤，等待对应迁移组；详见[版本约束记录](../version-constraints.md)。本文版本区间保留为调研目标。
+执行状态：2026-10-31 已升级并安装 0.38.0，与 Kit
+3.1.0 配套；无需修改现有 resource 消费者。此前因 Kit
+2 配套限制回撤的阻塞已解除。
 
-- 当前版本：`^0.37.1`
+- 原版本：`^0.37.1`
 - 目标版本：`^0.38.0`
 - 版本来源：`UPGRADING_RECORD.md`。
 - 调研日期：2026-10-28。
@@ -33,4 +35,4 @@ peer `@sveltejs/kit` 声明为 `^3.0.0`，Svelte peer 仍为 `^5.7.0`，zod 为
 0.38 迁移指南；以[官方变更 PR #432](https://github.com/svecosystem/runed/pull/432)及上述 changelog 为依据；涉及 Kit 的部分参考
 [Kit 3 官方迁移指南](https://svelte.dev/docs/kit/migrating-to-sveltekit-3)。
 
-升级阶段验证 Markdown 输入防抖、异步结果顺序、编辑/预览切换与标题/校验回调；本轮没有执行升级或目标版本测试。
+升级阶段验证 Markdown 输入防抖、异步结果顺序、编辑/预览切换与标题/校验回调；本轮已执行升级；验证结果见[升级记录](../../UPGRADING_RECORD.md)。现有发布 E2E 覆盖 Markdown 编辑、预览与发布，不代表对 resource 内部并发顺序做了独立验证。

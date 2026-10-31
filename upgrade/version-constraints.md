@@ -1,42 +1,41 @@
-# 剩余依赖的版本关系
+# 依赖的版本关系
 
-这里记录尚未完成的升级及其配套关系，并保留已完成的浏览器测试组约束，原始版本与目标见[剩余工作索引](README.md)。
+2026-10-31 已安装组合如下。原始迁移资料见[升级索引](README.md)。
 
-## Kit与构建组
+## Kit 与构建组（已完成）
 
-| 依赖                         | 保留版本 | 目标   | 配套要求                                                       |
-| ---------------------------- | -------- | ------ | -------------------------------------------------------------- |
-| @sveltejs/kit                | 2.50.1   | 3.1.0  | 目标要求plugin7、Vite至少8.0.12、TypeScript6；需要完成应用迁移 |
-| @sveltejs/adapter-node       | 5.5.2    | 6.0.0  | adapter6要求Kit3；origin配置与测试夹具同步迁移                 |
-| @sveltejs/vite-plugin-svelte | 6.2.4    | 7.3.1  | plugin7要求Vite8；当前Kit2只接受plugin3/4next/5/6next范围      |
-| vite                         | 7.3.1    | 8.3.5  | 当前Kit2只接受Vite5/6/7beta范围，因此Vite8目标等待Kit3         |
-| runed                        | 0.37.1   | 0.38.0 | runed0.38要求Kit3；当前只用resource，无独立API改写任务         |
-
-建议在完成Kit3迁移时一起处理这五项，不能通过只更新Vite或plugin绕开Kit的peer约束。
+| 依赖                         | 已安装 | 配套要求                                                     |
+| ---------------------------- | ------ | ------------------------------------------------------------ |
+| @sveltejs/kit                | 3.1.0  | plugin 7、Vite 至少 8.0.12、TypeScript 6、Svelte 至少 5.57.1 |
+| @sveltejs/adapter-node       | 6.0.0  | Kit 3；生产 origin 验证见部署后检查                          |
+| @sveltejs/vite-plugin-svelte | 7.3.1  | Vite 8                                                       |
+| vite                         | 8.3.5  | 与 Kit 3/plugin 7 配套                                       |
+| runed                        | 0.38.0 | optional Kit peer 为 ^3.0.0；项目已安装 Kit，必须满足此范围  |
 
 ## 浏览器测试组（已完成）
 
-| 依赖                       | 原版本 | 已安装 | 配套要求                                           |
-| -------------------------- | ------ | ------ | -------------------------------------------------- |
-| vitest-browser-svelte      | 2.0.2  | 3.1.0  | 原2.0.2只支持Vitest4；已迁移为await render         |
-| vitest                     | 4.0.18 | 5.0.5  | 已与browser-svelte3配套升级                        |
-| @vitest/browser-playwright | 4.0.18 | 5.0.5  | provider与Vitest要求精确版本相同，不只是主版本匹配 |
+| 依赖                       | 已安装 | 配套要求                  |
+| -------------------------- | ------ | ------------------------- |
+| vitest-browser-svelte      | 3.1.0  | 组件测试使用 await render |
+| vitest                     | 5.0.5  | 与 browser-svelte 3 配套  |
+| @vitest/browser-playwright | 5.0.5  | 与 Vitest 精确版本匹配    |
 
-三者已同时安装并通过验证；保留上述约束，避免browser-svelte2与Vitest5或provider/Vitest版本不同的组合。
+## TypeScript 与检查工具组
 
-## TypeScript与检查工具组
+| 依赖              | 已安装 | 配套要求                                                       |
+| ----------------- | ------ | -------------------------------------------------------------- |
+| typescript        | 6.0.3  | 满足当前 Kit、svelte-check 和 typescript-eslint 的 peer        |
+| svelte-check      | 4.7.7  | 同名 TypeScript peer 为 5/6；TS7 需要另装 alias 和原生检查模式 |
+| typescript-eslint | 8.72.1 | TypeScript peer 为 >=4.8.4 <6.1.0                              |
 
-| 依赖         | 保留版本 | 目标  | 配套要求                                                               |
-| ------------ | -------- | ----- | ---------------------------------------------------------------------- |
-| typescript   | 5.9.3    | 7.0.2 | 当前Kit2要求TS^5.3.3，目标Kit3要求TS^6.0.0；不能直接换成TS7            |
-| svelte-check | 4.3.6    | 4.7.7 | 目标同名TypeScript peer为5/6；TS7检查需要原生模式参数及双版本alias布局 |
-
-后续先确定TS6兼容工具与TS7原生CLI的共存方案，再调整check/check:watch/check:e2e入口及有效tsconfig。其他现有工具的Compiler
-API兼容约束在TypeScript独立报告中作为迁移条件保留。
+TS6 迁移已完成。TS7 尚未加入项目依赖；建议和实测见
+[TypeScript 评估](requires-code-changes/typescript.md)。如后续采用，保留 typescript 为 TS6，并通过 @typescript/native
+alias 添加 TS7，避免破坏旧 Compiler API 消费者。
 
 ## 官方依据
 
-- [Kit2.50.1发布元数据](https://registry.npmjs.org/@sveltejs/kit/2.50.1)、[Kit3.1.0](https://registry.npmjs.org/@sveltejs/kit/3.1.0)。
-- [adapter-node6](https://registry.npmjs.org/@sveltejs/adapter-node/6.0.0)、[plugin7.3.1](https://registry.npmjs.org/@sveltejs/vite-plugin-svelte/7.3.1)、[runed0.38](https://registry.npmjs.org/runed/0.38.0)。
-- [browser-svelte2.0.2](https://registry.npmjs.org/vitest-browser-svelte/2.0.2)、[provider4.0.18](https://registry.npmjs.org/@vitest/browser-playwright/4.0.18)、[provider5.0.5](https://registry.npmjs.org/@vitest/browser-playwright/5.0.5)。
-- [svelte-check4.7.7](https://registry.npmjs.org/svelte-check/4.7.7)。各包的官方发布记录和迁移指南见独立报告。
+- [Kit 3 迁移指南](https://svelte.dev/docs/kit/migrating-to-sveltekit-3)。
+- [runed 0.38 发布记录](https://github.com/svecosystem/runed/blob/runed%400.38.0/packages/runed/CHANGELOG.md)。
+- [svelte-check 4.7.7 的 TS7 使用说明](https://github.com/sveltejs/language-tools/blob/svelte-check%404.7.7/packages/svelte-check/README.md)。
+
+具体 peer 范围另经本地安装包 package.json 和 pnpm-lock.yaml 核对。
