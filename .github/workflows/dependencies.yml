@@ -1,6 +1,8 @@
 name: Update dependencies
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:
@@ -13,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  RENOVATE_VERSION: '44.198.3'
+  RENOVATE_VERSION: '44.193.1'
 
 jobs:
   update:
