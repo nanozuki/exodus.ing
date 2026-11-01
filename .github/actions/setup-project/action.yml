@@ -4,11 +4,11 @@ description: Prepare the pinned Nix development environment and JavaScript depen
 runs:
   using: composite
   steps:
-    - uses: cachix/install-nix-action@v31
+    - uses: cachix/install-nix-action@v31.11.3
 
     # Separate caches let each job retain its own dependencies; compatible
     # caches from other jobs or the base branch can still seed a cold run.
-    - uses: nix-community/cache-nix-action@v7
+    - uses: nix-community/cache-nix-action@v7.0.2
       with:
         primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock') }}-${{ github.job }}
         restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock') }}
