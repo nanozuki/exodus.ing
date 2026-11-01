@@ -1,5 +1,6 @@
 allowBuilds:
   esbuild: true
 engineStrict: true
-minimumReleaseAgeExclude:
-  - tslib@2.9.1
+saveExact: true
+minimumReleaseAge: 4320
+minimumReleaseAgeStrict: true

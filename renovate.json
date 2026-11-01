@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":semanticCommits"],
+  "extends": ["config:recommended", ":semanticCommits", "security:minimumReleaseAgeNpm"],
   "enabledManagers": ["npm", "nix", "github-actions", "custom.regex"],
   "nix": { "enabled": true },
   "automerge": true,
@@ -11,7 +11,7 @@
   "draftPR": false,
   "prConcurrentLimit": 3,
   "rebaseWhen": "behind-base-branch",
-  "rangeStrategy": "bump",
+  "rangeStrategy": "pin",
   "semanticCommitType": "chore",
   "prFooter": "",
   "lockFileMaintenance": {

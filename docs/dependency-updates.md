@@ -11,7 +11,7 @@ reach the default branch before the final verification step:
 1. Create a dedicated GitHub App under **Settings → Developer settings → GitHub
    Apps → New GitHub App**. Use a descriptive name such as
    `exodus-dependencies`, set the repository URL as its homepage, and disable
-   webhooks. The scheduled workflow supplies the trigger.
+   webhooks. GitHub Actions triggers the updater.
 2. Give the App these repository permissions:
 
    | Permission        | Access         |
@@ -62,11 +62,27 @@ and its pinned Renovate CLI version live in
 own CLI pin through the custom manager. Administrator-only command permissions
 live in [renovate-config.cjs](../.github/renovate-config.cjs).
 
+A push to `main`, including a merged dependency PR, starts another updater run
+so remaining PRs can be rebased onto the latest base branch and tested again.
+The existing scheduled and manual triggers remain available.
+
+Direct npm dependencies use exact versions. pnpm saves new dependencies with
+exact versions, and Renovate maintains those pins. Keep the lockfile committed
+to preserve the resolved direct and transitive dependency graph; version pins do
+not replace it.
+
 Allowed updates, including major versions, can auto-merge after CI passes.
 TypeScript has an explicit `<7` ceiling. Change that package rule to lift the
 ceiling or add another rule to limit another package. Failed CI leaves the PR
 open for repair. Related packages use the groups declared in the configuration;
 other dependencies can progress independently up to the PR concurrency limit.
+
+Ordinary npm updates wait three days through Renovate's minimum release age
+preset. pnpm enforces the same three-day threshold in strict mode for direct and
+transitive dependencies, including lockfile maintenance. Packages still in the
+cooldown window can block installation of an existing lockfile. Urgent
+exceptions require an explicitly reviewed package-version exclusion; keep the
+default policy strict. Nix inputs retain their existing update policy.
 
 Nix's locked environment owns the Node version. After updating Nix, Renovate
 runs `src/scripts/sync-node-version.ts` inside the updated Nix shell and
