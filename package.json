@@ -59,7 +59,7 @@
     "tailwindcss": "^4.3.3",
     "tslib": "^2.9.1",
     "tsx": "4.23.15",
-    "typescript": "^6.0.0",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
     "unplugin-icons": "^24.0.0",
     "vfile": "^6.0.3",
