@@ -88,7 +88,7 @@
     "unified": "11.0.5",
     "vfile-matter": "5.0.1"
   },
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.18.0",
   "imports": {
     "#lib": "./src/lib/index.js",
     "#lib/*.js": "./src/lib/*.ts",
