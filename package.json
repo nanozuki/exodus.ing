@@ -29,7 +29,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@flydotio/dockerfile": "0.7.15",
-    "@iconify-json/material-symbols-light": "1.2.98",
+    "@iconify-json/material-symbols-light": "1.2.99",
     "@iconify-json/mdi": "1.2.3",
     "@playwright/test": "1.65.0",
     "@sveltejs/adapter-node": "6.0.1",
