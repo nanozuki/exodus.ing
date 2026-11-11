@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":semanticCommits", "security:minimumReleaseAgeNpm"],
+  "extends": ["config:recommended", ":semanticCommits", "security:minimumReleaseAgeNpm", "group:all"],
   "enabledManagers": ["npm", "nix", "github-actions", "custom.regex"],
   "nix": { "enabled": true },
   "automerge": true,
@@ -16,7 +16,7 @@
   "prFooter": "",
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "schedule": ["* * * * 1"]
   },
   "timezone": "Europe/Berlin",
   "packageRules": [
@@ -26,24 +26,11 @@
     },
     {
       "matchManagers": ["nix"],
-      "groupName": "Nix environment",
       "postUpgradeTasks": {
         "commands": ["nix develop --command node src/scripts/sync-node-version.ts --write"],
         "fileFilters": ["Dockerfile"],
         "executionMode": "branch"
       }
-    },
-    {
-      "matchManagers": ["github-actions"],
-      "groupName": "GitHub Actions"
-    },
-    {
-      "matchPackageNames": ["vitest", "@vitest/**"],
-      "groupName": "Vitest"
-    },
-    {
-      "matchPackageNames": ["playwright", "@playwright/test"],
-      "groupName": "Playwright"
     }
   ],
   "customManagers": [
