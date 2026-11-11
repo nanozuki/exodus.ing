@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  RENOVATE_VERSION: '44.221.4'
+  RENOVATE_VERSION: '44.222.0'
 
 jobs:
   update:
