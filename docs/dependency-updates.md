@@ -62,9 +62,10 @@ and its pinned Renovate CLI version live in
 own CLI pin through the custom manager. Administrator-only command permissions
 live in [renovate-config.cjs](../.github/renovate-config.cjs).
 
-A push to `main`, including a merged dependency PR, starts another updater run
-so remaining PRs can be rebased onto the latest base branch and tested again.
-The existing scheduled and manual triggers remain available.
+The updater runs once each Monday, with lockfile maintenance allowed throughout
+Monday in `Europe/Berlin` so a delayed scheduled run can still update lockfiles.
+Pushes to `main` do not start another update batch. Use the manual workflow
+trigger to retry a failed run or refresh a PR that has fallen behind `main`.
 
 Direct npm dependencies use exact versions. pnpm saves new dependencies with
 exact versions, and Renovate maintains those pins. Keep the lockfile committed
@@ -74,8 +75,9 @@ not replace it.
 Allowed updates, including major versions, can auto-merge after CI passes.
 TypeScript has an explicit `<7` ceiling. Change that package rule to lift the
 ceiling or add another rule to limit another package. Failed CI leaves the PR
-open for repair. Related packages use the groups declared in the configuration;
-other dependencies can progress independently up to the PR concurrency limit.
+open for repair. The `group:all` preset combines ordinary dependency updates,
+including major versions, into one PR. Lockfile maintenance can create separate
+PRs. A failing update blocks the other updates in its group until repaired.
 
 Ordinary npm updates wait three days through Renovate's minimum release age
 preset. pnpm enforces the same three-day threshold in strict mode for direct and
