@@ -86,14 +86,18 @@ cooldown window can block installation of an existing lockfile. Urgent
 exceptions require an explicitly reviewed package-version exclusion; keep the
 default policy strict. Nix inputs retain their existing update policy.
 
-Nix's locked environment owns the Node version. After updating Nix, Renovate
-runs `src/scripts/sync-node-version.ts` inside the updated Nix shell and
-includes any Dockerfile change in the same PR. Other dependency updates do not
-run write mode. CI's static checks run check mode to verify Node versions match
-without modifying Dockerfile. Docker's Node image is excluded from independent
-dependency updates. The Docker check verifies the resulting image can build. If
-the corresponding Docker tag is unavailable, the build fails and the PR stays
-open. The script's integration tests run through `pnpm test:script`.
+Nix's locked environment owns the Node version. On every update branch,
+including lockfile maintenance, Renovate runs `src/scripts/sync-node-version.ts`
+in write mode inside the updated Nix shell and includes any Dockerfile change in
+the same PR. Keep this task in the top-level `postUpgradeTasks`: Renovate takes
+branch-mode tasks from the branch's first upgrade, so a rule scoped to the `nix`
+manager is skipped whenever an npm upgrade sorts first in a mixed branch. CI's
+static checks run check mode on every PR, including manual flake updates, to
+verify Node versions match without modifying Dockerfile. Docker's Node image is
+excluded from independent dependency updates. The Docker check verifies the
+resulting image can build. If the corresponding Docker tag is unavailable, the
+build fails and the PR stays open. The script's integration tests run through
+`pnpm test:script`.
 
 Nix supplies the pnpm launcher; `package.json`'s `packageManager` selects the
 project version. Updating pnpm means updating that field and any resulting
