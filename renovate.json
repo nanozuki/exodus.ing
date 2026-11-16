@@ -19,15 +19,18 @@
     "schedule": ["* * * * 1"]
   },
   "timezone": "Europe/Berlin",
-  "postUpgradeTasks": {
-    "commands": ["nix develop --command node src/scripts/sync-node-version.ts --write"],
-    "fileFilters": ["Dockerfile"],
-    "executionMode": "branch"
-  },
   "packageRules": [
     {
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<7"
+    },
+    {
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "postUpgradeTasks": {
+        "commands": ["nix develop --command node src/scripts/sync-node-version.ts --write"],
+        "fileFilters": ["Dockerfile"],
+        "executionMode": "branch"
+      }
     }
   ],
   "customManagers": [

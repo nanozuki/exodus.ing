@@ -86,14 +86,15 @@ cooldown window can block installation of an existing lockfile. Urgent
 exceptions require an explicitly reviewed package-version exclusion; keep the
 default policy strict. Nix inputs retain their existing update policy.
 
-Nix's locked environment owns the Node version. On every update branch,
-including lockfile maintenance, Renovate runs `src/scripts/sync-node-version.ts`
-in write mode inside the updated Nix shell and includes any Dockerfile change in
-the same PR. Keep this task in the top-level `postUpgradeTasks`: Renovate takes
-branch-mode tasks from the branch's first upgrade, so a rule scoped to the `nix`
-manager is skipped whenever an npm upgrade sorts first in a mixed branch. CI's
-static checks run check mode on every PR, including manual flake updates, to
-verify Node versions match without modifying Dockerfile. Docker's Node image is
+Nix's locked environment owns the Node version. Flake inputs track branches
+without versions, so only lockfile maintenance changes `flake.lock`. In that PR,
+Renovate runs `src/scripts/sync-node-version.ts` in write mode inside the
+updated Nix shell and includes any Dockerfile change. Scope this task by update
+type, not by manager: Renovate takes branch-mode tasks from the branch's first
+upgrade, and lockfile maintenance mixes npm and Nix upgrades, so a rule matching
+only the `nix` manager is skipped when an npm upgrade sorts first. CI's static
+checks run check mode on every PR, including manual flake updates, to verify
+Node versions match without modifying Dockerfile. Docker's Node image is
 excluded from independent dependency updates. The Docker check verifies the
 resulting image can build. If the corresponding Docker tag is unavailable, the
 build fails and the PR stays open. The script's integration tests run through
