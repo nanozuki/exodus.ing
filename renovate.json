@@ -16,9 +16,9 @@
   "prFooter": "",
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["* * * * 1"]
+    "schedule": ["* 3-23 * * 1"]
   },
-  "timezone": "Europe/Berlin",
+  "timezone": "UTC",
   "packageRules": [
     {
       "matchPackageNames": ["typescript"],

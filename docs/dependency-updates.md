@@ -62,8 +62,13 @@ and its pinned Renovate CLI version live in
 own CLI pin through the custom manager. Administrator-only command permissions
 live in [renovate-config.cjs](../.github/renovate-config.cjs).
 
-The updater runs once each Monday, with lockfile maintenance allowed throughout
-Monday in `Europe/Berlin` so a delayed scheduled run can still update lockfiles.
+The updater runs each Monday at 02:17 and 03:17 UTC; Renovate's `timezone` is
+UTC to match the workflow cron. Ordinary updates and lockfile maintenance both
+change `pnpm-lock.yaml`, so they run in sequence: the first run opens the update
+PR, and lockfile maintenance is scheduled from 03:00 UTC through the end of
+Monday, so it refreshes lockfiles on top of the merged update. Change the cron
+and the `lockFileMaintenance` schedule together. While the update PR stays open,
+the lockfile maintenance PR conflicts with it; repair the update PR first.
 Pushes to `main` do not start another update batch. Use the manual workflow
 trigger to retry a failed run or refresh a PR that has fallen behind `main`.
 
