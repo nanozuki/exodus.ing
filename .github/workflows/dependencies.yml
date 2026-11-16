@@ -1,8 +1,11 @@
 name: Update dependencies
 
 on:
+  # Keep in sync with lockFileMaintenance.schedule in renovate.json: the first
+  # run handles ordinary updates, the second adds lockfile maintenance.
   schedule:
     - cron: '17 2 * * 1'
+    - cron: '17 3 * * 1'
   workflow_dispatch:
 
 permissions:

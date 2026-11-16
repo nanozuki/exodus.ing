@@ -16,16 +16,16 @@
   "prFooter": "",
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["* * * * 1"]
+    "schedule": ["* 3-23 * * 1"]
   },
-  "timezone": "Europe/Berlin",
+  "timezone": "UTC",
   "packageRules": [
     {
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<7"
     },
     {
-      "matchManagers": ["nix"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
       "postUpgradeTasks": {
         "commands": ["nix develop --command node src/scripts/sync-node-version.ts --write"],
         "fileFilters": ["Dockerfile"],

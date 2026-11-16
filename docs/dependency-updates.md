@@ -40,10 +40,10 @@ reach the default branch before the final verification step:
    **Allow squash merging**. Under the rules protecting `main`, require a pull
    request, require the branch to be up to date, and require all four checks:
    `Static checks`, `Unit and integration tests`, `E2E tests`, and
-   `Docker build`. Run CI once to make the new check available in the selector.
-   The updater should follow these checks without a bypass. Retain the existing
-   required GitGuardian Security Checks. A required human approval also blocks
-   automatic merging; keep such a requirement only if that is intended.
+   `Docker build`. Run CI once so the checks appear in the selector. Also
+   require GitGuardian Security Checks. Give the updater no bypass. A required
+   human approval also blocks automatic merging; keep such a requirement only if
+   that is intended.
 5. Run **Actions → Update dependencies → Run workflow** on the default branch.
    Confirm it creates ready-for-review PRs, CI starts without manual workflow
    approval, and GitHub shows auto-merge enabled. Confirm an update merges only
@@ -52,7 +52,7 @@ reach the default branch before the final verification step:
 
 Use an App installation token rather than the workflow's `GITHUB_TOKEN` so
 update PRs can trigger CI without manual approval, and merges can trigger the
-existing deployment workflow. See [GitHub token event behavior][token-events].
+deployment workflow. See [GitHub token event behavior][token-events].
 
 ## Update policy
 
@@ -62,8 +62,13 @@ and its pinned Renovate CLI version live in
 own CLI pin through the custom manager. Administrator-only command permissions
 live in [renovate-config.cjs](../.github/renovate-config.cjs).
 
-The updater runs once each Monday, with lockfile maintenance allowed throughout
-Monday in `Europe/Berlin` so a delayed scheduled run can still update lockfiles.
+The updater runs each Monday at 02:17 and 03:17 UTC; Renovate's `timezone` is
+UTC to match the workflow cron. Ordinary updates and lockfile maintenance both
+change `pnpm-lock.yaml`, so they run in sequence: the first run opens the update
+PR, and lockfile maintenance is scheduled from 03:00 UTC through the end of
+Monday, so it refreshes lockfiles on top of the merged update. Change the cron
+and the `lockFileMaintenance` schedule together. While the update PR stays open,
+the lockfile maintenance PR conflicts with it; repair the update PR first.
 Pushes to `main` do not start another update batch. Use the manual workflow
 trigger to retry a failed run or refresh a PR that has fallen behind `main`.
 
@@ -84,16 +89,20 @@ preset. pnpm enforces the same three-day threshold in strict mode for direct and
 transitive dependencies, including lockfile maintenance. Packages still in the
 cooldown window can block installation of an existing lockfile. Urgent
 exceptions require an explicitly reviewed package-version exclusion; keep the
-default policy strict. Nix inputs retain their existing update policy.
+default policy strict. The release-age wait applies only to npm; Nix inputs
+update without it.
 
-Nix's locked environment owns the Node version. After updating Nix, Renovate
-runs `src/scripts/sync-node-version.ts` inside the updated Nix shell and
-includes any Dockerfile change in the same PR. Other dependency updates do not
-run write mode. CI's static checks run check mode to verify Node versions match
-without modifying Dockerfile. Docker's Node image is excluded from independent
-dependency updates. The Docker check verifies the resulting image can build. If
-the corresponding Docker tag is unavailable, the build fails and the PR stays
-open. The script's integration tests run through `pnpm test:script`.
+Nix's locked environment owns the Node version, and the Dockerfile's base image
+follows it through `src/scripts/sync-node-version.ts`. Flake inputs track
+branches rather than versions, so Renovate changes `flake.lock` only through
+lockfile maintenance. A package rule matching the `lockFileMaintenance` update
+type runs the script in write mode as a branch-level post-upgrade task, so the
+Dockerfile change lands in the same PR. Match it by update type: Renovate takes
+branch-level tasks from a PR's first upgrade, and every upgrade in a lockfile
+maintenance PR, npm included, shares that type. Keep Renovate's Dockerfile
+manager disabled so the base image changes only through this script. CI's static
+checks run the script in check mode on every PR, and the Docker build check
+confirms the matching image tag exists.
 
 Nix supplies the pnpm launcher; `package.json`'s `packageManager` selects the
 project version. Updating pnpm means updating that field and any resulting
