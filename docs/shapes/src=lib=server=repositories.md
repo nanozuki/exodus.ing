@@ -535,6 +535,9 @@ export declare function findSessionById(
 ): Promise<Session | null>;
 ```
 
+Return the stored secret hash for the caller to verify; a lookup by ID does not
+authenticate.
+
 #### `createSession`
 
 ```typescript
@@ -544,8 +547,8 @@ export declare function createSession(
 ): Promise<Session>;
 ```
 
-Persist and return the supplied ID, user, and expiration without applying
-lifetime policy.
+Persist and return the supplied ID, user, secret hash, and expiration without
+applying lifetime policy.
 
 #### `UpdateSessionParams`
 

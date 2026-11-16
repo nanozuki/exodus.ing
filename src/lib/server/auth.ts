@@ -1,7 +1,6 @@
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
 import { z } from 'zod';
-import type { Session } from '#lib/models/session.js';
 import type { Permission } from '#lib/models/role.js';
 import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';
@@ -32,13 +31,23 @@ export type OAuthCookieData = z.infer<typeof OAuthCookieDataSchema>;
 export type OAuthCookieDataInput = Omit<OAuthCookieData, 'state'>;
 
 // Call only at request boundaries where cookie writes are permitted.
-export function setAuthCookie(cookies: Cookies, session: Session): void {
-  cookies.set(AUTH_COOKIE_NAME, session.id, {
+export function setAuthCookie(cookies: Cookies, session: { token: string; expiresAt: Date }): void {
+  cookies.set(AUTH_COOKIE_NAME, session.token, {
     path: '/',
     secure: import.meta.env.PROD,
     httpOnly: true,
+    sameSite: 'lax',
     expires: session.expiresAt,
   });
+}
+
+// Every redirect to a user-supplied `next` must go through this. Pass the serving request's URL origin; anything
+// resolving elsewhere, including `//host` and `/\host`, becomes `/`.
+export function sanitizeNext(next: string | undefined, origin: string): string {
+  if (!next) return '/';
+  const target = URL.parse(next, origin);
+  if (!target || target.origin !== origin) return '/';
+  return `${target.pathname}${target.search}${target.hash}`;
 }
 
 // Call before redirecting so the callback can match its state to the HTTP-only cookie.
@@ -54,15 +63,18 @@ export function createGitHubAuthUrl(cookies: Cookies, githubOAuth: GitHubOAuth, 
   return githubOAuth.createAuthUrl(data.state);
 }
 
-// Malformed cookie JSON propagates a parse error; the callback route owns error normalization.
+// Deletes the state cookie before validating, so it is removed on every callback outcome, including later
+// provider-exchange failures. Malformed cookie JSON propagates a parse error; the callback route owns error
+// normalization.
 export function readGitHubCallbackData(request: RequestEvent): { code: string; data: OAuthCookieData } {
   const { cookies, url } = request;
+  const stateCookie = cookies.get(GITHUB_OAUTH_COOKIE_NAME);
+  cookies.delete(GITHUB_OAUTH_COOKIE_NAME, { path: '/' });
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
   if (!code || !state) {
     return throwError('BAD_REQUEST', 'OAuth 验证错误: code or state is empty');
   }
-  const stateCookie = cookies.get(GITHUB_OAUTH_COOKIE_NAME);
   if (!stateCookie) {
     return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie not found');
   }
@@ -78,16 +90,16 @@ export function readGitHubCallbackData(request: RequestEvent): { code: string; d
 }
 
 async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
-  const sessionId = event.cookies.get(AUTH_COOKIE_NAME);
-  if (!sessionId) {
+  const token = event.cookies.get(AUTH_COOKIE_NAME);
+  if (!token) {
     return null;
   }
-  const result = await validateSession({ db, now }, { sessionId });
+  const result = await validateSession({ db, now }, { token });
   if (!result) {
     return null;
   }
   if (result.refresh) {
-    setAuthCookie(event.cookies, result.session);
+    setAuthCookie(event.cookies, { token, expiresAt: result.session.expiresAt });
   }
   const [user, roles] = await Promise.all([
     findUserById(db, result.session.userId),

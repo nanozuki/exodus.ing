@@ -2,6 +2,7 @@ import type { LoggedInUser } from '#lib/models/user.js';
 import type { Session } from '#lib/models/session.js';
 import { throwError } from '#lib/errors.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
+import type { Random } from '#lib/server/adapters/random.js';
 import {
   findUserByUsername,
   findUserByName,
@@ -37,9 +38,9 @@ export async function updateUsername(
 
 // Signup hints affect new accounts only. Account and session creation are separate writes.
 export async function loginWithGitHub(
-  deps: { db: AppDatabase; now: () => Date; generateSessionId: () => string },
+  deps: { db: AppDatabase; now: () => Date; random: Random },
   params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },
-): Promise<Session> {
+): Promise<{ session: Session; token: string }> {
   let user = await findUserByGitHubId(deps.db, params.githubUser.id);
   if (!user) {
     const username = params.signUp?.username || params.githubUser.username;

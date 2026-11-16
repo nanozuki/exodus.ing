@@ -56,6 +56,7 @@ CREATE TABLE "pending_auth" (
 CREATE TABLE "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
+	"secret_hash" text NOT NULL,
 	"expires_at" timestamp NOT NULL
 );
 

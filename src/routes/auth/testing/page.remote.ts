@@ -1,8 +1,8 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { setAuthCookie } from '#lib/server/auth.js';
+import { sanitizeNext, setAuthCookie } from '#lib/server/auth.js';
 import { createSession } from '#lib/server/use-cases/session.js';
 import { now } from '#lib/server/adapters/clock.js';
-import { generateSessionId } from '#lib/server/adapters/session_id.js';
+import { random } from '#lib/server/adapters/random.js';
 import { getUsers, findUserById } from '#lib/server/repositories/user.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { throwError } from '#lib/errors.js';
@@ -40,9 +40,9 @@ export const simulateTestingLogin = form(simulateTestingLoginSchema, async ({ us
   if (!user) {
     throwError('NOT_FOUND', { resource: '用户' });
   }
-  const session = await createSession({ db, now, generateSessionId }, { userId: user.id });
-  const { cookies } = getRequestEvent();
-  setAuthCookie(cookies, session);
+  const { session, token } = await createSession({ db, now, random }, { userId: user.id });
+  const { cookies, url } = getRequestEvent();
+  setAuthCookie(cookies, { token, expiresAt: session.expiresAt });
 
-  redirect(303, next && next.startsWith('/') ? next : '/');
+  redirect(303, sanitizeNext(next, url.origin));
 });

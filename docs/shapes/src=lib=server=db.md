@@ -59,6 +59,7 @@ export const tSession = pgTable(
   {
     id: text('id').notNull().primaryKey(),
     userId: text('user_id').notNull(),
+    secretHash: text('secret_hash').notNull(),
     expiresAt: timestamp('expires_at').notNull(),
   },
   (table) => [

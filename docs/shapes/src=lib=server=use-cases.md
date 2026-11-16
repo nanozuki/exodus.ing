@@ -204,6 +204,9 @@ restrictions are outside this operation's policy.
 
 ### `src/lib/server/use-cases/session.ts`
 
+Session use cases: create, validate, and invalidate the sessions behind the
+`auth_session` cookie.
+
 #### `ValidateSessionResult`
 
 ```typescript
@@ -220,31 +223,50 @@ export function createSession(
   deps: {
     db: AppDatabase;
     now: () => Date;
-    generateSessionId: () => string;
+    random: Random;
   },
   params: { userId: string },
-): Promise<Session>;
+): Promise<{ session: Session; token: string }>;
 ```
 
-Read the clock once and generate one session ID; persist a session expiring
-exactly 30 days after that instant. No cookie handling occurs here. Production
-composition supplies the existing 32-character session-code generator.
+Read the clock once and generate one session ID and one secret; persist the ID,
+user, secret hash, and an expiration exactly 30 days after that instant. Return
+the persisted session and its token `<id>.<secret>`. This is the only point
+where the token is available, because the secret is not stored. No cookie
+handling occurs here. Production composition supplies the `random` adapter.
 
 #### `validateSession`
 
 ```typescript
 export function validateSession(
   deps: { db: AppDatabase; now: () => Date },
-  params: { sessionId: string },
+  params: { token: string },
 ): Promise<ValidateSessionResult | null>;
 ```
 
-Read the clock once and load the session. Missing sessions return null. At or
-after expiration, delete the session and return null. When a nonexpired session
-has at most 20 days remaining, extend expiry to 30 days after the same clock
-value and return `refresh: true`; otherwise return it unchanged with
-`refresh: false`. Boundary equality is inclusive. Repository failures propagate,
-and successful results carry the exact expiration that was persisted.
+Read the clock once and load the session named by the token. Return null when
+the token is not exactly `<id>.<secret>` with both parts non-empty, names no
+session, or carries a secret whose hash does not match `secretHash` in a
+constant-time comparison; such tokens never delete or modify stored sessions. At
+or after expiration of a verified session, delete it and return null. When a
+nonexpired session has at most 20 days remaining, extend expiry to 30 days after
+the same clock value and return `refresh: true`; otherwise return it unchanged
+with `refresh: false`. Boundary equality is inclusive. Repository failures
+propagate, and successful results carry the exact expiration that was persisted.
+The caller keeps using the token it supplied; renewal never changes the token.
+
+#### `invalidateSession`
+
+```typescript
+export function invalidateSession(
+  deps: { db: AppDatabase },
+  params: { token: string },
+): Promise<void>;
+```
+
+Delete the session named by a token that `validateSession` would verify,
+regardless of expiration. Any other token is a no-op. Afterward the token
+validates as null. Cookie removal stays in request code.
 
 ### `src/lib/server/use-cases/user.ts`
 
@@ -286,20 +308,20 @@ export function loginWithGitHub(
   deps: {
     db: AppDatabase;
     now: () => Date;
-    generateSessionId: () => string;
+    random: Random;
   },
   params: {
     githubUser: { id: number; username: string };
     signUp?: { username?: string; name?: string };
   },
-): Promise<Session>;
+): Promise<{ session: Session; token: string }>;
 ```
 
 Consume a trusted GitHub identity returned by the OAuth adapter. Reuse an
 account with the provider ID, or create one using the supplied signup
 username/name with GitHub username fallbacks and an empty biography. Reject a
 chosen username starting with `@`. Existing account data is not overwritten by
-signup hints. Create a session through `createSession` and return it. Provider
-exchange, OAuth state/cookie parsing, cookie updates, and next-URL redirects
-stay in request code. Account creation and session insertion are separate
-persistence calls.
+signup hints. Create a session through `createSession` and return its result.
+Provider exchange, OAuth state/cookie parsing, cookie updates, and next-URL
+redirects stay in request code. Account creation and session insertion are
+separate persistence calls.

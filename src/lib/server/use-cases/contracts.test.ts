@@ -1,11 +1,12 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
 import { Role } from '#lib/models/role.js';
+import { hashSessionSecret } from '#lib/models/session.js';
 import { findUserByUsername } from '#lib/server/repositories/user.js';
 import { findSessionById, createSession as persistSession } from '#lib/server/repositories/session.js';
 import { getArticleById } from '#lib/server/repositories/article.js';
 import { tArticle } from '#lib/server/db/schema.js';
-import { createSession, validateSession } from './session';
+import { createSession, invalidateSession, validateSession } from './session';
 import { getEditableArticle, saveExternalArticle, saveMarkdownArticle, verifyDomainOwnership } from './article';
 import { saveComment } from './comment';
 import { getInviteQuota, createInviteCode, acceptInviteCode } from './invite_code';
@@ -49,15 +50,38 @@ afterAll(async () => {
 const instant = new Date('2026-06-01T00:00:00Z');
 const day = 86400000;
 
+// Persist a session whose token is known, bypassing createSession so tests control the stored record.
+async function persistKnownSession(id: string, expiresAt: Date, secret = `${id}-secret`): Promise<string> {
+  await persistSession(database.db, { id, userId: author.id, secretHash: hashSessionSecret(secret), expiresAt });
+  return `${id}.${secret}`;
+}
+
 describe('session policy with an injected clock and real persistence', () => {
-  it('reads the clock and generator once, preserving the persisted result', async () => {
+  it('reads the clock and generators once, storing only the secret hash', async () => {
     const now = vi.fn(() => instant);
-    const generateSessionId = vi.fn(() => 'injected-session');
-    const session = await createSession({ db: database.db, now, generateSessionId }, { userId: author.id });
-    expect(session.expiresAt).toEqual(new Date(+instant + 30 * day));
+    const random = { sessionId: vi.fn(() => 'injected-session'), sessionSecret: vi.fn(() => 'injected-secret') };
+    const { session, token } = await createSession({ db: database.db, now, random }, { userId: author.id });
+    expect(token).toBe('injected-session.injected-secret');
+    expect(session).toEqual({
+      id: 'injected-session',
+      userId: author.id,
+      secretHash: hashSessionSecret('injected-secret'),
+      expiresAt: new Date(+instant + 30 * day),
+    });
     expect(now).toHaveBeenCalledTimes(1);
-    expect(generateSessionId).toHaveBeenCalledTimes(1);
+    expect(random.sessionId).toHaveBeenCalledTimes(1);
+    expect(random.sessionSecret).toHaveBeenCalledTimes(1);
     expect(await findSessionById(database.db, session.id)).toEqual(session);
+    expect(await validateSession({ db: database.db, now: () => instant }, { token })).not.toBeNull();
+  });
+  it('rejects tokens assembled from stored columns', async () => {
+    const id = 'stored-columns';
+    await persistKnownSession(id, new Date(+instant + 30 * day));
+    const stored = (await findSessionById(database.db, id))!;
+    const deps = { db: database.db, now: () => instant };
+    for (const token of [stored.id, `${stored.id}.${stored.secretHash}`, `${stored.id}.${stored.userId}`]) {
+      expect(await validateSession(deps, { token })).toBeNull();
+    }
   });
   it.each([
     [-1, null],
@@ -67,9 +91,9 @@ describe('session policy with an injected clock and real persistence', () => {
     [20 * day + 1, false],
   ])('handles the expiry/renewal boundary %i', async (remaining, refresh) => {
     const id = `boundary-${remaining}`;
-    await persistSession(database.db, { id, userId: author.id, expiresAt: new Date(+instant + remaining) });
+    const token = await persistKnownSession(id, new Date(+instant + remaining));
     const now = vi.fn(() => instant);
-    const result = await validateSession({ db: database.db, now }, { sessionId: id });
+    const result = await validateSession({ db: database.db, now }, { token });
     expect(now).toHaveBeenCalledTimes(1);
     if (refresh === null) {
       expect(result).toBeNull();
@@ -80,8 +104,38 @@ describe('session policy with an injected clock and real persistence', () => {
       expect(result?.session.expiresAt).toEqual(new Date(+instant + (refresh ? 30 * day : remaining)));
     }
   });
-  it('returns null for an unknown session', async () => {
-    expect(await validateSession({ db: database.db, now: () => instant }, { sessionId: 'missing' })).toBeNull();
+  it.each(['', 'missing.secret', 'no-separator', '.secret', 'id.', 'a.b.c'])(
+    'treats malformed or unknown token %j as absent',
+    async (token) => {
+      expect(await validateSession({ db: database.db, now: () => instant }, { token })).toBeNull();
+    },
+  );
+  it('treats a mismatched secret as absent without touching the session, even when expired', async () => {
+    const expiresAt = new Date(+instant - 1);
+    await persistKnownSession('mismatch', expiresAt);
+    const deps = { db: database.db, now: () => instant };
+    expect(await validateSession(deps, { token: 'mismatch.wrong-secret' })).toBeNull();
+    await invalidateSession(deps, { token: 'mismatch.wrong-secret' });
+    expect(await findSessionById(database.db, 'mismatch')).toMatchObject({ id: 'mismatch', expiresAt });
+  });
+  it('treats a corrupted stored hash as a mismatch', async () => {
+    await persistSession(database.db, {
+      id: 'corrupted',
+      userId: author.id,
+      secretHash: 'not-hex',
+      expiresAt: new Date(+instant + 30 * day),
+    });
+    expect(await validateSession({ db: database.db, now: () => instant }, { token: 'corrupted.secret' })).toBeNull();
+  });
+  it('invalidates a verified token so replaying it is anonymous', async () => {
+    const token = await persistKnownSession('signed-out', new Date(+instant + 30 * day));
+    const deps = { db: database.db, now: () => instant };
+    await invalidateSession(deps, { token });
+    expect(await findSessionById(database.db, 'signed-out')).toBeNull();
+    expect(await validateSession(deps, { token })).toBeNull();
+  });
+  it('ignores malformed tokens on invalidation', async () => {
+    await expect(invalidateSession({ db: database.db }, { token: 'no-separator' })).resolves.toBeUndefined();
   });
 });
 
@@ -202,7 +256,10 @@ describe('business operations', () => {
     const deps = {
       db,
       now: () => instant,
-      generateSessionId: vi.fn().mockReturnValueOnce('github-first').mockReturnValueOnce('github-second'),
+      random: {
+        sessionId: vi.fn().mockReturnValueOnce('github-first').mockReturnValueOnce('github-second'),
+        sessionSecret: () => 'github-secret',
+      },
     };
     const first = await loginWithGitHub(deps, {
       githubUser: { id: 987654, username: 'contract-github' },
@@ -212,10 +269,11 @@ describe('business operations', () => {
       githubUser: { id: 987654, username: 'different' },
       signUp: { username: 'overwrite' },
     });
-    expect(second.userId).toBe(first.userId);
+    expect(first.token).toBe('github-first.github-secret');
+    expect(second.session.userId).toBe(first.session.userId);
     expect(await findUserByUsername(db, 'overwrite')).toBeNull();
     expect(await findUserByUsername(db, 'contract-github')).toMatchObject({
-      id: first.userId,
+      id: first.session.userId,
       name: 'Contract GitHub',
       aboutMe: '',
     });

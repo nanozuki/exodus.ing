@@ -10,13 +10,17 @@ const state = vi.hoisted(() => ({
   setCookie: vi.fn(),
 }));
 
-vi.mock('#lib/server/auth.js', () => ({ readGitHubCallbackData: state.readCallback, setAuthCookie: state.setCookie }));
+vi.mock('#lib/server/auth.js', async (importOriginal) => ({
+  sanitizeNext: (await importOriginal<typeof import('#lib/server/auth.js')>()).sanitizeNext,
+  readGitHubCallbackData: state.readCallback,
+  setAuthCookie: state.setCookie,
+}));
 vi.mock('#lib/server/registry.js', () => ({ db: {}, adapters: { githubOAuth: { getUser: state.getUser } } }));
 vi.mock('#lib/server/use-cases/user.js', () => ({ loginWithGitHub: state.login }));
 
 import { GET } from './+server';
 
-const request = { cookies: {} } as RequestEvent;
+const request = { cookies: {}, url: new URL('https://app.test/auth/github/callback') } as RequestEvent;
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -25,14 +29,25 @@ beforeEach(() => {
 });
 
 it('sets the session cookie and returns the successful callback destination', async () => {
-  const session = { id: 'session' };
-  state.login.mockResolvedValue(session);
+  const expiresAt = new Date('2026-05-01');
+  state.login.mockResolvedValue({ session: { id: 'session', expiresAt }, token: 'session.secret' });
   const response = await GET(request);
 
-  expect(state.setCookie).toHaveBeenCalledWith(request.cookies, session);
+  expect(state.setCookie).toHaveBeenCalledWith(request.cookies, { token: 'session.secret', expiresAt });
   expect(response.status).toBe(302);
   expect(response.headers.get('location')).toBe('/console');
 });
+
+it.each(['//evil.example', '/\\evil.example', 'https://evil.example'])(
+  'redirects an off-site next %j to the home page',
+  async (next) => {
+    state.readCallback.mockReturnValue({ code: 'code', data: { next } });
+    state.login.mockResolvedValue({ session: { id: 'session', expiresAt: new Date() }, token: 'session.secret' });
+    const response = await GET(request);
+
+    expect(response.headers.get('location')).toBe('/');
+  },
+);
 
 it.each([
   () => throwError('PARAMETER_INVALID', { username: '用户名已存在' }),

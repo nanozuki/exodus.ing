@@ -15,8 +15,8 @@ export class GitHubOAuth {
     return this.github.createAuthorizationURL(state, []);
   }
 
-  // Validate callback state before calling. Provider rejection is BAD_REQUEST; other exchange failures are
-  // INTERNAL_SERVER_ERROR.
+  // Validate callback state before calling. Provider rejection is BAD_REQUEST; other exchange failures, including
+  // a non-2xx user response, are INTERNAL_SERVER_ERROR.
   async getUser(code: string): Promise<GitHubUser> {
     try {
       const tokens = await this.github.validateAuthorizationCode(code);
@@ -27,6 +27,9 @@ export class GitHubOAuth {
           'User-Agent': 'exodus.ing',
         },
       });
+      if (!githubUserResponse.ok) {
+        throw new Error(`GitHub user request failed with status ${githubUserResponse.status}`);
+      }
       const res = (await githubUserResponse.json()) as { id: number; login: string };
       return { id: res.id, username: res.login };
     } catch (e) {

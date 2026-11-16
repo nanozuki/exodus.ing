@@ -9,6 +9,7 @@ import type { User } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';
 import { compileMarkdown } from '#lib/markdown.js';
 import { db } from '#lib/server/registry.js';
+import { invalidateSession } from '#lib/server/use-cases/session.js';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 
@@ -75,9 +76,13 @@ export const loadPageData = query(
   },
 );
 
-// Signing out removes the cookie; the stored session remains valid.
+// Delete the stored session before the cookie, so the token cannot be replayed after sign-out.
 export const logout = form(async () => {
   const { cookies } = getRequestEvent();
+  const token = cookies.get(AUTH_COOKIE_NAME);
+  if (token) {
+    await invalidateSession({ db }, { token });
+  }
   cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
   redirect(303, '/');
 });
