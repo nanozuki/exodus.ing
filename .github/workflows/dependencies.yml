@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  RENOVATE_VERSION: '44.222.0'
+  RENOVATE_VERSION: '44.237.3'
 
 jobs:
   update:
@@ -38,7 +38,7 @@ jobs:
             exit 1
           fi
 
-      - uses: cachix/install-nix-action@v31.11.3
+      - uses: cachix/install-nix-action@v31.11.5
       - uses: nix-community/cache-nix-action@v7.0.2
         with:
           primary-key: nix-dependencies-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock') }}
