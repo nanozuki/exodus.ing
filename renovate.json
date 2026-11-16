@@ -16,7 +16,7 @@
   "prFooter": "",
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["* 3-23 * * 1"]
+    "schedule": ["* * * * 1"]
   },
   "timezone": "UTC",
   "packageRules": [

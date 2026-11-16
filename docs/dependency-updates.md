@@ -62,14 +62,14 @@ and its pinned Renovate CLI version live in
 own CLI pin through the custom manager. Administrator-only command permissions
 live in [renovate-config.cjs](../.github/renovate-config.cjs).
 
-The updater runs each Monday at 02:17 and 03:17 UTC; Renovate's `timezone` is
-UTC to match the workflow cron. Ordinary updates and lockfile maintenance both
-change `pnpm-lock.yaml`, so they run in sequence: the first run opens the update
-PR, and lockfile maintenance is scheduled from 03:00 UTC through the end of
-Monday, so it refreshes lockfiles on top of the merged update. Change the cron
-and the `lockFileMaintenance` schedule together. While the update PR stays open,
-the lockfile maintenance PR conflicts with it; repair the update PR first.
-Pushes to `main` do not start another update batch. Use the manual workflow
+The updater runs each Monday at 02:17 and 08:17 UTC; Renovate's `timezone` is
+UTC to match the workflow cron, and lockfile maintenance may start throughout
+Monday. The first run opens the `group:all` PR and the lockfile maintenance PR.
+Both change `pnpm-lock.yaml`, so once one merges, the other falls behind `main`
+and can conflict. The second run rebases it and regenerates its lockfile,
+letting it merge after CI passes. Keep the runs hours apart: GitHub delays each
+scheduled run independently, and the first merge needs to land before the second
+run. Pushes to `main` do not start another update batch. Use the manual workflow
 trigger to retry a failed run or refresh a PR that has fallen behind `main`.
 
 Direct npm dependencies use exact versions. pnpm saves new dependencies with
