@@ -12,6 +12,7 @@ vi.mock('$app/server', () => ({
   getRequestEvent: () => ({ cookies: mocks.cookies, url: new URL('https://app.test/auth/testing') }),
 }));
 
+vi.mock('#lib/server/config.js', () => ({ getConfig: () => ({ appUrl: 'https://exodus.test' }) }));
 vi.mock('#lib/server/registry.js', () => ({ db: {} }));
 
 vi.mock('#lib/server/repositories/user.js', () => ({ findUserById: mocks.findUserById, getUsers: vi.fn() }));
@@ -35,14 +36,17 @@ beforeEach(() => {
 it('sets the session token cookie and redirects to a same-origin next', async () => {
   await expect(submit({ userId: 'user', next: '/console' })).rejects.toMatchObject({
     status: 303,
-    location: '/console',
+    location: 'https://exodus.test/console',
   });
   expect(mocks.cookies.set).toHaveBeenCalledWith(AUTH_COOKIE_NAME, 'session.secret', expect.anything());
 });
 
-it.each(['//evil.example', '/\\evil.example', 'https://evil.example'])(
-  'redirects an off-site next %j to the home page',
+it.each(['@evil.example', 'https://evil.example'])(
+  'redirects a non-path next %j to the app home page',
   async (next) => {
-    await expect(submit({ userId: 'user', next })).rejects.toMatchObject({ status: 303, location: '/' });
+    await expect(submit({ userId: 'user', next })).rejects.toMatchObject({
+      status: 303,
+      location: 'https://exodus.test/',
+    });
   },
 );

@@ -15,6 +15,7 @@ vi.mock('#lib/server/auth.js', async (importOriginal) => ({
   readGitHubCallbackData: state.readCallback,
   setAuthCookie: state.setCookie,
 }));
+vi.mock('#lib/server/config.js', () => ({ getConfig: () => ({ appUrl: 'https://exodus.test' }) }));
 vi.mock('#lib/server/registry.js', () => ({ db: {}, adapters: { githubOAuth: { getUser: state.getUser } } }));
 vi.mock('#lib/server/use-cases/user.js', () => ({ loginWithGitHub: state.login }));
 
@@ -35,17 +36,17 @@ it('sets the session cookie and returns the successful callback destination', as
 
   expect(state.setCookie).toHaveBeenCalledWith(request.cookies, { token: 'session.secret', expiresAt });
   expect(response.status).toBe(302);
-  expect(response.headers.get('location')).toBe('/console');
+  expect(response.headers.get('location')).toBe('https://exodus.test/console');
 });
 
-it.each(['//evil.example', '/\\evil.example', 'https://evil.example'])(
-  'redirects an off-site next %j to the home page',
+it.each(['@evil.example', 'https://evil.example'])(
+  'redirects a non-path next %j to the app home page',
   async (next) => {
     state.readCallback.mockReturnValue({ code: 'code', data: { next } });
     state.login.mockResolvedValue({ session: { id: 'session', expiresAt: new Date() }, token: 'session.secret' });
     const response = await GET(request);
 
-    expect(response.headers.get('location')).toBe('/');
+    expect(response.headers.get('location')).toBe('https://exodus.test/');
   },
 );
 

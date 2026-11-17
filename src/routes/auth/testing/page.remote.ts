@@ -6,6 +6,7 @@ import { random } from '#lib/server/adapters/random.js';
 import { getUsers, findUserById } from '#lib/server/repositories/user.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { throwError } from '#lib/errors.js';
+import { getConfig } from '#lib/server/config.js';
 import { db } from '#lib/server/registry.js';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
@@ -41,8 +42,10 @@ export const simulateTestingLogin = form(simulateTestingLoginSchema, async ({ us
     throwError('NOT_FOUND', { resource: '用户' });
   }
   const { session, token } = await createSession({ db, now, random }, { userId: user.id });
-  const { cookies, url } = getRequestEvent();
+  const { cookies } = getRequestEvent();
   setAuthCookie(cookies, { token, expiresAt: session.expiresAt });
 
-  redirect(303, sanitizeNext(next, url.origin));
+  // SvelteKit treats an absolute URL as external unless it matches the request origin, so allow the app's own origin.
+  const { appUrl } = getConfig();
+  redirect(303, sanitizeNext(next, appUrl), { external: [appUrl] });
 });

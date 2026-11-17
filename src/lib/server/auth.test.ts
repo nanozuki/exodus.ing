@@ -38,19 +38,27 @@ it('writes the session token with the supplied expiry and lax same-site', () => 
 });
 
 it.each([
-  [undefined, '/'],
-  ['', '/'],
-  ['/console', '/console'],
-  ['/a/A25?tab=comments#reply', '/a/A25?tab=comments#reply'],
-  ['https://app.test/console', '/console'],
-  ['//evil.example', '/'],
-  ['/\\evil.example', '/'],
-  ['https://evil.example', '/'],
-  ['javascript:alert(1)', '/'],
-  ['http://', '/'],
-])('sanitizes next %j to %j', (next, expected) => {
-  expect(sanitizeNext(next, 'https://app.test')).toBe(expected);
+  [undefined, 'https://app.test/'],
+  ['', 'https://app.test/'],
+  ['/console', 'https://app.test/console'],
+  ['/a/A25?tab=comments#reply', 'https://app.test/a/A25?tab=comments#reply'],
+  ['/a/..//evil.example', 'https://app.test/a/..//evil.example'],
+  ['//evil.example', 'https://app.test//evil.example'],
+  ['/\\evil.example', 'https://app.test/\\evil.example'],
+  ['@evil.example', 'https://app.test/'],
+  ['.evil.example', 'https://app.test/'],
+  ['https://evil.example', 'https://app.test/'],
+  ['javascript:alert(1)', 'https://app.test/'],
+])('turns next %j into %j', (next, expected) => {
+  expect(sanitizeNext(next, 'https://app.test/')).toBe(expected);
 });
+
+it.each(['/a/..//evil.example', '//evil.example', '/\\evil.example', '@evil.example', '.evil.example'])(
+  'keeps next %j on the app host',
+  (next) => {
+    expect(new URL(sanitizeNext(next, 'https://app.test')).host).toBe('app.test');
+  },
+);
 
 it('owns OAuth state cookies while passing only a state string to the provider', () => {
   const createAuthUrl = vi.fn(() => new URL('https://provider.test'));

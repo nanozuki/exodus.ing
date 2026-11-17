@@ -122,15 +122,18 @@ same-site, supplied expiry, and production-only secure flag.
 #### `sanitizeNext`
 
 ```typescript
-export function sanitizeNext(next: string | undefined, origin: string): string;
+export function sanitizeNext(next: string | undefined, appUrl: string): string;
 ```
 
-Return a same-origin redirect target for a post-sign-in `next` value. Resolve
-`next` against `origin`, the serving request's URL origin. Return the resolved
-path, query, and fragment when the resolved origin equals `origin`; otherwise,
-including absent or empty values, return `/`. Values such as `//evil.example`,
-`/\evil.example`, and `https://evil.example` return `/`. Every redirect to a
-user-supplied `next` uses this helper.
+Return the absolute redirect target for a post-sign-in `next` value: `appUrl`'s
+origin followed by `next` when `next` starts with `/`, and by `/` otherwise,
+including absent or empty values. The leading `/` ends the URL authority, so no
+`next` value changes the host: `//evil.example` and `/a/..//evil.example` stay
+paths on the app origin, while `@evil.example` and `https://evil.example` become
+`/`. `next` is not otherwise normalized or validated. Callers pass the
+configured `APP_URL`, not the request URL, whose origin depends on the `Host`
+the request arrived with. Every redirect to a user-supplied `next` uses this
+helper.
 
 #### `createGitHubAuthUrl`
 

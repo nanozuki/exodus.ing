@@ -41,13 +41,12 @@ export function setAuthCookie(cookies: Cookies, session: { token: string; expire
   });
 }
 
-// Every redirect to a user-supplied `next` must go through this. Pass the serving request's URL origin; anything
-// resolving elsewhere, including `//host` and `/\host`, becomes `/`.
-export function sanitizeNext(next: string | undefined, origin: string): string {
-  if (!next) return '/';
-  const target = URL.parse(next, origin);
-  if (!target || target.origin !== origin) return '/';
-  return `${target.pathname}${target.search}${target.hash}`;
+// Every redirect to a user-supplied `next` must go through this. Pass the configured app URL, not the request URL.
+// The result is always an absolute URL on the app's origin; a `next` that does not start with `/` becomes `/`.
+export function sanitizeNext(next: string | undefined, appUrl: string): string {
+  // A leading `/` ends the authority, so nothing in `next` can change the host.
+  const path = next?.startsWith('/') ? next : '/';
+  return `${new URL(appUrl).origin}${path}`;
 }
 
 // Call before redirecting so the callback can match its state to the HTTP-only cookie.

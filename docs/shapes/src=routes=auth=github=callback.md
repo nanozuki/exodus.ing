@@ -20,7 +20,7 @@ then obtain the trusted provider identity through
 clock and random adapters with the trusted provider identity and signup hints.
 That use case handles account lookup/creation and session creation. Set the auth
 cookie with `setAuthCookie`, then respond 302 to
-`sanitizeNext(next, request.url.origin)`. Let failures propagate unchanged to
+`sanitizeNext(next, getConfig().appUrl)`. Let failures propagate unchanged to
 SvelteKit default error handling; the state cookie is already deleted on every
 path by `readGitHubCallbackData`. User and session creation do not share a
 transaction.
