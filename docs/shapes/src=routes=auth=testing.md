@@ -57,7 +57,8 @@ export declare const simulateTestingLogin: RemoteForm<
 ```
 
 Require a nonempty userId, find the user or throw NOT_FOUND, and call
-`createSession({ db, now, generateSessionId }, { userId })` using the clock and
-session-ID adapter functions. Set its cookie through the server auth request
-helper. Redirect 303 to next when it starts with /, otherwise /. Preserve the
-existing string-prefix behavior, including protocol-relative values.
+`createSession({ db, now, random }, { userId })` using the clock and random
+adapters. Set its cookie through the server auth request helper. Redirect 303 to
+`sanitizeNext(next, appUrl)` using the configured `APP_URL`, passing `appUrl` as
+the redirect's external allowlist because SvelteKit rejects an absolute location
+that differs from the request origin.

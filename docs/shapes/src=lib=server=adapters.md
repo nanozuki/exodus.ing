@@ -1,9 +1,10 @@
 # src/lib/server/adapters
 
-Provide request-independent GitHub OAuth, DNS TXT lookup, clock, and session-ID
-capabilities. Request parsing, OAuth state-cookie validation, and session
-cookies belong to `src/lib/server/auth.ts`; account and session decisions belong
-to use cases. Adapters do not import SvelteKit request/cookie types.
+Provide request-independent GitHub OAuth, DNS TXT lookup, clock, and random
+value generation capabilities. Request parsing, OAuth state-cookie validation,
+and session cookies belong to `src/lib/server/auth.ts`; account and session
+decisions belong to use cases. Adapters do not import SvelteKit request/cookie
+types.
 
 ## Files
 
@@ -34,9 +35,10 @@ supplied state and no scopes. `getUser` exchanges the supplied code, fetches
 `https://api.github.com/user` with the access token and existing headers, and
 maps provider id/login to GitHubUser. Preserve existing error mapping:
 OAuth2RequestError becomes BAD_REQUEST; other failures in the exchange/fetch
-block become INTERNAL_SERVER_ERROR. The user response is parsed without checking
-HTTP status or validating its JSON shape. Both methods operate independently of
-requests and cookies.
+block become INTERNAL_SERVER_ERROR. A non-2xx `/user` response is such an
+exchange failure: it becomes INTERNAL_SERVER_ERROR without its body being parsed
+as user data. A successful response's JSON shape is not validated. Both methods
+operate independently of requests and cookies.
 
 ### `src/lib/server/adapters/index.ts`
 
@@ -74,18 +76,35 @@ Return each answer's raw `data`, or `[]` when Answer is absent. Transport/JSON
 failures propagate. Return raw TXT quoting and chunking without normalization or
 answer-type filtering.
 
-### `src/lib/server/adapters/session_id.ts`
+### `src/lib/server/adapters/random.ts`
 
-#### `generateSessionId`
+Own the formats of application-generated random values, one named method per
+purpose, so reviewing randomness means reading this file. Callers never choose
+alphabets or lengths. Nothing is generated merely by importing the module.
+
+#### `Random`
 
 ```typescript
-export function generateSessionId(): string;
+export interface Random {
+  sessionId(): string;
+  sessionSecret(): string;
+}
 ```
 
-Generate a 32-character session identifier from
-`0123456789abcdefghijklmnopqrstuvwxyz` using Nano ID. Request entry points
-inject this capability into session/account use cases. No identifier is
-generated merely by importing the module.
+`sessionId` returns 32 characters from `0123456789abcdefghijklmnopqrstuvwxyz`
+using Nano ID; it is a lookup key, not a credential. `sessionSecret` encodes 32
+bytes from a cryptographically secure random source as unpadded base64url (43
+characters, never containing `.`). Use cases declare `random: Random` in `deps`;
+tests supply fixed values.
+
+#### `random`
+
+```typescript
+export const random: Random;
+```
+
+The production implementation. Request entry points import it and supply it as
+`deps.random`.
 
 ### `src/lib/server/adapters/clock.ts`
 

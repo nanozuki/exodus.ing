@@ -1,6 +1,6 @@
 import { test as base, expect, type Page, type BrowserContext } from '@playwright/test';
 import { spawn } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
 import { Client } from 'pg';
@@ -56,13 +56,16 @@ export const test = base.extend<Fixtures>({
   sessions: async ({ db }, use) => {
     const sessions = new Map<string, string>();
     for (const user of testDataset.users) {
+      // Mirror the application's `<id>.<secret>` token and stored SHA-256 secret hash.
       const id = randomBytes(24).toString('hex');
-      await db.query('INSERT INTO session (id, user_id, expires_at) VALUES ($1, $2, $3)', [
+      const secret = randomBytes(32).toString('base64url');
+      await db.query('INSERT INTO session (id, user_id, secret_hash, expires_at) VALUES ($1, $2, $3, $4)', [
         id,
         user.id,
+        createHash('sha256').update(secret).digest('hex'),
         new Date(Date.now() + 86_400_000),
       ]);
-      sessions.set(user.username, id);
+      sessions.set(user.username, `${id}.${secret}`);
     }
     await use(sessions);
   },

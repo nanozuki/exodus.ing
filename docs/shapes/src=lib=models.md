@@ -274,9 +274,24 @@ relationship.
 export type Session = {
   id: string;
   userId: string;
+  secretHash: string;
   expiresAt: Date;
 };
 ```
+
+A persisted session. `id` is a non-secret lookup key. `secretHash` is the
+lowercase hexadecimal SHA-256 digest of the session secret; the secret itself is
+never stored, so no stored field forms a working token.
+
+#### `hashSessionSecret`
+
+```typescript
+export function hashSessionSecret(secret: string): string;
+```
+
+Return the lowercase hexadecimal SHA-256 digest of the secret's UTF-8 bytes, the
+value stored as `Session.secretHash`. Session creation and verification share
+it.
 
 ### `src/lib/models/user.ts`
 

@@ -43,8 +43,9 @@ type ListData = { tabs: Tab[] } & (
 export declare const logout: RemoteForm<void, never>;
 ```
 
-Delete auth_session at / and redirect 303 to /. The database session remains
-valid.
+When an `auth_session` token is present, delete its stored session through
+`invalidateSession`, then delete the cookie at `/` and redirect 303 to `/`.
+Replaying the token afterward yields an anonymous request.
 
 #### `loadPageData`
 

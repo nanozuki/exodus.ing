@@ -2,8 +2,8 @@
 
 Provide runtime composition and request-boundary authentication support. The
 registry initializes the database and provider adapters; request helpers manage
-cookies, OAuth request data, and locals. Business operations live in use cases
-and do not import the registry or request helpers.
+cookies, OAuth request data, post-sign-in redirect targets, and locals. Business
+operations live in use cases and do not import the registry or request helpers.
 
 ## Files
 
@@ -110,11 +110,30 @@ export type OAuthCookieDataInput = Omit<OAuthCookieData, 'state'>;
 #### `setAuthCookie`
 
 ```typescript
-export function setAuthCookie(cookies: Cookies, session: Session): void;
+export function setAuthCookie(
+  cookies: Cookies,
+  session: { token: string; expiresAt: Date },
+): void;
 ```
 
-Set `auth_session` with the session ID, `/` path, HTTP-only flag, supplied
-expiry, and production-only secure flag. Leave the same-site option unset.
+Set `auth_session` to the session token with `/` path, HTTP-only flag, lax
+same-site, supplied expiry, and production-only secure flag.
+
+#### `sanitizeNext`
+
+```typescript
+export function sanitizeNext(next: string | undefined, appUrl: string): string;
+```
+
+Return the absolute redirect target for a post-sign-in `next` value: `appUrl`'s
+origin followed by `next` when `next` starts with `/`, and by `/` otherwise,
+including absent or empty values. The leading `/` ends the URL authority, so no
+`next` value changes the host: `//evil.example` and `/a/..//evil.example` stay
+paths on the app origin, while `@evil.example` and `https://evil.example` become
+`/`. `next` is not otherwise normalized or validated. Callers pass the
+configured `APP_URL`, not the request URL, whose origin depends on the `Host`
+the request arrived with. Every redirect to a user-supplied `next` uses this
+helper.
 
 #### `createGitHubAuthUrl`
 
@@ -141,12 +160,14 @@ export function readGitHubCallbackData(request: RequestEvent): {
 };
 ```
 
-Read callback `code` and `state`, require the state cookie, parse and validate
-it, and require an exact state match. Missing fields, missing cookie,
-schema-invalid cookie, or mismatched state produce the established BAD_REQUEST
-messages. Malformed cookie JSON propagates its parse error to the route's error
-normalization. This helper does not exchange provider credentials or delete the
-state cookie.
+Read and then delete `github_oauth_state` before any validation, so the state
+cookie is removed whether the callback succeeds or fails, including later
+provider-exchange failures. Read callback `code` and `state`, require the state
+cookie, parse and validate it, and require an exact state match. Missing fields,
+missing cookie, schema-invalid cookie, or mismatched state produce the
+established BAD_REQUEST messages. Malformed cookie JSON propagates its parse
+error to the route's error normalization. This helper does not exchange provider
+credentials or sanitize `next`.
 
 #### `attachLocals`
 
@@ -154,11 +175,12 @@ state cookie.
 export function attachLocals(event: RequestEvent): Promise<void>;
 ```
 
-At the request boundary, read `auth_session` and call the session-validation use
-case with the registry database and `now` from `adapters/clock.ts`. Refresh the
-cookie only when the returned session requests it, then load user and roles
-concurrently through repository functions. Set the existing `App.Locals` API
-with nullable logged-in user, `requireLoggedInUser`, `hasPermission`, and
-`requirePermission`; preserve UNAUTHORIZED and FORBIDDEN operation labels.
-Missing/invalid sessions or absent users produce a null user. Invalid cookies
-are not deleted here. Errors propagate through the existing hook/route behavior.
+At the request boundary, read the `auth_session` token and call the
+session-validation use case with the registry database and `now` from
+`adapters/clock.ts`. When the result requests a refresh, rewrite the cookie with
+the same token and the renewed expiry. Then load user and roles concurrently
+through repository functions. Set the existing `App.Locals` API with nullable
+logged-in user, `requireLoggedInUser`, `hasPermission`, and `requirePermission`;
+preserve UNAUTHORIZED and FORBIDDEN operation labels. Missing/invalid sessions
+or absent users produce a null user. Invalid cookies are not deleted here.
+Errors propagate through the existing hook/route behavior.
