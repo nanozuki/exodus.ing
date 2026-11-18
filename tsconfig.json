@@ -5,5 +5,5 @@
     "strict": true,
     "types": ["$app/types", "unplugin-icons/types/svelte"]
   },
-  "include": ["src", "vite.config.ts", "drizzle.config.ts", "playwright.config.ts", "tests"]
+  "include": ["src", "vite.config.ts", "drizzle.config.ts", "drizzle-prod.config.ts", "playwright.config.ts", "tests"]
 }
