@@ -146,6 +146,12 @@ signature is sufficient. Add purpose, usage, or commitments the signature cannot
 express, such as ordering, absence, errors, effects, permissions, lifecycle, or
 consistency. Explain meaningful differences without repeating obvious fields.
 
+Write each commitment as an outcome a caller can observe: what it receives, what
+changes, and what it can rely on afterwards. The steps that produce the outcome,
+such as which collaborators are called, in what order, or how a query is built,
+are internal mechanisms; name a collaborator only when callers depend on it,
+such as a shared helper whose behavior they must match.
+
 Declarations may explicitly share descriptions while keeping names and public
 structures discoverable. Refer to a member by its real name when it needs
 further explanation.
