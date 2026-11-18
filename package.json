@@ -23,6 +23,7 @@
     "pg:reset": "tsx src/scripts/pg.ts reset",
     "db:export": "drizzle-kit export > src/lib/server/db/database.sql",
     "db:push": "drizzle-kit push",
+    "db:push:prod": "drizzle-kit push --config drizzle-prod.config.ts",
     "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio"
   },
