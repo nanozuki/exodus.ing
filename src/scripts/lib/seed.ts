@@ -1,14 +1,4 @@
-import {
-  tArticle,
-  tBookmark,
-  tComment,
-  tInviteCode,
-  tPendingAuth,
-  tSession,
-  tUser,
-  tUserAuth,
-  tUserRole,
-} from '#lib/server/db/schema.js';
+import { tArticle, tBookmark, tComment, tInviteCode, tSession, tUser, tUserRole } from '#lib/server/db/schema.js';
 import { sql } from 'drizzle-orm/sql';
 import { schema } from '#lib/server/db/schema.js';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -25,8 +15,6 @@ export async function seedE2EData(client: Client): Promise<void> {
     await tx.delete(tInviteCode);
     await tx.delete(tUserRole);
     await tx.delete(tSession);
-    await tx.delete(tUserAuth);
-    await tx.delete(tPendingAuth);
     await tx.delete(tArticle);
     await tx.delete(tUser);
 

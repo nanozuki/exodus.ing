@@ -19,6 +19,13 @@ When creating or updating files under `docs/` or `AGENTS.md`, use the
 `mattpocock-skills:writing-for-agents` skill. Review and revise each changed
 document until a complete review pass finds no remaining actionable issues.
 
+## Approval boundary
+
+Change shape contracts in `docs/shapes/` and the database schema in
+`src/lib/server/db/schema.ts` only when the user initiates or approves the
+change. When another task needs either change, present the proposed diff and
+apply it after the user approves.
+
 ## Ownership and Git workflow
 
 Use the user's configured Git identity and name branches after the work, such as
