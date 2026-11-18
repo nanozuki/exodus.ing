@@ -69,57 +69,6 @@ export const tSession = pgTable(
 );
 ```
 
-#### `tUserAuth`
-
-```typescript
-export const tUserAuth = pgTable(
-  'user_auth',
-  {
-    id: text('id').notNull().primaryKey(),
-    userId: text('user_id').notNull(),
-    provider: text('provider').notNull(),
-    providerUserId: text('provider_user_id').notNull(),
-    providerUsername: text('provider_username'),
-    providerEmail: text('provider_email'),
-    createdAt: timestamps.createdAt,
-  },
-  (table) => [
-    uniqueIndex('user_auth_provider_user_id_idx').on(
-      table.provider,
-      table.providerUserId,
-    ),
-    index('user_auth_user_id_idx').on(table.userId),
-  ],
-);
-```
-
-#### `tPendingAuth`
-
-```typescript
-export const tPendingAuth = pgTable(
-  'pending_auth',
-  {
-    id: text('id').notNull().primaryKey(),
-    authType: text('auth_type').notNull(),
-    state: text('state'),
-    provider: text('provider'),
-    providerUserId: text('provider_user_id'),
-    providerUsername: text('provider_username'),
-    providerEmail: text('provider_email'),
-    payload: jsonb('payload'),
-    next: text('next'),
-    signUpUsername: text('sign_up_username'),
-    signUpName: text('sign_up_name'),
-    createdAt: timestamps.createdAt,
-    expiresAt: timestamp('expires_at').notNull(),
-  },
-  (table) => [
-    uniqueIndex('pending_auth_state_idx').on(table.state),
-    index('pending_auth_expires_at_idx').on(table.expiresAt),
-  ],
-);
-```
-
 #### `tInviteCode`
 
 ```typescript
@@ -230,9 +179,7 @@ export const schema = {
   tBookmark,
   tComment,
   tInviteCode,
-  tPendingAuth,
   tSession,
-  tUserAuth,
   tUser,
 };
 ```
@@ -263,22 +210,10 @@ export type CommentRow = typeof tComment.$inferSelect;
 export type InviteCodeRow = typeof tInviteCode.$inferSelect;
 ```
 
-#### `PendingAuthRow`
-
-```typescript
-export type PendingAuthRow = typeof tPendingAuth.$inferSelect;
-```
-
 #### `SessionRow`
 
 ```typescript
 export type SessionRow = typeof tSession.$inferSelect;
-```
-
-#### `UserAuthRow`
-
-```typescript
-export type UserAuthRow = typeof tUserAuth.$inferSelect;
 ```
 
 #### `UserRow`
