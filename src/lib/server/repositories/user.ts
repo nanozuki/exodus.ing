@@ -1,11 +1,11 @@
-import type { User } from '#lib/models/user.js';
-import { asc, eq } from 'drizzle-orm';
-import { tUser, type AppDatabase, type UserRow } from '#lib/server/db/schema.js';
+import type { IdentityProvider, User, UserIdentity } from '#lib/models/user.js';
+import { and, asc, eq } from 'drizzle-orm';
+import { tUser, tUserIdentity, type AppDatabase, type UserRow } from '#lib/server/db/schema.js';
 import { newNanoId, newVerifyCode, wrap } from './utils';
 
 function model(row: UserRow): User {
-  const { id, username, githubId, name, aboutMe, verifyCode } = row;
-  return { id, username, githubId, name, aboutMe, verifyCode };
+  const { id, username, name, aboutMe, verifyCode } = row;
+  return { id, username, name, aboutMe, verifyCode };
 }
 
 // Exactly 16-character legacy IDs are looked up using their first six characters.
@@ -33,11 +33,33 @@ export async function findUserByName(db: AppDatabase, name: string): Promise<Use
   });
 }
 
-export async function findUserByGitHubId(db: AppDatabase, githubId: number): Promise<User | null> {
-  return wrap('findUserByGitHubId', async () => {
-    const [row] = await db.select().from(tUser).where(eq(tUser.githubId, githubId));
-    return row ? model(row) : null;
+export async function findUserByIdentity(
+  db: AppDatabase,
+  identity: { provider: IdentityProvider; subject: string },
+): Promise<User | null> {
+  return wrap('findUserByIdentity', async () => {
+    const [row] = await db
+      .select({ user: tUser })
+      .from(tUserIdentity)
+      .innerJoin(tUser, eq(tUser.id, tUserIdentity.userId))
+      .where(and(eq(tUserIdentity.provider, identity.provider), eq(tUserIdentity.subject, identity.subject)));
+    return row ? model(row.user) : null;
   });
+}
+
+// Ordered by creation time ascending.
+export async function getIdentitiesOfUser(db: AppDatabase, userId: string): Promise<UserIdentity[]> {
+  return wrap('getIdentitiesOfUser', () =>
+    db
+      .select({
+        userId: tUserIdentity.userId,
+        provider: tUserIdentity.provider,
+        subject: tUserIdentity.subject,
+      })
+      .from(tUserIdentity)
+      .where(eq(tUserIdentity.userId, userId))
+      .orderBy(asc(tUserIdentity.createdAt), asc(tUserIdentity.provider), asc(tUserIdentity.subject)),
+  );
 }
 
 export async function getUsers(db: AppDatabase): Promise<User[]> {
@@ -46,22 +68,26 @@ export async function getUsers(db: AppDatabase): Promise<User[]> {
 
 export interface CreateUserParams {
   username: string;
-  githubId: number | null;
   name: string;
   aboutMe: string;
+  identity: { provider: IdentityProvider; subject: string };
 }
 
-export async function createUser(db: AppDatabase, params: CreateUserParams): Promise<User> {
-  return wrap('createUser', async () => {
-    let id = newNanoId();
-    while (await db.$count(tUser, eq(tUser.id, id))) id = newNanoId();
-    const now = new Date();
-    const [row] = await db
-      .insert(tUser)
-      .values({ ...params, id, verifyCode: newVerifyCode(), createdAt: now, updatedAt: now })
-      .returning();
-    return model(row);
-  });
+// The user and its identity are created atomically; an identity already linked to another user rejects both.
+export async function createUser(db: AppDatabase, { identity, ...profile }: CreateUserParams): Promise<User> {
+  return wrap('createUser', () =>
+    db.transaction(async (tx) => {
+      let id = newNanoId();
+      while (await tx.$count(tUser, eq(tUser.id, id))) id = newNanoId();
+      const now = new Date();
+      const [row] = await tx
+        .insert(tUser)
+        .values({ ...profile, id, verifyCode: newVerifyCode(), createdAt: now, updatedAt: now })
+        .returning();
+      await tx.insert(tUserIdentity).values({ ...identity, userId: id, createdAt: now });
+      return model(row);
+    }),
+  );
 }
 
 export interface UpdateUserParams {

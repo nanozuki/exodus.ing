@@ -197,11 +197,12 @@ describe('repository contracts against PostgreSQL', () => {
 
   it('returns complete users, preserves legacy IDs, and normalizes database errors', async () => {
     const db = database.db;
+    const identity = { provider: 'github', subject: '424242' } as const;
     const user = await users.createUser(db, {
       username: 'contract-user',
       name: 'Contract User',
-      githubId: null,
       aboutMe: '',
+      identity,
     });
     expect(user.id).toMatch(/^[a-z0-9]{6}$/);
     expect(user.verifyCode).toMatch(/^[a-z0-9]{32}$/);
@@ -210,9 +211,37 @@ describe('repository contracts against PostgreSQL', () => {
       (await users.getUsers(db)).map((user) => user.id).sort(),
     );
     await expect(
-      users.createUser(db, { username: user.username, name: 'Other', githubId: null, aboutMe: '' }),
+      users.createUser(db, {
+        username: user.username,
+        name: 'Other',
+        aboutMe: '',
+        identity: { provider: 'github', subject: '424243' },
+      }),
     ).rejects.toMatchObject({ body: { detail: { tag: 'DATABASE_ERROR', value: { operation: 'createUser' } } } });
+    expect(await users.findUserByIdentity(db, { provider: 'github', subject: '424243' })).toBeNull();
     await users.updateUser(db, { id: 'absent', name: 'no-op' });
+  });
+
+  it('links users to sign-in identities and creates both atomically', async () => {
+    const db = database.db;
+    const identity = { provider: 'github', subject: '515151' } as const;
+    const user = await users.createUser(db, {
+      username: 'identity-user',
+      name: 'Identity User',
+      aboutMe: '',
+      identity,
+    });
+
+    expect(await users.findUserByIdentity(db, identity)).toEqual(user);
+    expect(await users.findUserByIdentity(db, { provider: 'github', subject: '0' })).toBeNull();
+    expect(await users.getIdentitiesOfUser(db, user.id)).toEqual([{ userId: user.id, ...identity }]);
+    expect(await users.getIdentitiesOfUser(db, 'absent')).toEqual([]);
+
+    await expect(
+      users.createUser(db, { username: 'identity-taken', name: 'Identity Taken', aboutMe: '', identity }),
+    ).rejects.toMatchObject({ body: { detail: { tag: 'DATABASE_ERROR', value: { operation: 'createUser' } } } });
+    expect(await users.findUserByUsername(db, 'identity-taken')).toBeNull();
+    expect(await users.findUserByIdentity(db, identity)).toEqual(user);
   });
 });
 

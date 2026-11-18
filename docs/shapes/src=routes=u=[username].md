@@ -61,7 +61,6 @@ export declare const loadPageData: RemoteQueryFunction<
       aboutMe: VFileValue;
       id: string;
       username: string;
-      githubId: number | null;
       name: string;
       verifyCode: string;
     };
@@ -80,4 +79,4 @@ articles unless tab is exactly comments; readers get only comments. Validate
 page >= 1 and default to 1. Keep pageSize = 20 private to this remote function,
 pass it when loading the selected collection, and retain the effective pageSize
 in the paginated result. Preserve the existing public output fields, including
-githubId and verifyCode.
+verifyCode.

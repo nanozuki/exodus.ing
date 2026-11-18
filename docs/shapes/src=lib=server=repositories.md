@@ -587,7 +587,8 @@ step for expiration detected by a use case.
 
 ### `src/lib/server/repositories/user.ts`
 
-Read user identity/profile data and persist supplied profile changes.
+Read user profiles and their sign-in identities, create users together with
+their first identity, and persist supplied profile changes.
 
 #### `findUserById`
 
@@ -623,16 +624,27 @@ export declare function findUserByName(
 
 Perform an exact optional lookup.
 
-#### `findUserByGitHubId`
+#### `findUserByIdentity`
 
 ```typescript
-export declare function findUserByGitHubId(
+export declare function findUserByIdentity(
   db: AppDatabase,
-  githubId: number,
+  identity: { provider: IdentityProvider; subject: string },
 ): Promise<User | null>;
 ```
 
-Perform an exact optional lookup.
+Perform an exact optional lookup by provider account.
+
+#### `getIdentitiesOfUser`
+
+```typescript
+export declare function getIdentitiesOfUser(
+  db: AppDatabase,
+  userId: string,
+): Promise<UserIdentity[]>;
+```
+
+Order identities by creation time ascending.
 
 #### `getUsers`
 
@@ -647,9 +659,9 @@ Return every user ordered by ID ascending, without truncation.
 ```typescript
 export interface CreateUserParams {
   username: string;
-  githubId: number | null;
   name: string;
   aboutMe: string;
+  identity: { provider: IdentityProvider; subject: string };
 }
 ```
 
@@ -663,8 +675,10 @@ export declare function createUser(
 ```
 
 Generate a unique six-character ID and a 32-character verification code, capture
-persistence timestamps, and insert the identity/profile. Return the public
-`User` model. Normalize uniqueness failures through `wrap`.
+persistence timestamps, and insert the identity/profile. The user and its
+identity are created atomically. Return the public `User` model. Normalize
+uniqueness failures, including an identity already linked to another user,
+through `wrap`.
 
 #### `UpdateUserParams`
 
@@ -678,7 +692,8 @@ export interface UpdateUserParams {
 ```
 
 Identify the user and supplied editable fields. Omitted fields remain unchanged;
-GitHub identity and verification code are not editable through this operation.
+sign-in identities and verification code are not editable through this
+operation.
 
 #### `updateUser`
 

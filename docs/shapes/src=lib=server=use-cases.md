@@ -317,11 +317,9 @@ export function loginWithGitHub(
 ): Promise<{ session: Session; token: string }>;
 ```
 
-Consume a trusted GitHub identity returned by the OAuth adapter. Reuse an
-account with the provider ID, or create one using the supplied signup
-username/name with GitHub username fallbacks and an empty biography. Reject a
-chosen username starting with `@`. Existing account data is not overwritten by
-signup hints. Create a session through `createSession` and return its result.
-Provider exchange, OAuth state/cookie parsing, cookie updates, and next-URL
-redirects stay in request code. Account creation and session insertion are
-separate persistence calls.
+Sign in to the account linked to the trusted GitHub account and return a new
+session for it. On first sign-in, create the account with its `github` identity,
+taking username and name from the signup hints or else the GitHub username, and
+an empty biography. Reject a chosen username starting with `@`. Signup hints
+never change an existing account. Account and session creation are not atomic:
+an account created before a failed session insert remains.

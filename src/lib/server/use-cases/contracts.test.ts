@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
 import { Role } from '#lib/models/role.js';
 import { hashSessionSecret } from '#lib/models/session.js';
-import { findUserByUsername } from '#lib/server/repositories/user.js';
+import { findUserByUsername, getIdentitiesOfUser } from '#lib/server/repositories/user.js';
 import { findSessionById, createSession as persistSession } from '#lib/server/repositories/session.js';
 import { getArticleById } from '#lib/server/repositories/article.js';
 import { tArticle } from '#lib/server/db/schema.js';
@@ -277,5 +277,8 @@ describe('business operations', () => {
       name: 'Contract GitHub',
       aboutMe: '',
     });
+    expect(await getIdentitiesOfUser(db, first.session.userId)).toEqual([
+      { userId: first.session.userId, provider: 'github', subject: '987654' },
+    ]);
   });
 });

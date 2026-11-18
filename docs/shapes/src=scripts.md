@@ -1,9 +1,9 @@
 # src/scripts
 
 Dispatch checkout-local PostgreSQL maintenance commands, synchronize Docker's
-Node version after Nix updates, and expose the import-executed article-count
-migration. Child directory lib owns provisioning, process lifecycle, and
-seeding.
+Node version after Nix updates, and expose import-executed one-off data
+migrations run by hand. Child directory lib owns provisioning, process
+lifecycle, and seeding.
 
 ## Files
 
@@ -25,6 +25,23 @@ each article and log progress. Operations across articles are not one
 transaction; failures leave earlier updates applied. Each call constructs its
 own configured database through `src/lib/server/db`; table imports come from
 `db/schema.ts`.
+
+### `src/scripts/migrate_user_identities.ts`
+
+Import-time effect: await migrateUserIdentities immediately. Importing this
+script reads environment configuration and performs database writes. It does not
+expose pool cleanup or close the database explicitly.
+
+#### `migrateUserIdentities`
+
+```typescript
+export declare function migrateUserIdentities(): Promise<void>;
+```
+
+Give every user with a legacy `github_id` the matching `github` identity and log
+how many were added. Run it after pushing the schema that adds `user_identity`.
+The copy is atomic and idempotent: a failure adds nothing, and rerunning leaves
+the same rows. Existing identities and the legacy column stay unchanged.
 
 ### `src/scripts/pg.ts`
 

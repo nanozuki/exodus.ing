@@ -23,6 +23,7 @@ type TestDataset = {
   bookmarks: BookmarkSeed[];
   comments: CommentSeed[];
   userRoles: UserRoleSeed[];
+  userIdentities: UserIdentitySeed[];
   inviteCodes: InviteCodeSeed[];
 };
 ```
@@ -57,6 +58,12 @@ export type CommentSeed = typeof tComment.$inferInsert;
 export type UserRoleSeed = typeof tUserRole.$inferInsert;
 ```
 
+#### `UserIdentitySeed`
+
+```typescript
+export type UserIdentitySeed = typeof tUserIdentity.$inferInsert;
+```
+
 #### `InviteCodeSeed`
 
 ```typescript
@@ -70,7 +77,8 @@ export declare const testDataset: TestDataset;
 ```
 
 Contains six users (alice, bob, carol, dave, frank, erin), 26 articles, 28
-comments, bookmarks, three author role records, and four invitation codes.
+comments, bookmarks, three author role records, one `github` identity for carol,
+and four invitation codes. User seeds leave the legacy `githubId` column unset.
 Encoded paths and interaction counts derive from the same relationship fixtures.
 Exported objects and arrays are mutable; callers must isolate mutations
 themselves.

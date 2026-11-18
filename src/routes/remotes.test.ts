@@ -5,6 +5,7 @@ const state = vi.hoisted(() => ({
   listArticles: vi.fn(),
   editable: vi.fn(),
   listBookmarks: vi.fn(),
+  getIdentitiesOfUser: vi.fn(),
 }));
 
 vi.mock('$app/server', () => ({
@@ -30,6 +31,11 @@ vi.mock('#lib/server/repositories/article.js', () => ({
   getArticleSummaryById: vi.fn(),
 }));
 
+vi.mock('#lib/server/repositories/user.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('#lib/server/repositories/user.js')>()),
+  getIdentitiesOfUser: state.getIdentitiesOfUser,
+}));
+
 vi.mock('#lib/server/use-cases/article.js', () => ({
   getEditableArticle: state.editable,
   saveMarkdownArticle: vi.fn(),
@@ -39,13 +45,13 @@ import { loadPageData as home } from './page.remote';
 import { loadLayoutData as consoleLayout } from './console/layout.remote';
 import { loadPageData as editor } from './a/[articleId]/edit/page.remote';
 import { loadPageData as bookmarks } from './console/bookmarks/page.remote';
+import { loadPageData as account } from './console/account/page.remote';
 import { Role } from '#lib/models/role.js';
 
 const actor = {
   id: 'trusted',
   username: 'trusted',
   name: 'Trusted',
-  githubId: null,
   aboutMe: '',
   verifyCode: '',
   roles: [Role.ArticleAuthor],
@@ -96,6 +102,20 @@ it('guards the explicit console pathname and redirects disallowed destinations',
     throw new Error('unauthorized');
   };
   await expect(consoleLayout({ pathname: '/console/account' })).rejects.toThrow('unauthorized');
+});
+
+it("reads the actor's GitHub account ID for the account page", async () => {
+  state.getIdentitiesOfUser.mockResolvedValue([{ userId: actor.id, provider: 'github', subject: '987654' }]);
+  expect(await account()).toEqual({ githubId: '987654' });
+  expect(state.getIdentitiesOfUser).toHaveBeenCalledWith({}, actor.id);
+
+  state.getIdentitiesOfUser.mockResolvedValue([]);
+  expect(await account()).toEqual({ githubId: null });
+
+  state.event.locals.requireLoggedInUser = () => {
+    throw new Error('unauthorized');
+  };
+  await expect(account()).rejects.toThrow('unauthorized');
 });
 
 it('authorizes editor reads and uses stored type and content for existing articles', async () => {

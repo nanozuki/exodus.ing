@@ -6,7 +6,7 @@ import type { Random } from '#lib/server/adapters/random.js';
 import {
   findUserByUsername,
   findUserByName,
-  findUserByGitHubId,
+  findUserByIdentity,
   createUser,
   updateUser,
 } from '#lib/server/repositories/user.js';
@@ -41,12 +41,13 @@ export async function loginWithGitHub(
   deps: { db: AppDatabase; now: () => Date; random: Random },
   params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },
 ): Promise<{ session: Session; token: string }> {
-  let user = await findUserByGitHubId(deps.db, params.githubUser.id);
+  const identity = { provider: 'github', subject: String(params.githubUser.id) } as const;
+  let user = await findUserByIdentity(deps.db, identity);
   if (!user) {
     const username = params.signUp?.username || params.githubUser.username;
     const name = params.signUp?.name || username;
     if (username.startsWith('@')) return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });
-    user = await createUser(deps.db, { username, name, githubId: params.githubUser.id, aboutMe: '' });
+    user = await createUser(deps.db, { username, name, aboutMe: '', identity });
   }
   return createSession(deps, { userId: user.id });
 }

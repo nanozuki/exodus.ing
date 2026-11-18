@@ -1,6 +1,14 @@
 import { Role } from '#lib/models/role.js';
 import { encodeIdPath, type IdPath } from '#lib/models/id_path.js';
-import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '#lib/server/db/schema.js';
+import type {
+  tArticle,
+  tBookmark,
+  tComment,
+  tInviteCode,
+  tUser,
+  tUserIdentity,
+  tUserRole,
+} from '#lib/server/db/schema.js';
 
 export type UserSeed = typeof tUser.$inferInsert;
 
@@ -12,6 +20,8 @@ export type CommentSeed = typeof tComment.$inferInsert;
 
 export type UserRoleSeed = typeof tUserRole.$inferInsert;
 
+export type UserIdentitySeed = typeof tUserIdentity.$inferInsert;
+
 export type InviteCodeSeed = typeof tInviteCode.$inferInsert;
 
 type TestDataset = {
@@ -20,6 +30,7 @@ type TestDataset = {
   bookmarks: BookmarkSeed[];
   comments: CommentSeed[];
   userRoles: UserRoleSeed[];
+  userIdentities: UserIdentitySeed[];
   inviteCodes: InviteCodeSeed[];
 };
 
@@ -279,7 +290,6 @@ function buildTestDataset(): TestDataset {
       name: 'Alice',
       aboutMe: 'Writes about engineering and design systems.',
       verifyCode: 'verify_alice',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -288,7 +298,6 @@ function buildTestDataset(): TestDataset {
       name: 'Bob',
       aboutMe: 'Focuses on product insights and growth.',
       verifyCode: 'verify_bob',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -297,7 +306,6 @@ function buildTestDataset(): TestDataset {
       name: 'Carol',
       aboutMe: 'Enjoys reading long-form essays.',
       verifyCode: 'verify_carol',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -306,7 +314,6 @@ function buildTestDataset(): TestDataset {
       name: 'Dave',
       aboutMe: 'Reads and bookmarks external articles.',
       verifyCode: 'verify_dave',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -315,7 +322,6 @@ function buildTestDataset(): TestDataset {
       name: 'Frank',
       aboutMe: 'Prefers exploring new articles and bookmarks.',
       verifyCode: 'verify_frank',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -324,7 +330,6 @@ function buildTestDataset(): TestDataset {
       name: 'Erin',
       aboutMe: 'Invited author exploring markdown workflows.',
       verifyCode: 'verify_erin',
-      githubId: null,
       ...nextTimestamps(),
     },
   ];
@@ -754,7 +759,12 @@ function buildTestDataset(): TestDataset {
     },
   ];
 
-  return { users, articles, comments, bookmarks, userRoles, inviteCodes };
+  // Created after the other fixtures so their timestamps stay unchanged.
+  const userIdentities: UserIdentitySeed[] = [
+    { userId: userIds.reader1, provider: 'github', subject: '30001', createdAt: nextTime() },
+  ];
+
+  return { users, articles, comments, bookmarks, userRoles, userIdentities, inviteCodes };
 }
 
 export const testDataset = buildTestDataset();

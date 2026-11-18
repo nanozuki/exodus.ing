@@ -22,6 +22,7 @@ test('User updates profile and account identity', async ({ actor }) => {
   });
   await test.step('Cancel a username change', async () => {
     await page.goto('/console/account');
+    await expect(page.getByText('30001', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: '编辑', exact: true }).click();
     await page.locator('input[name^="username/"]').fill('discarded-carol');
     await page.getByRole('button', { name: '取消', exact: true }).click();

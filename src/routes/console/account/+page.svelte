@@ -4,9 +4,10 @@
   import Button from '#lib/component/Button.svelte';
   import Input from '#lib/component/Input.svelte';
   import Dialog from '#lib/component/Dialog.svelte';
-  import { updateUsername } from './page.remote';
+  import { loadPageData, updateUsername } from './page.remote';
 
   const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
+  const { githubId } = $derived(await loadPageData());
   let hasMountedUsernameForm = false;
 
   function resetUsernameOnRemount(form: HTMLFormElement) {
@@ -52,7 +53,7 @@
     {/snippet}
   </Dialog>
   <p class="font-serif font-bold">GitHub ID:</p>
-  <p>{user.githubId}</p>
+  <p>{githubId}</p>
 </div>
 
 <style>

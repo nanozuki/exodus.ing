@@ -51,6 +51,9 @@ export const tUser = pgTable('user', {
 });
 ```
 
+`githubId` is a legacy column awaiting removal; application code neither reads
+nor writes it.
+
 #### `tSession`
 
 ```typescript
@@ -171,6 +174,35 @@ export const tUserRole = pgTable(
 );
 ```
 
+#### `identityProvider`
+
+```typescript
+export const identityProvider = pgEnum('identity_provider', identityProviders);
+```
+
+PostgreSQL enum built from the models' `identityProviders`.
+
+#### `tUserIdentity`
+
+```typescript
+export const tUserIdentity = pgTable(
+  'user_identity',
+  {
+    userId: text('user_id').notNull(),
+    provider: identityProvider('provider').notNull(),
+    subject: text('subject').notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (table) => [
+    primaryKey({ columns: [table.subject, table.provider] }),
+    index('user_identity_user_id_idx').on(table.userId),
+  ],
+);
+```
+
+A user may hold several identities; each provider account belongs to at most one
+user. Identities are immutable, so the table has no `updatedAt`.
+
 #### `schema`
 
 ```typescript
@@ -181,6 +213,7 @@ export const schema = {
   tInviteCode,
   tSession,
   tUser,
+  tUserIdentity,
 };
 ```
 
@@ -222,6 +255,12 @@ export type SessionRow = typeof tSession.$inferSelect;
 export type UserRow = typeof tUser.$inferSelect;
 ```
 
+#### `UserIdentityRow`
+
+```typescript
+export type UserIdentityRow = typeof tUserIdentity.$inferSelect;
+```
+
 #### `UserRoleRow`
 
 ```typescript
@@ -240,7 +279,7 @@ Transaction contexts remain internal to repository operations.
 ### `src/lib/server/db/database.sql`
 
 Implicit entry point: provisioning executes this SQL in a newly created template
-database. It creates the same nine tables, keys, defaults, and indexes described
-by schema.ts. Statements are unconditional CREATE statements, not an idempotent
-migration or an upgrade path. It contains no foreign keys; existing databases
-are not automatically upgraded.
+database. It creates the enum types, tables, keys, defaults, and indexes
+described by schema.ts. Statements are unconditional CREATE statements, not an
+idempotent migration or an upgrade path. It contains no foreign keys; existing
+databases are not automatically upgraded.

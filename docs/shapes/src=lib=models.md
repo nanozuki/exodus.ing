@@ -299,7 +299,6 @@ it.
 
 ```typescript
 export interface User extends UserSummary {
-  githubId: number | null;
   aboutMe: string;
   verifyCode: string;
 }
@@ -336,8 +335,38 @@ export interface UserSummary {
 ```
 
 Reusable public identity projection for article and comment authors, navigation,
-and invitation relationships. The full `User` adds GitHub identity, profile
-text, and verification data.
+and invitation relationships. The full `User` adds profile text and verification
+data. Sign-in identities are a separate `UserIdentity` relation.
+
+#### `identityProviders`
+
+```typescript
+export const identityProviders = ['github'] as const;
+```
+
+The single source of supported sign-in providers; the database enum is declared
+from it.
+
+#### `IdentityProvider`
+
+```typescript
+export type IdentityProvider = (typeof identityProviders)[number];
+```
+
+#### `UserIdentity`
+
+```typescript
+export interface UserIdentity {
+  userId: string;
+  provider: IdentityProvider;
+  subject: string;
+}
+```
+
+One external sign-in account linked to a user. `subject` is the provider's
+stable account identifier, never reassigned within that provider, matching the
+OIDC `sub` claim; `(provider, subject)` identifies at most one user. A GitHub
+`subject` is the decimal string of its numeric account ID.
 
 ### `src/lib/models/id_path.ts`
 

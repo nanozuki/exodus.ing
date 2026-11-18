@@ -1,6 +1,7 @@
-import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
+import { index, integer, pgEnum, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
 import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ArticleContentType } from '#lib/models/article.js';
+import { identityProviders } from '#lib/models/user.js';
 
 const timestamps = {
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -11,6 +12,7 @@ export const tUser = pgTable('user', {
   id: text('id').notNull().primaryKey(),
   ...timestamps,
   username: text('username').notNull().unique(),
+  // Legacy column awaiting removal; the GitHub account link lives in tUserIdentity.
   githubId: integer('github_id').unique(),
   name: text('name').notNull().unique(),
   aboutMe: text('about_me').notNull(),
@@ -103,6 +105,24 @@ export const tUserRole = pgTable(
   ],
 );
 
+export const identityProvider = pgEnum('identity_provider', identityProviders);
+
+// Identities are immutable, so the table has no updatedAt.
+export const tUserIdentity = pgTable(
+  'user_identity',
+  {
+    userId: text('user_id').notNull(),
+    provider: identityProvider('provider').notNull(),
+    subject: text('subject').notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (table) => [
+    // subject leads because it is far more selective than provider.
+    primaryKey({ columns: [table.subject, table.provider] }),
+    index('user_identity_user_id_idx').on(table.userId),
+  ],
+);
+
 // tUserRole is intentionally omitted; repositories import that table directly.
 export const schema = {
   tArticle,
@@ -111,6 +131,7 @@ export const schema = {
   tInviteCode,
   tSession,
   tUser,
+  tUserIdentity,
 };
 
 export type AppDatabase = NodePgDatabase<typeof schema>;
@@ -126,5 +147,7 @@ export type InviteCodeRow = typeof tInviteCode.$inferSelect;
 export type SessionRow = typeof tSession.$inferSelect;
 
 export type UserRow = typeof tUser.$inferSelect;
+
+export type UserIdentityRow = typeof tUserIdentity.$inferSelect;
 
 export type UserRoleRow = typeof tUserRole.$inferSelect;

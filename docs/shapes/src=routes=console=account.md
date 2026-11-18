@@ -16,21 +16,35 @@ export default component;
 ```
 
 Call the ancestor console `loadLayoutData({ pathname: page.url.pathname })` and
-display its user's username and GitHub ID. Use an internally controlled dialog
-to edit username, provide cancel without submission, and submit updateUsername
-directly with remote-field attributes, the current username as the
-rendering/reset default, and field issues. Submission exceptions propagate to
-the error page. A local attachment preserves initial native-submission feedback
-and resets the HTML form on subsequent dialog-content mounts, clearing discarded
-field values and issues without moving focus. Successful submission navigates to
-the updated profile; the dialog ends with the page. The trigger snippet supplies
-button content; cancellation uses the content snippet’s close callback.
+display its user's username. Call this page's `loadPageData()` and display its
+`githubId`, rendering nothing in that cell when it is `null`. Use an internally
+controlled dialog to edit username, provide cancel without submission, and
+submit updateUsername directly with remote-field attributes, the current
+username as the rendering/reset default, and field issues. Submission exceptions
+propagate to the error page. A local attachment preserves initial
+native-submission feedback and resets the HTML form on subsequent dialog-content
+mounts, clearing discarded field values and issues without moving focus.
+Successful submission navigates to the updated profile; the dialog ends with the
+page. The trigger snippet supplies button content; cancellation uses the content
+snippet’s close callback.
 
 ### `src/routes/console/account/page.remote.ts`
 
 Apply the
 [request-boundary conventions](../architecture.md#request-boundaries-and-remote-functions)
 to this remote entry point.
+
+#### `loadPageData`
+
+```typescript
+export declare const loadPageData: RemoteQueryFunction<
+  void,
+  { githubId: string | null }
+>;
+```
+
+Require login. `githubId` is the actor's GitHub account ID, or `null` when none
+is linked.
 
 #### `updateUsername`
 
