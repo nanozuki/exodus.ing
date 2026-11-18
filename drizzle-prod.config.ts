@@ -3,15 +3,11 @@ import { z } from 'zod';
 
 import baseConfig from './drizzle.config';
 
-// Targets the production database through `pnpm db:push:prod`. The connection
-// comes only from PRODUCTION_DATABASE_URL, which must include the host, user,
-// password, and database; loading the config throws otherwise. The port
-// defaults to 5432. TLS is off unless the URL sets `sslmode` to `require`,
-// `verify-ca`, or `verify-full`, all of which verify the server certificate.
-// Other query parameters are ignored.
-
-// pg fills every connection setting the config leaves unset from the local PG*
-// variables that the devShell exports, so each one is passed explicitly.
+// Config for `pnpm db:push:prod`. Set PRODUCTION_DATABASE_URL to the
+// provider's connection URL.
+//
+// node-postgres (`pg`) fills any connection setting missing from a URL with the
+// matching PG* environment variable, so make sure the URL defines every part.
 const productionDatabaseUrl = z
   .url({ protocol: /^postgres(ql)?$/ })
   .transform((value) => {
