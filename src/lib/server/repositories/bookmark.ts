@@ -1,3 +1,5 @@
+// Read bookmark state and keep relationship changes consistent with the article's persisted bookmark count.
+
 import type { BookmarkState } from '#lib/models/bookmark.js';
 import { and, eq, sql } from 'drizzle-orm';
 import { tArticle, tBookmark, type AppDatabase } from '#lib/server/db/schema.js';

@@ -1,3 +1,6 @@
+// Read comment records and per-user grouped projections; insert and update comments while preserving article
+// counts.
+
 import type { Comment, CommentListItem } from '#lib/models/comment.js';
 import { decodeIdPath, decodePathField, encodeIdPath } from '#lib/models/id_path.js';
 import type { Pagination, Paginated } from '#lib/models/page.js';

@@ -1,3 +1,6 @@
+// Persist supplied session data. Use cases own ID generation, current-time reads, expiration decisions, and
+// renewal policy.
+
 import type { Session } from '#lib/models/session.js';
 import { eq } from 'drizzle-orm';
 import { tSession, type AppDatabase } from '#lib/server/db/schema.js';

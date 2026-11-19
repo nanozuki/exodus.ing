@@ -1,3 +1,5 @@
+// Create, validate, and invalidate the sessions behind the `auth_session` cookie.
+
 import { constantTimeEqual } from '@oslojs/crypto/subtle';
 import { hashSessionSecret, type Session } from '#lib/models/session.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
@@ -22,8 +24,10 @@ async function findVerifiedSession(deps: { db: AppDatabase }, params: { token: s
   return matches ? session : null;
 }
 
-// Expiry is 30 days after the injected clock's current instant. The token is returned only here because the
-// secret is not stored.
+/**
+ * Expiry is 30 days after the injected clock's current instant. The token is returned only here because the
+ * secret is not stored.
+ */
 export async function createSession(
   deps: { db: AppDatabase; now: () => Date; random: Random },
   params: { userId: string },
@@ -40,7 +44,7 @@ export async function createSession(
   return { session, token: `${id}.${secret}` };
 }
 
-// Renewal is inclusive at 20 remaining days; refresh tells the caller to rewrite its cookie with the same token.
+/** Renewal is inclusive at 20 remaining days; refresh tells the caller to rewrite its cookie with the same token. */
 export async function validateSession(
   deps: { db: AppDatabase; now: () => Date },
   params: { token: string },
@@ -60,7 +64,7 @@ export async function validateSession(
   return { session, refresh };
 }
 
-// Sign-out: afterwards the token validates as null. Cookie removal stays with the caller.
+/** Sign-out: afterwards the token validates as null. Cookie removal stays with the caller. */
 export async function invalidateSession(deps: { db: AppDatabase }, params: { token: string }): Promise<void> {
   const session = await findVerifiedSession(deps, params);
   if (session) {

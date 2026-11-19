@@ -12,7 +12,7 @@ import {
 } from '#lib/server/repositories/user.js';
 import { createSession } from './session';
 
-// This preflight does not reserve names; creation still relies on database uniqueness constraints.
+/** This preflight does not reserve names; creation still relies on database uniqueness constraints. */
 export async function validateSignUp(
   deps: { db: AppDatabase },
   params: { username?: string; name?: string },
@@ -26,7 +26,7 @@ export async function validateSignUp(
     return throwError('PARAMETER_INVALID', { name: '昵称已存在' });
 }
 
-// Input is preserved verbatim; no trimming or uniqueness precheck is applied.
+/** Input is preserved verbatim; no trimming or uniqueness precheck is applied. */
 export async function updateUsername(
   deps: { db: AppDatabase },
   params: { actor: LoggedInUser; username: string },
@@ -36,7 +36,7 @@ export async function updateUsername(
   await updateUser(deps.db, { id: params.actor.id, username: params.username });
 }
 
-// Signup hints affect new accounts only. Account and session creation are separate writes.
+/** Signup hints affect new accounts only. Account and session creation are separate writes. */
 export async function loginWithGitHub(
   deps: { db: AppDatabase; now: () => Date; random: Random },
   params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },

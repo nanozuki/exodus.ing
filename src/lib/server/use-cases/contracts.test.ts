@@ -57,6 +57,7 @@ async function persistKnownSession(id: string, expiresAt: Date, secret = `${id}-
 }
 
 describe('session policy with an injected clock and real persistence', () => {
+  // Covers: createSession
   it('reads the clock and generators once, storing only the secret hash', async () => {
     const now = vi.fn(() => instant);
     const random = { sessionId: vi.fn(() => 'injected-session'), sessionSecret: vi.fn(() => 'injected-secret') };
@@ -74,6 +75,7 @@ describe('session policy with an injected clock and real persistence', () => {
     expect(await findSessionById(database.db, session.id)).toEqual(session);
     expect(await validateSession({ db: database.db, now: () => instant }, { token })).not.toBeNull();
   });
+  // Covers: validateSession
   it('rejects tokens assembled from stored columns', async () => {
     const id = 'stored-columns';
     await persistKnownSession(id, new Date(+instant + 30 * day));
@@ -83,6 +85,7 @@ describe('session policy with an injected clock and real persistence', () => {
       expect(await validateSession(deps, { token })).toBeNull();
     }
   });
+  // Covers: validateSession
   it.each([
     [-1, null],
     [0, null],
@@ -104,12 +107,14 @@ describe('session policy with an injected clock and real persistence', () => {
       expect(result?.session.expiresAt).toEqual(new Date(+instant + (refresh ? 30 * day : remaining)));
     }
   });
+  // Covers: validateSession
   it.each(['', 'missing.secret', 'no-separator', '.secret', 'id.', 'a.b.c'])(
     'treats malformed or unknown token %j as absent',
     async (token) => {
       expect(await validateSession({ db: database.db, now: () => instant }, { token })).toBeNull();
     },
   );
+  // Covers: validateSession, invalidateSession
   it('treats a mismatched secret as absent without touching the session, even when expired', async () => {
     const expiresAt = new Date(+instant - 1);
     await persistKnownSession('mismatch', expiresAt);
@@ -118,6 +123,7 @@ describe('session policy with an injected clock and real persistence', () => {
     await invalidateSession(deps, { token: 'mismatch.wrong-secret' });
     expect(await findSessionById(database.db, 'mismatch')).toMatchObject({ id: 'mismatch', expiresAt });
   });
+  // Covers: validateSession
   it('treats a corrupted stored hash as a mismatch', async () => {
     await persistSession(database.db, {
       id: 'corrupted',
@@ -127,6 +133,7 @@ describe('session policy with an injected clock and real persistence', () => {
     });
     expect(await validateSession({ db: database.db, now: () => instant }, { token: 'corrupted.secret' })).toBeNull();
   });
+  // Covers: invalidateSession
   it('invalidates a verified token so replaying it is anonymous', async () => {
     const token = await persistKnownSession('signed-out', new Date(+instant + 30 * day));
     const deps = { db: database.db, now: () => instant };
@@ -134,12 +141,14 @@ describe('session policy with an injected clock and real persistence', () => {
     expect(await findSessionById(database.db, 'signed-out')).toBeNull();
     expect(await validateSession(deps, { token })).toBeNull();
   });
+  // Covers: invalidateSession
   it('ignores malformed tokens on invalidation', async () => {
     await expect(invalidateSession({ db: database.db }, { token: 'no-separator' })).resolves.toBeUndefined();
   });
 });
 
 describe('business operations', () => {
+  // Covers: saveMarkdownArticle, getEditableArticle
   it('enforces article permissions before writes and returns Markdown validation issues', async () => {
     const deps = { db: database.db };
     await expect(saveMarkdownArticle(deps, { actor: reader, content: '# Forbidden' })).rejects.toMatchObject({
@@ -167,6 +176,7 @@ describe('business operations', () => {
     ).rejects.toMatchObject({ status: 400 });
   });
 
+  // Covers: verifyDomainOwnership, saveExternalArticle
   it('uses mocked DNS, verifies before ownership lookup, and preserves original URL text', async () => {
     const resolveTxt = vi.fn(async () => ['prefix exodus-site-verification=correct suffix']);
     expect(
@@ -207,6 +217,7 @@ describe('business operations', () => {
     ).rejects.toThrow('DNS unavailable');
   });
 
+  // Covers: saveComment
   it('keeps comment edits on their stored article and rejects another actor', async () => {
     const created = await saveComment(
       { db: database.db },
@@ -226,6 +237,7 @@ describe('business operations', () => {
     });
   });
 
+  // Covers: getInviteQuota, createInviteCode, acceptInviteCode
   it('calculates quota, scopes permission, and redeems using one supplied instant', async () => {
     const db = database.db;
     await expect(createInviteCode({ db }, { actor: reader })).rejects.toMatchObject({ status: 403 });
@@ -245,6 +257,7 @@ describe('business operations', () => {
     });
   });
 
+  // Covers: validateSignUp, updateUsername, loginWithGitHub
   it('validates identities and reuses a GitHub account without overwriting profile', async () => {
     const db = database.db;
     await expect(validateSignUp({ db }, { username: '@invalid' })).rejects.toMatchObject({

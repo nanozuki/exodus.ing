@@ -1,3 +1,6 @@
+// Read article models and projections; insert and update persisted articles together with their direct parent's
+// reply count.
+
 import type {
   Article,
   ArticleSummary,

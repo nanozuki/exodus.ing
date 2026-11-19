@@ -1,3 +1,5 @@
+// Read user identity and profile data, and persist supplied profile changes.
+
 import type { User } from '#lib/models/user.js';
 import { asc, eq } from 'drizzle-orm';
 import { tUser, type AppDatabase, type UserRow } from '#lib/server/db/schema.js';

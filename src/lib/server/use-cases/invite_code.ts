@@ -12,7 +12,7 @@ export async function getInviteQuota(deps: { db: AppDatabase }, params: { userId
   return Math.max(articleCount - validCodeCount - invitedCount, 0);
 }
 
-// Concurrent changes can reject creation with retry guidance; no automatic retry is performed.
+/** Concurrent changes can reject creation with retry guidance; no automatic retry is performed. */
 export async function createInviteCode(
   deps: { db: AppDatabase },
   params: { actor: LoggedInUser },

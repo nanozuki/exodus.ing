@@ -1,3 +1,6 @@
+// Importing builds the shared dataset in memory once, with deterministic minute-spaced timestamps starting at
+// 2026-01-01 UTC. No database or network work happens on import.
+
 import { Role } from '#lib/models/role.js';
 import { encodeIdPath, type IdPath } from '#lib/models/id_path.js';
 import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '#lib/server/db/schema.js';

@@ -1,3 +1,5 @@
+// Persist invitation codes and expose consistent quota inputs. Quota arithmetic belongs to the invitation use case.
+
 import type { InviteCode, InviteCodeSummary, InviteStats } from '#lib/models/invite_code.js';
 import { throwError } from '#lib/errors.js';
 import { and, eq, isNull, sql } from 'drizzle-orm';

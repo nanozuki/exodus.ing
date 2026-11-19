@@ -1,3 +1,5 @@
+// Read assigned roles and invitation relationships, and persist invitation redemption atomically.
+
 import type { Relation, Role, UserRole } from '#lib/models/role.js';
 import { throwError } from '#lib/errors.js';
 import { and, desc, eq } from 'drizzle-orm';

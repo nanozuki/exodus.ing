@@ -1,3 +1,6 @@
+// Request adaptation shared by hooks, remote functions, and route handlers. Models and use cases must not import
+// this module. Importing it performs no database, network, or cookie operation.
+
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
 import { z } from 'zod';

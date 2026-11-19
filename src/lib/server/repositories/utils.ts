@@ -1,3 +1,6 @@
+// Operation wrapping and storage identifier generation shared by the repositories in this directory. These helpers
+// are not database operations themselves.
+
 import { throwError } from '#lib/errors.js';
 import { isHttpError } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid';

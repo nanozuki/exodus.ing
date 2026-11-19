@@ -15,7 +15,7 @@ function requireAuthor(actor: LoggedInUser): void {
   if (!userHasPermission(actor, Permission.CreateArticle)) throwError('FORBIDDEN', { operation: '编辑文章' });
 }
 
-// Use for editor reads: another author’s article produces FORBIDDEN.
+/** Use for editor reads: another author’s article produces FORBIDDEN. */
 export async function getEditableArticle(
   deps: { db: AppDatabase },
   params: { actor: LoggedInUser; articleId: string },
@@ -26,7 +26,7 @@ export async function getEditableArticle(
   return article;
 }
 
-// Failed validation performs no writes; edits preserve the stored content type and reply parent.
+/** Failed validation performs no writes; edits preserve the stored content type and reply parent. */
 export async function saveMarkdownArticle(
   deps: { db: AppDatabase },
   params: { actor: LoggedInUser; articleId?: string; content: string; replyToId?: string },
@@ -50,7 +50,7 @@ export async function saveMarkdownArticle(
   return { ok: true, articleId: article.id };
 }
 
-// The marker may occur anywhere in a TXT record; resolver failures propagate.
+/** The marker may occur anywhere in a TXT record; resolver failures propagate. */
 export async function verifyDomainOwnership(
   deps: { resolveTxt: (hostname: string) => Promise<string[]> },
   params: { url: URL; verificationCode: string },
@@ -60,7 +60,7 @@ export async function verifyDomainOwnership(
   );
 }
 
-// Domain verification precedes edit-target lookup, preserving form error precedence.
+/** Domain verification precedes edit-target lookup, preserving form error precedence. */
 export async function saveExternalArticle(
   deps: { db: AppDatabase; resolveTxt: (hostname: string) => Promise<string[]> },
   params: { actor: LoggedInUser; articleId?: string; url: URL; content: string; title: string; replyToId?: string },

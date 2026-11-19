@@ -1,3 +1,7 @@
+// Table builders and their inferred row types; row and insert shapes come from each table's $inferSelect and
+// $inferInsert. Every table's createdAt and updatedAt are required and default to now. Tables declare no foreign
+// keys.
+
 import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
 import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ArticleContentType } from '#lib/models/article.js';
