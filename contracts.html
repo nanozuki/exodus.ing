@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>契约总览</title>
+<style>
+:root{--bg:#f6f5f2;--panel:#fff;--text:#1f2328;--muted:#6b7280;--line:#e2e0db;--sig:#f3f2ef;--accent:#2b6f8f;
+--dir:#5b4a8b;--del:#ffd7d5;--ins:#c8f0d2;
+--added:#1a7f37;--removed:#cf222e;--signature:#9a6700;--doc:#0969da;--impl:#bc4c00;--tests:#8250df;--unchanged:#6b7280;
+--jsdoc:#1a7f37;--plain:#0969da;--none:#cf222e}
+@media (prefers-color-scheme:dark){:root{--bg:#131518;--panel:#1b1e22;--text:#e6e6e6;--muted:#9aa3ad;--line:#30343a;
+--sig:#23272c;--accent:#6cb6d9;--dir:#b3a3e6;--del:#67201f;--ins:#1c4a2b;--added:#4ac26b;--removed:#ff7b72;
+--signature:#d4a72c;--doc:#58a6ff;--impl:#f0883e;--tests:#bc8cff;--unchanged:#9aa3ad;--jsdoc:#4ac26b;--plain:#58a6ff;
+--none:#ff7b72}}
+*{box-sizing:border-box}
+html{scroll-padding-top:40px}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,sans-serif}
+a{color:inherit}
+code,pre{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.muted{color:var(--muted);font-size:13px}
+.page{max-width:1072px;margin:0 auto;padding:24px 16px 96px}
+
+/* Breadcrumb: the directory or file at the top of the viewport, filled in by the script below. */
+.crumb{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:2px;
+padding:5px max(16px,calc((100vw - 1072px) / 2 + 16px));background:color-mix(in srgb,var(--bg) 92%,transparent);
+backdrop-filter:blur(6px);border-bottom:1px solid var(--line);font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+.crumb a{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border-radius:5px;text-decoration:none;
+color:var(--muted)}
+.crumb a:hover{background:var(--sig);color:var(--text)}
+.crumb a:last-child{color:var(--text);font-weight:600}
+.crumb .sep{width:12px;height:12px;fill:none;stroke:var(--line);stroke-width:1.8;stroke-linecap:round}
+.crumb .icon{width:14px;height:14px}
+.crumb [data-kind="dir"] .icon{stroke:var(--dir);fill:color-mix(in srgb,var(--dir) 14%,transparent)}
+.crumb [data-kind="file"] .icon{stroke:var(--muted)}
+.crumb:empty{display:none}
+
+h1{margin:0;font-size:24px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.badge{display:inline-flex;gap:6px;align-items:center;padding:1px 10px;border:1px solid currentColor;border-radius:999px;
+font:12px/1.6 system-ui,sans-serif;white-space:nowrap}
+.b-added{color:var(--added)}.b-removed{color:var(--removed)}.b-signature{color:var(--signature)}.b-doc{color:var(--doc)}.b-impl{color:var(--impl)}.b-tests{color:var(--tests)}.b-unchanged{color:var(--unchanged)}
+.s-jsdoc{color:var(--jsdoc)}.s-plain{color:var(--plain)}.s-none{color:var(--none)}
+.prose p{margin:0 0 8px}.prose code{font-size:.9em;padding:0 3px;background:var(--sig);border-radius:3px}
+.source{color:var(--muted);font-size:12px}.source code{background:none}
+
+/* Tree: chevron and icon per row, indent guides under the chevrons, counts pushed to the right. */
+.counts{display:flex;gap:6px;margin-left:auto;padding-left:12px}
+.synopsis{min-width:0;flex:1 1 0;margin-left:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+color:var(--muted);font:14px/1.4 system-ui,sans-serif}
+.synopsis code{font-size:.9em}
+details[open]>summary>.synopsis{visibility:hidden}
+/* The subtree actions close the row so they stay put whatever the counts before them say. */
+.actions{display:flex;gap:2px;padding-left:8px;opacity:.35;transition:opacity .15s}
+.dir-head:hover .actions,.actions:focus-within{opacity:1}
+.actions button{display:grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid transparent;
+border-radius:5px;background:none;color:var(--muted);cursor:pointer}
+.actions button:hover{border-color:var(--line);background:var(--panel);color:var(--text)}
+.actions svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;
+stroke-linejoin:round}
+@media (hover:none){.actions{opacity:1}}
+.pill{padding:0 8px;border-radius:999px;background:var(--sig);color:var(--muted);font:12px/20px system-ui,sans-serif;
+white-space:nowrap}
+.pill.changed{background:color-mix(in srgb,var(--signature) 14%,transparent);color:var(--signature)}
+.pill.missing{background:color-mix(in srgb,var(--none) 12%,transparent);color:var(--none)}
+.dir-head,.file-head{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;user-select:none}
+.dir-head::-webkit-details-marker,.file-head::-webkit-details-marker{display:none}
+.chevron{flex:none;margin-right:-5px;width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:1.6;stroke-linecap:round;
+stroke-linejoin:round}
+details[open]>summary>.chevron .c-closed,details:not([open])>summary>.chevron .c-open{display:none}
+.icon{flex:none;width:16px;height:16px;fill:none;stroke-width:1.3;stroke-linejoin:round}
+.dir-head .icon{stroke:var(--dir);fill:color-mix(in srgb,var(--dir) 14%,transparent)}
+.file-head .icon{stroke:var(--muted)}
+
+.dir{margin-top:6px}
+.dir-head{padding:6px 8px 6px 0;border-radius:6px}
+.dir-head:hover{background:var(--sig)}
+.dir-head h2{margin:0;font:600 16px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.dir-body{position:relative;padding:0 0 8px 16px}
+.guide{position:absolute;left:0;top:0;bottom:0;width:16px;padding:0;border:0;background:none;cursor:pointer}
+.guide::before{content:'';position:absolute;left:7.5px;top:0;bottom:8px;width:1px;background:var(--line)}
+.guide:hover::before{width:2px;left:7px;background:var(--dir)}
+.dir-doc{margin:2px 0 12px;font-size:15px}.dir-doc .source{margin-top:-2px}
+.file-doc{padding:0 20px 8px 26px;font-size:15px}
+
+.file{margin:10px 0 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.file-head{padding:10px 14px 10px 10px}
+.file-head:hover{background:var(--sig)}
+.file-head h3{margin:0;font:600 15px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+
+.entry{padding:18px 20px;border-top:1px solid var(--line)}
+.entry h4{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0 0 8px;font:600 17px/1.4 system-ui,sans-serif}
+.kw{font-weight:600}
+.owner{color:var(--muted);font-weight:500}
+.name{color:var(--accent);text-decoration:none;font-weight:700}.name:hover{text-decoration:underline}
+.tag{font:12px/1.6 system-ui,sans-serif;padding:0 8px;border-radius:4px;border:1px solid currentColor;opacity:.85}
+.sig{margin:0;padding:12px 16px;background:var(--sig);border:1px solid var(--line);border-radius:6px;
+white-space:pre;overflow-x:auto}
+.sig-diff{padding:10px 0}
+.ln{display:flex;padding:0 16px 0 0;min-width:max-content}
+.ln .sign{flex:none;width:28px;text-align:center;color:var(--muted);user-select:none}
+.ln-del{background:color-mix(in srgb,var(--del) 45%,transparent)}.ln-del .sign{color:var(--removed)}
+.ln-ins{background:color-mix(in srgb,var(--ins) 45%,transparent)}.ln-ins .sign{color:var(--added)}
+.doc{margin-top:12px}.doc p{margin:0 0 8px}
+.doc code{font-size:.9em;padding:0 3px;background:var(--sig);border-radius:3px}
+del{background:var(--del);text-decoration:none;border-radius:2px}del.inline{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--removed) 60%,transparent)}ins{background:var(--ins);text-decoration:none;border-radius:2px}
+.note{margin:0 0 10px;padding:6px 10px;border-left:3px solid var(--impl);color:var(--impl)}
+.tests{margin:14px 0 0}
+.tests-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.tests-title{font:600 13px/1.6 system-ui,sans-serif}
+.tests-file{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.tests-na{color:var(--muted);font-size:13px}
+.tests ul{margin:4px 0 0;padding-left:20px;font-size:14px;line-height:1.55}
+.tests li{margin:2px 0}.tests-group{list-style:none;margin-left:-20px!important}
+.tests-context{color:var(--muted);font-size:13px}.tests-group>ul{margin:2px 0 4px;padding-left:20px}.tests li::marker{color:var(--muted)}
+.mark{display:inline-block;width:1.2em;margin-left:-1.2em;font-family:ui-monospace,monospace;font-weight:700}
+.t-added{color:var(--added)}.t-removed{color:var(--removed);text-decoration:line-through}.t-modified{color:var(--signature)}
+.warnings{margin:8px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.warnings summary{cursor:pointer}.warnings ul{margin:8px 0 0;padding:0;list-style:none;font-size:13px}
+.warnings li{padding:2px 0;overflow-wrap:anywhere}
+@media (max-width:640px){.file-doc{padding-left:14px}.dir-body{padding-left:14px}.guide{width:10px}.guide::before{left:4.5px}
+.counts{flex-basis:100%;margin-left:38px;padding-left:0}.dir-head,.file-head{flex-wrap:wrap}.synopsis{display:none}
+.entry,.file-head{padding-left:14px;padding-right:14px}}
+body:has(#f-s-jsdoc:not(:checked)) :is(.entry,.o-decls li)[data-doc="jsdoc"]{display:none}
+body:has(#f-s-plain:not(:checked)) :is(.entry,.o-decls li)[data-doc="plain"]{display:none}
+body:has(#f-s-none:not(:checked)) :is(.entry,.o-decls li)[data-doc="none"]{display:none}
+</style>
+<div class="page">
+<div class="crumb"></div>
+<h1>契约总览</h1>
+<p class="muted"><code>src/lib</code> <code>工作区</code>，紧贴声明的普通注释也算作契约</p>
+<div class="filters"><label class="badge s-jsdoc"><input type="checkbox" id="f-s-jsdoc" checked>/** */ 文档注释 12</label><label class="badge s-plain"><input type="checkbox" id="f-s-plain" checked>// 普通注释 46</label><label class="badge s-none"><input type="checkbox" id="f-s-none" checked>无注释 112</label></div>
+
+<details class="warnings"><summary>工具校验：104 条 <span class="muted">test-unlinked 33 · test-file-without-source 2 · declaration-untested 69</span></summary><ul><li><code>test-unlinked</code> src/lib/component/Dialog.svelte.test.ts：测试「Content closes the dialog and reopening discards edits」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/errors.test.ts：测试「preserves the status, message and typed details for $args.0」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/errors.test.ts：测试「narrows field error parameters after the official HTTP error check」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/errors.test.ts：测试「allows framework-shaped errors without business details」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/models/session.test.ts：测试「hashes the secret as lowercase hex SHA-256」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/github_auth.test.ts：测试「passes state only and requests no additional scopes」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/github_auth.test.ts：测试「maps a trusted provider identity with the existing request headers」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/github_auth.test.ts：测试「preserves provider rejection and unexpected failure error categories」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/github_auth.test.ts：测试「treats a non-2xx user response as an exchange failure without reading it as user data」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/name_resolver.test.ts：测试「treats nonexistent domains and missing TXT answers as unverified」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/name_resolver.test.ts：测试「propagates DNS service, HTTP, network and response failures」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/random.test.ts：测试「generates 32-character lowercase alphanumeric session IDs」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/adapters/random.test.ts：测试「generates 32-byte base64url session secrets that never contain the token separator」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「writes the session token with the supplied expiry and lax same-site」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「turns next %j into %j」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「keeps next %j on the app host」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「owns OAuth state cookies while passing only a state string to the provider」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「deletes the OAuth state cookie for %s」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「validates callback state and retains malformed JSON error behavior」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「attaches anonymous locals and enforces authentication for missing sessions」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/auth.test.ts：测试「refreshes the cookie with the same token on renewal and loads current identity and roles」没有关联任何声明</li><li><code>test-file-without-source</code> src/lib/server/repositories/contracts.test.ts：找不到对应的源文件 src/lib/server/repositories/contracts.ts</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › maps nested authors and direct parents at every depth, with effective pagination」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › rolls back article creation and parent count when author mapping fails」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › counts actual duplicate bookmarks and subtracts only deleted relationships」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › creates comment ancestry atomically and pages raw comments before grouping」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › rejects a stale invitation snapshot and concurrent over-issuance」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › redeems invitations once and preserves an already assigned role」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › rolls back invitation consumption when a role write fails」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › returns complete users, preserves legacy IDs, and normalizes database errors」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「maps known write conflicts to fields without changing stored data」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「reports both missing and concurrently consumed invitations against inviteCode」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/repositories/contracts.test.ts：测试「rejects missing discussion context without saving a comment」没有关联任何声明</li><li><code>test-unlinked</code> src/lib/server/testing/database.test.ts：测试「isolates concurrent clones, preserves connection environment, and closes only its owned clone」没有关联任何声明</li><li><code>test-file-without-source</code> src/lib/server/use-cases/contracts.test.ts：找不到对应的源文件 src/lib/server/use-cases/contracts.ts</li><li><code>declaration-untested</code> src/lib/errors.ts#throwError：没有任何测试</li><li><code>declaration-untested</code> src/lib/markdown.ts#compileMarkdown：没有任何测试</li><li><code>declaration-untested</code> src/lib/markdown.ts#throwArticleIssue：没有任何测试</li><li><code>declaration-untested</code> src/lib/markdown.ts#compileArticle：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/id_path.ts#encodeIdPath：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/id_path.ts#decodeIdPath：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/id_path.ts#decodePathField：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/id_path.ts#encodePathField：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/id_path.ts#getPathParent：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/role.ts#hasPermission：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/session.ts#hashSessionSecret：没有任何测试</li><li><code>declaration-untested</code> src/lib/models/user.ts#userHasPermission：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/adapters/clock.ts#now：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/adapters/github_auth.ts#GitHubOAuth.createAuthUrl：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/adapters/github_auth.ts#GitHubOAuth.getUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/adapters/index.ts#createAdapterSet：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/adapters/name_resolver.ts#resolveTxt：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/auth.ts#setAuthCookie：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/auth.ts#sanitizeNext：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/auth.ts#createGitHubAuthUrl：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/auth.ts#readGitHubCallbackData：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/auth.ts#attachLocals：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/config.ts#getConfig：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/db/index.ts#getDatabase：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/registry.ts#buildServices：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#getArticleById：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#getArticleContentById：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#getArticleSummaryById：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#listArticles：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#listArticlesOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#listBookmarkedArticlesOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#getRepliesOfArticle：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#listArticleFeeds：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#createArticle：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/article.ts#updateArticle：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/bookmark.ts#getBookmarkStateOfArticle：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/bookmark.ts#createBookmark：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/bookmark.ts#deleteBookmark：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/comment.ts#getCommentsOfArticle：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/comment.ts#listCommentsOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/comment.ts#getCommentById：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/comment.ts#createComment：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/comment.ts#updateComment：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/invite_code.ts#findInviteCodeByCode：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/invite_code.ts#getUnusedInviteCodesOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/invite_code.ts#getInviteStatsOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/invite_code.ts#createInviteCode：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/invite_code.ts#deleteInviteCode：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/role.ts#getRolesOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/role.ts#findInviterOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/role.ts#getInviteesOfUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/role.ts#createRoleOfUserByInviteCode：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/session.ts#findSessionById：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/session.ts#createSession：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/session.ts#updateSession：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/session.ts#deleteSession：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/user.ts#findUserById：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/user.ts#findUserByUsername：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/user.ts#findUserByName：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/user.ts#findUserByGitHubId：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/user.ts#getUsers：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/user.ts#createUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/user.ts#updateUser：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/utils.ts#wrap：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/utils.ts#newNanoId：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/utils.ts#newCode：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/repositories/utils.ts#newVerifyCode：没有任何测试</li><li><code>declaration-untested</code> src/lib/server/testing/database.ts#createTestDatabase：没有任何测试</li><li><code>declaration-untested</code> src/lib/testing/data.ts#getAuthor：没有任何测试</li></ul></details>
+<details class="dir" id="d-src_2Flib" data-crumb="dir" data-name="src/lib" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>src/lib</h2><span class="synopsis">Provide tagged application errors and Markdown compilation shared by server operations, remotes, and components.</span><span class="counts"><span class="pill">4 子目录</span><span class="pill">170 声明</span><span class="pill missing">112 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/"></button>
+<div class="prose dir-doc"><p>Provide tagged application errors and Markdown compilation shared by server operations, remotes, and components. Storage and request orchestration belong to their owning directories.</p><p class="source">来源 <code>docs/shapes/src=lib.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Ferrors_ts" data-crumb="file" data-name="errors.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>errors.ts</h3><span class="counts"><span class="pill">5 声明</span><span class="pill missing">3 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Ferrors_ts_23ErrorDetail" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ferrors_ts_23ErrorDetail">ErrorDetail</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export type ErrorDetail = {
+  [Tag in ErrorTag]: {
+    tag: Tag;
+    value: ErrorValue[Tag];
+  };
+}[ErrorTag];</pre><div class="doc"><p>Each union member keeps an error tag paired with its own parameters.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Ferrors_ts_23ErrorTag" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ferrors_ts_23ErrorTag">ErrorTag</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type ErrorTag = keyof ErrorValue;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ferrors_ts_23ErrorValue" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ferrors_ts_23ErrorValue">ErrorValue</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type ErrorValue = {
+  BAD_REQUEST: string;
+  PARAMETER_INVALID: Record&lt;string, string&gt;;
+  FORBIDDEN: { operation: string };
+  UNAUTHORIZED: { operation: string };
+  NOT_FOUND: { resource: string };
+  INTERNAL_SERVER_ERROR: string;
+  DATABASE_ERROR: { operation: string; cause: string };
+  MISSING_CONFIG: { item: string };
+  EXTERNAL_API_ERROR: { operation: string; message: string };
+};</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ferrors_ts_23errorTagTitle" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Ferrors_ts_23errorTagTitle">errorTagTitle</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const errorTagTitle: { [Tag in ErrorTag]: string } = {
+  BAD_REQUEST: '请求错误',
+  PARAMETER_INVALID: '参数错误',
+  UNAUTHORIZED: '未登录',
+  FORBIDDEN: '没有权限',
+  NOT_FOUND: '未找到',
+  INTERNAL_SERVER_ERROR: '服务器内部错误',
+  MISSING_CONFIG: '缺少配置项',
+  DATABASE_ERROR: '数据库错误',
+  EXTERNAL_API_ERROR: '外部API错误',
+};</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ferrors_ts_23throwError" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Ferrors_ts_23throwError">throwError</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function throwError(...[tag, value]: ErrorArgs): never</pre><div class="doc"><p>Interrupt request handling with a business error. Catch with Kit's isHttpError; body.detail carries the parameters and body.status carries the HTTP status.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmarkdown_ts" data-crumb="file" data-name="markdown.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>markdown.ts</h3><span class="counts"><span class="pill">6 声明</span><span class="pill missing">6 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmarkdown_ts_23CompiledArticle" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fmarkdown_ts_23CompiledArticle">CompiledArticle</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type CompiledArticle = {
+  markup: string;
+  title: string;
+  issues: MarkdownArticleIssue[];
+};</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmarkdown_ts_23MarkdownArticleIssue" data-change="unchanged" data-doc="none">
+<h4><span class="kw">enum</span> <a class="name" href="#e-src_2Flib_2Fmarkdown_ts_23MarkdownArticleIssue">MarkdownArticleIssue</a><span class="tag s-none">无注释</span></h4><pre class="sig">export enum MarkdownArticleIssue {
+  MissingTitle = 'MissingTitle',
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmarkdown_ts_23articleIssueMessages" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fmarkdown_ts_23articleIssueMessages">articleIssueMessages</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const articleIssueMessages: Record&lt;MarkdownArticleIssue, IssueMessage&gt; = {
+  [MarkdownArticleIssue.MissingTitle]: {
+    title: '缺少标题',
+    description: '标题为第一个一级标题',
+  },
+};</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmarkdown_ts_23compileArticle" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmarkdown_ts_23compileArticle">compileArticle</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const compileArticle = async (article: string): Promise&lt;CompiledArticle&gt; =&gt;;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmarkdown_ts_23compileMarkdown" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmarkdown_ts_23compileMarkdown">compileMarkdown</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const compileMarkdown = async (content: string): Promise&lt;Value&gt; =&gt;;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmarkdown_ts_23throwArticleIssue" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmarkdown_ts_23throwArticleIssue">throwArticleIssue</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function throwArticleIssue(issue: MarkdownArticleIssue, field: string): never</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="dir" id="d-src_2Flib_2Fcomponent" data-crumb="dir" data-name="component" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>component</h2><span class="synopsis">Provide reusable Svelte presentation, form, dialog, and pagination components.</span><span class="counts"><span class="pill">0 声明</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/component/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/component/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/component/"></button>
+<div class="prose dir-doc"><p>Provide reusable Svelte presentation, form, dialog, and pagination components. Consumers supply projections and callbacks; persistence and authorization belong to callers.</p><p class="source">来源 <code>docs/shapes/src=lib=component.md</code></p></div><p class="muted">没有提取到导出声明（.svelte 等文件尚无提取规则）</p>
+
+
+</div>
+</details>
+<details class="dir" id="d-src_2Flib_2Fmodels" data-crumb="dir" data-name="models" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>models</h2><span class="synopsis">Define shared business records, projections, aggregates, and pure functions used by client and server modules.</span><span class="counts"><span class="pill">36 声明</span><span class="pill missing">22 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/models/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/models/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/models/"></button>
+<div class="prose dir-doc"><p>Define shared business records, projections, aggregates, and pure functions used by client and server modules. Group related data by business concept.</p><p>Models neither obtain external capabilities nor perform observable effects. They must not import server infrastructure, SvelteKit request APIs, or component code. Repository-specific SQL, transaction mechanisms, and operation parameters stay in repositories; use-case dependency/parameter/result types stay beside their operation. Page-only <code>ArticleDetail</code> and <code>CommentView</code> belong beside their remote functions. Cookie transport data and cookie writers belong to the server request-boundary helper. Invitation quota calculation belongs directly in the relevant use case.</p><p>Imports have no observable effects.</p><p class="source">来源 <code>docs/shapes/src=lib=models.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Fmodels_2Farticle_ts" data-crumb="file" data-name="article.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>article.ts</h3><span class="counts"><span class="pill">6 声明</span><span class="pill missing">4 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Farticle_ts_23Article" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Farticle_ts_23Article">Article</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface Article {
+  id: string;
+  path: IdPath;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  author: UserSummary;
+  contentType: ArticleContentType;
+  content: string;
+  replyTo?: ArticleSummary;
+}</pre><div class="doc"><p>Content stores Markdown source or the original external URL, according to contentType.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleContent" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleContent">ArticleContent</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface ArticleContent {
+  id: string;
+  title: string;
+  content: string;
+  contentType: ArticleContentType;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleContentType" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleContentType">ArticleContentType</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type ArticleContentType = 'markdown' | 'external';</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleFeedsItem" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleFeedsItem">ArticleFeedsItem</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface ArticleFeedsItem {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  author: UserSummary;
+  contentType: ArticleContentType;
+  content: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleListItem" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleListItem">ArticleListItem</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface ArticleListItem {
+  id: string;
+  path: IdPath;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  author: UserSummary;
+  contentType: ArticleContentType;
+  content: string;
+  replyTo?: ArticleSummary;
+  replyCount: number;
+  bookmarkCount: number;
+  commentCount: number;
+}</pre><div class="doc"><p>replyCount counts direct responses, excluding deeper descendants.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleSummary" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Farticle_ts_23ArticleSummary">ArticleSummary</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface ArticleSummary {
+  id: string;
+  title: string;
+  author: UserSummary;
+}</pre>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Fbookmark_ts" data-crumb="file" data-name="bookmark.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>bookmark.ts</h3><span class="counts"><span class="pill">1 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fbookmark_ts_23BookmarkState" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fbookmark_ts_23BookmarkState">BookmarkState</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface BookmarkState {
+  articleId: string;
+  count: number;
+  bookmarked: boolean | null;
+}</pre><div class="doc"><p>Count includes duplicate relationships. Anonymous viewers have bookmarked=null.</p></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Fcomment_ts" data-crumb="file" data-name="comment.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>comment.ts</h3><span class="counts"><span class="pill">3 声明</span><span class="pill missing">1 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fcomment_ts_23Comment" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fcomment_ts_23Comment">Comment</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface Comment {
+  id: string;
+  path: IdPath;
+  createdAt: Date;
+  updatedAt: Date;
+  articleId: string;
+  author: UserSummary;
+  content: string;
+}</pre><div class="doc"><p>Content is plain text; render line breaks without interpreting HTML or Markdown.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fcomment_ts_23CommentListItem" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fcomment_ts_23CommentListItem">CommentListItem</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface CommentListItem {
+  article: ArticleSummary;
+  comments: CommentSummary[];
+}</pre><div class="doc"><p>Pagination counts individual comments; the same article group may recur on another page.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fcomment_ts_23CommentSummary" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fcomment_ts_23CommentSummary">CommentSummary</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface CommentSummary {
+  id: string;
+  updatedAt: Date;
+  content: string;
+}</pre>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Fid_path_ts" data-crumb="file" data-name="id_path.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>id_path.ts</h3><span class="counts"><span class="pill">8 声明</span><span class="pill missing">5 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23IdPath" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23IdPath">IdPath</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export type IdPath = string[];</pre><div class="doc"><p>IDs run from the root to this record, including this record’s own ID.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23PathDecoded" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23PathDecoded">PathDecoded</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type PathDecoded&lt;T extends { path: string }&gt; = Omit&lt;T, 'path'&gt; &amp; { path: IdPath };</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23PathEncoded" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23PathEncoded">PathEncoded</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type PathEncoded&lt;T extends { path: IdPath }&gt; = Omit&lt;T, 'path'&gt; &amp; { path: string };</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23decodeIdPath" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23decodeIdPath">decodeIdPath</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function decodeIdPath(path: string): IdPath</pre><div class="doc"><p>Repeated and trailing separators are tolerated.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23decodePathField" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23decodePathField">decodePathField</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function decodePathField&lt;T extends { path: string }&gt;(item: T): PathDecoded&lt;T&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23encodeIdPath" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23encodeIdPath">encodeIdPath</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function encodeIdPath(path: IdPath): string</pre><div class="doc"><p>Segments must already be safe to join; encoding performs no escaping or validation.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23encodePathField" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23encodePathField">encodePathField</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function encodePathField&lt;T extends { path: IdPath }&gt;(item: T): PathEncoded&lt;T&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fid_path_ts_23getPathParent" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fid_path_ts_23getPathParent">getPathParent</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function getPathParent(path: IdPath): string | undefined</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Finvite_code_ts" data-crumb="file" data-name="invite_code.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>invite_code.ts</h3><span class="counts"><span class="pill">3 声明</span><span class="pill missing">2 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Finvite_code_ts_23InviteCode" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Finvite_code_ts_23InviteCode">InviteCode</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface InviteCode {
+  id: number;
+  code: string;
+  inviterId: string;
+  roleKey: string;
+  usedAt: Date | null;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Finvite_code_ts_23InviteCodeSummary" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Finvite_code_ts_23InviteCodeSummary">InviteCodeSummary</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type InviteCodeSummary = Pick&lt;InviteCode, 'code' | 'roleKey'&gt;;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Finvite_code_ts_23InviteStats" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Finvite_code_ts_23InviteStats">InviteStats</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface InviteStats {
+  articleCount: number;
+  validCodeCount: number;
+  invitedCount: number;
+}</pre><div class="doc"><p>All counts describe the same database snapshot.</p></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Fpage_ts" data-crumb="file" data-name="page.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>page.ts</h3><span class="counts"><span class="pill">2 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fpage_ts_23Paginated" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fpage_ts_23Paginated">Paginated</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface Paginated&lt;T&gt; {
+  pageNumber: number;
+  pageSize: number;
+  count: number;
+  items: T[];
+}</pre><div class="doc"><p>count is the total matching record count before pagination.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fpage_ts_23Pagination" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fpage_ts_23Pagination">Pagination</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface Pagination {
+  pageNumber: number;
+  pageSize: number;
+}</pre><div class="doc"><p>pageNumber is one-based; callers validate the page and size.</p></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Frole_ts" data-crumb="file" data-name="role.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>role.ts</h3><span class="counts"><span class="pill">7 声明</span><span class="pill missing">6 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Frole_ts_23Permission" data-change="unchanged" data-doc="none">
+<h4><span class="kw">enum</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Frole_ts_23Permission">Permission</a><span class="tag s-none">无注释</span></h4><pre class="sig">export enum Permission {
+  CreateArticle = 'create_article',
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Frole_ts_23Relation" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Frole_ts_23Relation">Relation</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface Relation {
+  user: UserSummary;
+  invitedAt: Date;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Frole_ts_23Role" data-change="unchanged" data-doc="none">
+<h4><span class="kw">enum</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Frole_ts_23Role">Role</a><span class="tag s-none">无注释</span></h4><pre class="sig">export enum Role {
+  ArticleAuthor = 'article_author',
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Frole_ts_23UserRelations" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Frole_ts_23UserRelations">UserRelations</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface UserRelations {
+  inviter: Relation | undefined;
+  invitees: Relation[];
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Frole_ts_23UserRole" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Frole_ts_23UserRole">UserRole</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface UserRole {
+  userId: string;
+  roleKey: Role;
+  inviterId: string | null;
+  invitedAt: Date;
+}</pre><div class="doc"><p>A null inviter denotes a direct role assignment.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Frole_ts_23hasPermission" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Frole_ts_23hasPermission">hasPermission</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function hasPermission(roles: Role[], permission: Permission): boolean</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Frole_ts_23rolePermissions" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Frole_ts_23rolePermissions">rolePermissions</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const rolePermissions: Record&lt;Role, Permission[]&gt; = {
+  [Role.ArticleAuthor]: [Permission.CreateArticle],
+};</pre>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Fsession_ts" data-crumb="file" data-name="session.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>session.ts</h3><span class="counts"><span class="pill">2 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fsession_ts_23Session" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fsession_ts_23Session">Session</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export type Session = {
+  id: string;
+  userId: string;
+  secretHash: string;
+  expiresAt: Date;
+};</pre><div class="doc"><p>The secret itself is never stored, so no stored field forms a working token.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fsession_ts_23hashSessionSecret" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fsession_ts_23hashSessionSecret">hashSessionSecret</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function hashSessionSecret(secret: string): string</pre><div class="doc"><p>The value stored as <code>Session.secretHash</code>.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fmodels_2Fuser_ts" data-crumb="file" data-name="user.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>user.ts</h3><span class="counts"><span class="pill">4 声明</span><span class="pill missing">4 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fuser_ts_23LoggedInUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fuser_ts_23LoggedInUser">LoggedInUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface LoggedInUser extends User {
+  roles: Role[];
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fuser_ts_23User" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fuser_ts_23User">User</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface User extends UserSummary {
+  githubId: number | null;
+  aboutMe: string;
+  verifyCode: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fuser_ts_23UserSummary" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fuser_ts_23UserSummary">UserSummary</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface UserSummary {
+  id: string;
+  username: string;
+  name: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fmodels_2Fuser_ts_23userHasPermission" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fmodels_2Fuser_ts_23userHasPermission">userHasPermission</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function userHasPermission(user: LoggedInUser | null, permission: Permission): boolean</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+
+</div>
+</details>
+<details class="dir" id="d-src_2Flib_2Fserver" data-crumb="dir" data-name="server" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>server</h2><span class="synopsis">Provide runtime composition and request-boundary authentication support.</span><span class="counts"><span class="pill">5 子目录</span><span class="pill">114 声明</span><span class="pill missing">72 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/server/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/server/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/server/"></button>
+<div class="prose dir-doc"><p>Provide runtime composition and request-boundary authentication support. The registry initializes the database and provider adapters; request helpers manage cookies, OAuth request data, post-sign-in redirect targets, and locals. Business operations live in use cases and do not import the registry or request helpers.</p><p class="source">来源 <code>docs/shapes/src=lib=server.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Fserver_2Fauth_ts" data-crumb="file" data-name="auth.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>auth.ts</h3><span class="synopsis">Request adaptation shared by hooks, remote functions, and route handlers.</span><span class="counts"><span class="pill">8 声明</span><span class="pill missing">3 无注释</span></span></summary>
+<div class="prose file-doc"><p>Request adaptation shared by hooks, remote functions, and route handlers. Models and use cases must not import this module. Importing it performs no database, network, or cookie operation.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23AUTH_COOKIE_NAME" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23AUTH_COOKIE_NAME">AUTH_COOKIE_NAME</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const AUTH_COOKIE_NAME = 'auth_session';</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23OAuthCookieData" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23OAuthCookieData">OAuthCookieData</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type OAuthCookieData = z.infer&lt;typeof OAuthCookieDataSchema&gt;;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23OAuthCookieDataInput" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23OAuthCookieDataInput">OAuthCookieDataInput</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type OAuthCookieDataInput = Omit&lt;OAuthCookieData, 'state'&gt;;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23attachLocals" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23attachLocals">attachLocals</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function attachLocals(event: RequestEvent): Promise&lt;void&gt;</pre><div class="doc"><p>Populate existing locals; invalid or missing sessions are anonymous. Invalid cookies are left in place.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23createGitHubAuthUrl" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23createGitHubAuthUrl">createGitHubAuthUrl</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function createGitHubAuthUrl(cookies: Cookies, githubOAuth: GitHubOAuth, input: OAuthCookieDataInput): URL</pre><div class="doc"><p>Call before redirecting so the callback can match its state to the HTTP-only cookie.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23readGitHubCallbackData" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23readGitHubCallbackData">readGitHubCallbackData</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function readGitHubCallbackData(request: RequestEvent): { code: string; data: OAuthCookieData }</pre><div class="doc"><p>Deletes the state cookie before validating, so it is removed on every callback outcome, including later provider-exchange failures. Malformed cookie JSON propagates a parse error; the callback route owns error normalization.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23sanitizeNext" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23sanitizeNext">sanitizeNext</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function sanitizeNext(next: string | undefined, appUrl: string): string</pre><div class="doc"><p>Every redirect to a user-supplied <code>next</code> must go through this. Pass the configured app URL, not the request URL. The result is always an absolute URL on the app's origin; a <code>next</code> that does not start with <code>/</code> becomes <code>/</code>.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fauth_ts_23setAuthCookie" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fauth_ts_23setAuthCookie">setAuthCookie</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function setAuthCookie(cookies: Cookies, session: { token: string; expiresAt: Date }): void</pre><div class="doc"><p>Call only at request boundaries where cookie writes are permitted.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fconfig_ts" data-crumb="file" data-name="config.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>config.ts</h3><span class="counts"><span class="pill">2 声明</span><span class="pill missing">2 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fconfig_ts_23Config" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fconfig_ts_23Config">Config</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type Config = {
+  githubClientId: string;
+  githubClientSecret: string;
+  appUrl: string;
+  database: {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+    // Uses channel binding when offered; the driver may fall back without it.
+    enableChannelBinding: boolean;
+  };
+};</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fconfig_ts_23getConfig" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fconfig_ts_23getConfig">getConfig</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function getConfig(env: NodeJS.ProcessEnv = process.env): Config</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fregistry_ts" data-crumb="file" data-name="registry.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>registry.ts</h3><span class="counts"><span class="pill">3 声明</span><span class="pill missing">2 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fregistry_ts_23adapters" data-change="unchanged" data-doc="none">
+<h4><span class="kw">let</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fregistry_ts_23adapters">adapters</a><span class="tag s-none">无注释</span></h4><pre class="sig">export let adapters: AdapterSet;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fregistry_ts_23buildServices" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fregistry_ts_23buildServices">buildServices</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function buildServices(): Promise&lt;void&gt;</pre><div class="doc"><p>Await startup before using the exported bindings. Rebuilding replaces them without closing the old pool.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fregistry_ts_23db" data-change="unchanged" data-doc="none">
+<h4><span class="kw">let</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fregistry_ts_23db">db</a><span class="tag s-none">无注释</span></h4><pre class="sig">export let db: AppDatabase;</pre>
+</article>
+</details>
+<details class="dir" id="d-src_2Flib_2Fserver_2Fadapters" data-crumb="dir" data-name="adapters" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>adapters</h2><span class="synopsis">Provide request-independent GitHub OAuth, DNS TXT lookup, clock, and random value generation capabilities.</span><span class="counts"><span class="pill">10 声明</span><span class="pill missing">7 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/server/adapters/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/server/adapters/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/server/adapters/"></button>
+<div class="prose dir-doc"><p>Provide request-independent GitHub OAuth, DNS TXT lookup, clock, and random value generation capabilities. Request parsing, OAuth state-cookie validation, and session cookies belong to <code>src/lib/server/auth.ts</code>; account and session decisions belong to use cases. Adapters do not import SvelteKit request/cookie types.</p><p class="source">来源 <code>docs/shapes/src=lib=server=adapters.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Fserver_2Fadapters_2Fclock_ts" data-crumb="file" data-name="clock.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>clock.ts</h3><span class="counts"><span class="pill">1 声明</span><span class="pill missing">1 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Fclock_ts_23now" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Fclock_ts_23now">now</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function now(): Date</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts" data-crumb="file" data-name="github_auth.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>github_auth.ts</h3><span class="counts"><span class="pill">4 声明</span><span class="pill missing">3 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubOAuth" data-change="unchanged" data-doc="none">
+<h4><span class="kw">class</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubOAuth">GitHubOAuth</a><span class="tag s-none">无注释</span></h4><pre class="sig">export class GitHubOAuth {
+  constructor(config: Config)
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubOAuth_createAuthUrl" data-change="unchanged" data-doc="none">
+<h4><span class="kw">method</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubOAuth_createAuthUrl"><span class="owner">GitHubOAuth.</span>createAuthUrl</a><span class="tag s-none">无注释</span></h4><pre class="sig">createAuthUrl(state: string): URL</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubOAuth_getUser" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">method</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubOAuth_getUser"><span class="owner">GitHubOAuth.</span>getUser</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">async getUser(code: string): Promise&lt;GitHubUser&gt;</pre><div class="doc"><p>Validate callback state before calling. Provider rejection is BAD_REQUEST; other exchange failures, including a non-2xx user response, are INTERNAL_SERVER_ERROR.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Fgithub_auth_ts_23GitHubUser">GitHubUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type GitHubUser = { id: number; username: string };</pre>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fadapters_2Findex_ts" data-crumb="file" data-name="index.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>index.ts</h3><span class="counts"><span class="pill">2 声明</span><span class="pill missing">2 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Findex_ts_23AdapterSet" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Findex_ts_23AdapterSet">AdapterSet</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type AdapterSet = ReturnType&lt;typeof createAdapterSet&gt;;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Findex_ts_23createAdapterSet" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Findex_ts_23createAdapterSet">createAdapterSet</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function createAdapterSet(config: Config)</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fadapters_2Fname_resolver_ts" data-crumb="file" data-name="name_resolver.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>name_resolver.ts</h3><span class="counts"><span class="pill">1 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Fname_resolver_ts_23resolveTxt" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Fname_resolver_ts_23resolveTxt">resolveTxt</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function resolveTxt(domain: string): Promise&lt;string[]&gt;</pre><div class="doc"><p>Nonexistent domains return no records; DNS service and transport failures propagate. TXT answers retain Cloudflare’s raw quoting and chunking; callers receive no normalization.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fadapters_2Frandom_ts" data-crumb="file" data-name="random.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>random.ts</h3><span class="counts"><span class="pill">2 声明</span><span class="pill missing">1 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Frandom_ts_23Random" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Frandom_ts_23Random">Random</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface Random {
+  // A lookup key, not a credential.
+  sessionId(): string;
+  // 32 secure random bytes as unpadded base64url (43 characters, never containing `.`).
+  sessionSecret(): string;
+}</pre><div class="doc"><p>Every application-generated random value has a named method here, so its format is reviewed in one place. Use cases declare <code>random: Random</code> in their deps; tests supply fixed values.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fadapters_2Frandom_ts_23random" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fadapters_2Frandom_ts_23random">random</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const random: Random = {
+  sessionId,
+  sessionSecret() { … },
+};</pre>
+</article>
+</details>
+
+</div>
+</details>
+<details class="dir" id="d-src_2Flib_2Fserver_2Fdb" data-crumb="dir" data-name="db" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>db</h2><span class="synopsis">Own PostgreSQL connection construction, schema declarations, inferred storage row types, and the generated SQL schema used by local database tooling.</span><span class="counts"><span class="pill">17 声明</span><span class="pill missing">14 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/server/db/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/server/db/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/server/db/"></button>
+<div class="prose dir-doc"><p>Own PostgreSQL connection construction, schema declarations, inferred storage row types, and the generated SQL schema used by local database tooling. Consumers are repositories, the server composition boundary, and database management scripts. Business workflows and repository composition belong to their owning modules.</p><p class="source">来源 <code>docs/shapes/src=lib=server=db.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Fserver_2Fdb_2Findex_ts" data-crumb="file" data-name="index.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>index.ts</h3><span class="counts"><span class="pill">1 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Findex_ts_23getDatabase" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Findex_ts_23getDatabase">getDatabase</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function getDatabase(config: Config): Promise&lt;AppDatabase&gt;</pre><div class="doc"><p>Construction does not issue a readiness query or confirm that PostgreSQL is reachable.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fdb_2Fschema_ts" data-crumb="file" data-name="schema.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>schema.ts</h3><span class="synopsis">Table builders and their inferred row types; row and insert shapes come from each table's $inferSelect and $inferInsert.</span><span class="counts"><span class="pill">16 声明</span><span class="pill missing">14 无注释</span></span></summary>
+<div class="prose file-doc"><p>Table builders and their inferred row types; row and insert shapes come from each table's $inferSelect and $inferInsert. Every table's createdAt and updatedAt are required and default to now. Tables declare no foreign keys.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23AppDatabase" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23AppDatabase">AppDatabase</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type AppDatabase = NodePgDatabase&lt;typeof schema&gt;;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23ArticleRow" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23ArticleRow">ArticleRow</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type ArticleRow = typeof tArticle.$inferSelect;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23BookmarkRow" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23BookmarkRow">BookmarkRow</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type BookmarkRow = typeof tBookmark.$inferSelect;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23CommentRow" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23CommentRow">CommentRow</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type CommentRow = typeof tComment.$inferSelect;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23InviteCodeRow" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23InviteCodeRow">InviteCodeRow</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type InviteCodeRow = typeof tInviteCode.$inferSelect;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23SessionRow" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23SessionRow">SessionRow</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type SessionRow = typeof tSession.$inferSelect;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23UserRoleRow" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23UserRoleRow">UserRoleRow</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type UserRoleRow = typeof tUserRole.$inferSelect;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23UserRow" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23UserRow">UserRow</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type UserRow = typeof tUser.$inferSelect;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23schema" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23schema">schema</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export const schema = {
+  tArticle,
+  tBookmark,
+  tComment,
+  tInviteCode,
+  tSession,
+  tUser,
+};</pre><div class="doc"><p>tUserRole is intentionally omitted; repositories import that table directly.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tArticle" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tArticle">tArticle</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const tArticle = pgTable(
+  'article',
+  {
+    id: text('id').notNull().primaryKey(),
+    ...timestamps,
+    userId: text('user_id').notNull(),
+    title: text('title').notNull(),
+    content: text('content').notNull(),
+    contentType: text('content_type').$type&lt;ArticleContentType&gt;().notNull(),
+    path: text('path').notNull(),
+    replyCount: integer('reply_count').default(0).notNull(),
+    bookmarkCount: integer('bookmark_count').default(0).notNull(),
+    commentCount: integer('comment_count').default(0).notNull(),
+  },
+  (table) =&gt; …,
+);</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tBookmark" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tBookmark">tBookmark</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export const tBookmark = pgTable(
+  'bookmark',
+  {
+    userId: text('user_id').notNull(),
+    articleId: text('article_id').notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (table) =&gt; …,
+);</pre><div class="doc"><p>Duplicate user/article pairs are permitted; count relationships rather than distinct users.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tComment" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tComment">tComment</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const tComment = pgTable(
+  'comment',
+  {
+    id: text('id').notNull().primaryKey(),
+    path: text('path').notNull(),
+    ...timestamps,
+    userId: text('user_id').notNull(),
+    articleId: text('article_id').notNull(),
+    content: text('content').notNull(),
+  },
+  (table) =&gt; …,
+);</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tInviteCode" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tInviteCode">tInviteCode</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const tInviteCode = pgTable(
+  'invite_code',
+  {
+    id: serial('id').primaryKey(),
+    code: text('code').notNull().unique(),
+    roleKey: text('role_key').notNull(),
+    inviterId: text('inviter_id').notNull(),
+    usedAt: timestamp('used_at'),
+  },
+  (table) =&gt; …,
+);</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tSession" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tSession">tSession</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const tSession = pgTable(
+  'session',
+  {
+    id: text('id').notNull().primaryKey(),
+    userId: text('user_id').notNull(),
+    secretHash: text('secret_hash').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (table) =&gt; …,
+);</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tUser">tUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const tUser = pgTable('user', {
+  id: text('id').notNull().primaryKey(),
+  ...timestamps,
+  username: text('username').notNull().unique(),
+  githubId: integer('github_id').unique(),
+  name: text('name').notNull().unique(),
+  aboutMe: text('about_me').notNull(),
+  verifyCode: text('verify_code').notNull(),
+});</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tUserRole" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fdb_2Fschema_ts_23tUserRole">tUserRole</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const tUserRole = pgTable(
+  'user_role',
+  {
+    userId: text('user_id').notNull(),
+    roleKey: text('role_key').notNull(),
+    invitedAt: timestamp('invited_at').defaultNow().notNull(),
+    inviterId: text('inviter_id'),
+  },
+  (table) =&gt; …,
+);</pre>
+</article>
+</details>
+
+</div>
+</details>
+<details class="dir" id="d-src_2Flib_2Fserver_2Frepositories" data-crumb="dir" data-name="repositories" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>repositories</h2><span class="synopsis">Provide database reads, writes, model mapping, and internal transactions for articles, bookmarks, comments, invitations, roles, sessions, and users.</span><span class="counts"><span class="pill">55 声明</span><span class="pill missing">39 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/server/repositories/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/server/repositories/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/server/repositories/"></button>
+<div class="prose dir-doc"><p>Provide database reads, writes, model mapping, and internal transactions for articles, bookmarks, comments, invitations, roles, sessions, and users. Consumers pass <code>AppDatabase</code> from <code>src/lib/server/db/schema.ts</code> directly to standalone exported functions.</p><p>Before changing or reviewing repository operations, apply the repository conventions for function structure, data shapes, naming, errors, and transactions. Export operation-specific object parameter types as <code>XxxParams</code> beside their function; shared model values may also serve directly as inputs.</p><p>Use cases own permissions, business decisions, quota calculation, and session lifetime policy. This module owns generated storage identifiers and persistence timestamps; request context, cookies, DNS, and frontend state belong to callers. Imports perform no queries.</p><p>Paginated results follow the models contract, including requested page values and empty <code>items</code>. Related result/count queries use a consistent snapshot, including paginated lists and invite statistics. Preserve table constraints and identifier formats.</p><p class="source">来源 <code>docs/shapes/src=lib=server=repositories.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Farticle_ts" data-crumb="file" data-name="article.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>article.ts</h3><span class="synopsis">Read article models and projections; insert and update persisted articles together with their direct parent's reply count.</span><span class="counts"><span class="pill">12 声明</span><span class="pill missing">6 无注释</span></span></summary>
+<div class="prose file-doc"><p>Read article models and projections; insert and update persisted articles together with their direct parent's reply count.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23CreateArticleParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23CreateArticleParams">CreateArticleParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface CreateArticleParams {
+  title: string;
+  authorId: string;
+  contentType: ArticleContentType;
+  content: string;
+  replyToId?: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23UpdateArticleParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23UpdateArticleParams">UpdateArticleParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface UpdateArticleParams {
+  id: string;
+  title?: string;
+  content?: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23createArticle" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23createArticle">createArticle</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function createArticle(db: AppDatabase, params: CreateArticleParams): Promise&lt;Article&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getArticleById" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getArticleById">getArticleById</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function getArticleById(db: AppDatabase, articleId: string): Promise&lt;Article&gt;</pre><div class="doc"><p>Author and parent projections reflect one consistent snapshot.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getArticleContentById" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getArticleContentById">getArticleContentById</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function getArticleContentById(db: AppDatabase, articleId: string): Promise&lt;ArticleContent&gt;</pre><div class="doc"><p>This read remains available even when the stored author relationship is missing.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getArticleSummaryById" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getArticleSummaryById">getArticleSummaryById</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getArticleSummaryById(db: AppDatabase, articleId: string): Promise&lt;ArticleSummary&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getRepliesOfArticle" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23getRepliesOfArticle">getRepliesOfArticle</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function getRepliesOfArticle(db: AppDatabase, articleId: string): Promise&lt;ArticleSummary[]&gt;</pre><div class="doc"><p>Trailing-slash paths put the direct parent in the third segment from the end.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listArticleFeeds" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listArticleFeeds">listArticleFeeds</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function listArticleFeeds(db: AppDatabase, page: Pagination): Promise&lt;Paginated&lt;ArticleFeedsItem&gt;&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listArticles" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listArticles">listArticles</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function listArticles(db: AppDatabase, page: Pagination): Promise&lt;Paginated&lt;ArticleListItem&gt;&gt;</pre><div class="doc"><p>Pages are creation-descending; their rows, total and parent projections share a snapshot.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listArticlesOfUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listArticlesOfUser">listArticlesOfUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function listArticlesOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise&lt;Paginated&lt;ArticleListItem&gt;&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listBookmarkedArticlesOfUser" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23listBookmarkedArticlesOfUser">listBookmarkedArticlesOfUser</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function listBookmarkedArticlesOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise&lt;Paginated&lt;ArticleListItem&gt;&gt;</pre><div class="doc"><p>A duplicate bookmark relationship can repeat an article within the results.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23updateArticle" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Farticle_ts_23updateArticle">updateArticle</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function updateArticle(db: AppDatabase, { id, ...patch }: UpdateArticleParams): Promise&lt;void&gt;</pre><div class="doc"><p>This operation leaves updatedAt unchanged.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts" data-crumb="file" data-name="bookmark.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>bookmark.ts</h3><span class="synopsis">Read bookmark state and keep relationship changes consistent with the article's persisted bookmark count.</span><span class="counts"><span class="pill">6 声明</span><span class="pill missing">6 无注释</span></span></summary>
+<div class="prose file-doc"><p>Read bookmark state and keep relationship changes consistent with the article's persisted bookmark count.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23CreateBookmarkParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23CreateBookmarkParams">CreateBookmarkParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface CreateBookmarkParams {
+  articleId: string;
+  userId: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23DeleteBookmarkParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23DeleteBookmarkParams">DeleteBookmarkParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface DeleteBookmarkParams {
+  articleId: string;
+  userId: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23GetBookmarkStateOfArticleParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23GetBookmarkStateOfArticleParams">GetBookmarkStateOfArticleParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface GetBookmarkStateOfArticleParams {
+  articleId: string;
+  userId?: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23createBookmark" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23createBookmark">createBookmark</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function createBookmark(db: AppDatabase, params: CreateBookmarkParams): Promise&lt;BookmarkState&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23deleteBookmark" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23deleteBookmark">deleteBookmark</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function deleteBookmark(db: AppDatabase, params: DeleteBookmarkParams): Promise&lt;void&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23getBookmarkStateOfArticle" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fbookmark_ts_23getBookmarkStateOfArticle">getBookmarkStateOfArticle</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getBookmarkStateOfArticle(
+  db: AppDatabase,
+  params: GetBookmarkStateOfArticleParams,
+): Promise&lt;BookmarkState&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts" data-crumb="file" data-name="comment.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>comment.ts</h3><span class="synopsis">Read comment records and per-user grouped projections; insert and update comments while preserving article counts.</span><span class="counts"><span class="pill">7 声明</span><span class="pill missing">7 无注释</span></span></summary>
+<div class="prose file-doc"><p>Read comment records and per-user grouped projections; insert and update comments while preserving article counts.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23CreateCommentParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23CreateCommentParams">CreateCommentParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface CreateCommentParams {
+  articleId: string;
+  userId: string;
+  content: string;
+  replyToId?: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23UpdateCommentParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23UpdateCommentParams">UpdateCommentParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface UpdateCommentParams {
+  id: string;
+  content?: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23createComment" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23createComment">createComment</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function createComment(db: AppDatabase, params: CreateCommentParams): Promise&lt;Comment&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23getCommentById" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23getCommentById">getCommentById</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getCommentById(db: AppDatabase, commentId: string): Promise&lt;Comment&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23getCommentsOfArticle" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23getCommentsOfArticle">getCommentsOfArticle</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getCommentsOfArticle(db: AppDatabase, articleId: string): Promise&lt;Comment[]&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23listCommentsOfUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23listCommentsOfUser">listCommentsOfUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function listCommentsOfUser(
+  db: AppDatabase,
+  userId: string,
+  page: Pagination,
+): Promise&lt;Paginated&lt;CommentListItem&gt;&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23updateComment" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fcomment_ts_23updateComment">updateComment</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function updateComment(db: AppDatabase, { id, content }: UpdateCommentParams): Promise&lt;void&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts" data-crumb="file" data-name="invite_code.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>invite_code.ts</h3><span class="synopsis">Persist invitation codes and expose consistent quota inputs.</span><span class="counts"><span class="pill">7 声明</span><span class="pill missing">4 无注释</span></span></summary>
+<div class="prose file-doc"><p>Persist invitation codes and expose consistent quota inputs. Quota arithmetic belongs to the invitation use case.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23CreateInviteCodeParams" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23CreateInviteCodeParams">CreateInviteCodeParams</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface CreateInviteCodeParams {
+  inviterId: string;
+  roleKey: string;
+  expectedStats: InviteStats;
+}</pre><div class="doc"><p>Pass the statistics used to approve issuance; a stale snapshot rejects the write.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23DeleteInviteCodeParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23DeleteInviteCodeParams">DeleteInviteCodeParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface DeleteInviteCodeParams {
+  inviterId: string;
+  code: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23createInviteCode" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23createInviteCode">createInviteCode</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function createInviteCode(db: AppDatabase, params: CreateInviteCodeParams): Promise&lt;InviteCode&gt;</pre><div class="doc"><p>Serialization failures propagate without retry; a new attempt requires fresh statistics.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23deleteInviteCode" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23deleteInviteCode">deleteInviteCode</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function deleteInviteCode(db: AppDatabase, params: DeleteInviteCodeParams): Promise&lt;void&gt;</pre><div class="doc"><p>Used codes are eligible for deletion too.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23findInviteCodeByCode" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23findInviteCodeByCode">findInviteCodeByCode</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function findInviteCodeByCode(db: AppDatabase, code: string): Promise&lt;InviteCode | null&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23getInviteStatsOfUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23getInviteStatsOfUser">getInviteStatsOfUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getInviteStatsOfUser(db: AppDatabase, userId: string): Promise&lt;InviteStats&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23getUnusedInviteCodesOfUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Finvite_code_ts_23getUnusedInviteCodesOfUser">getUnusedInviteCodesOfUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getUnusedInviteCodesOfUser(db: AppDatabase, userId: string): Promise&lt;InviteCodeSummary[]&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Frole_ts" data-crumb="file" data-name="role.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>role.ts</h3><span class="synopsis">Read assigned roles and invitation relationships, and persist invitation redemption atomically.</span><span class="counts"><span class="pill">5 声明</span><span class="pill missing">2 无注释</span></span></summary>
+<div class="prose file-doc"><p>Read assigned roles and invitation relationships, and persist invitation redemption atomically.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23CreateRoleOfUserByInviteCodeParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23CreateRoleOfUserByInviteCodeParams">CreateRoleOfUserByInviteCodeParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface CreateRoleOfUserByInviteCodeParams {
+  code: string;
+  userId: string;
+  usedAt: Date;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23createRoleOfUserByInviteCode" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23createRoleOfUserByInviteCode">createRoleOfUserByInviteCode</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function createRoleOfUserByInviteCode(
+  db: AppDatabase,
+  params: CreateRoleOfUserByInviteCodeParams,
+): Promise&lt;UserRole&gt;</pre><div class="doc"><p>Codes are consumed even when the user already has the role; the original relationship is retained.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23findInviterOfUser" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23findInviterOfUser">findInviterOfUser</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function findInviterOfUser(db: AppDatabase, userId: string): Promise&lt;Relation | null&gt;</pre><div class="doc"><p>When several role rows have inviters, no selection order is guaranteed.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23getInviteesOfUser" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23getInviteesOfUser">getInviteesOfUser</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function getInviteesOfUser(db: AppDatabase, userId: string): Promise&lt;Relation[]&gt;</pre><div class="doc"><p>A user assigned several roles can appear more than once.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23getRolesOfUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Frole_ts_23getRolesOfUser">getRolesOfUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getRolesOfUser(db: AppDatabase, userId: string): Promise&lt;Role[]&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Fsession_ts" data-crumb="file" data-name="session.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>session.ts</h3><span class="synopsis">Persist supplied session data.</span><span class="counts"><span class="pill">5 声明</span><span class="pill missing">5 无注释</span></span></summary>
+<div class="prose file-doc"><p>Persist supplied session data. Use cases own ID generation, current-time reads, expiration decisions, and renewal policy.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23UpdateSessionParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23UpdateSessionParams">UpdateSessionParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface UpdateSessionParams {
+  id: string;
+  expiresAt: Date;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23createSession" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23createSession">createSession</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function createSession(db: AppDatabase, session: Session): Promise&lt;Session&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23deleteSession" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23deleteSession">deleteSession</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function deleteSession(db: AppDatabase, sessionId: string): Promise&lt;void&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23findSessionById" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23findSessionById">findSessionById</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function findSessionById(db: AppDatabase, sessionId: string): Promise&lt;Session | null&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23updateSession" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fsession_ts_23updateSession">updateSession</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function updateSession(db: AppDatabase, { id, expiresAt }: UpdateSessionParams): Promise&lt;void&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Fuser_ts" data-crumb="file" data-name="user.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>user.ts</h3><span class="synopsis">Read user identity and profile data, and persist supplied profile changes.</span><span class="counts"><span class="pill">9 声明</span><span class="pill missing">7 无注释</span></span></summary>
+<div class="prose file-doc"><p>Read user identity and profile data, and persist supplied profile changes.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23CreateUserParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23CreateUserParams">CreateUserParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface CreateUserParams {
+  username: string;
+  githubId: number | null;
+  name: string;
+  aboutMe: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23UpdateUserParams" data-change="unchanged" data-doc="none">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23UpdateUserParams">UpdateUserParams</a><span class="tag s-none">无注释</span></h4><pre class="sig">export interface UpdateUserParams {
+  id: string;
+  username?: string;
+  name?: string;
+  aboutMe?: string;
+}</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23createUser" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23createUser">createUser</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function createUser(db: AppDatabase, params: CreateUserParams): Promise&lt;User&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserByGitHubId" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserByGitHubId">findUserByGitHubId</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function findUserByGitHubId(db: AppDatabase, githubId: number): Promise&lt;User | null&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserById" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserById">findUserById</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function findUserById(db: AppDatabase, id: string): Promise&lt;User | null&gt;</pre><div class="doc"><p>Exactly 16-character legacy IDs are looked up using their first six characters.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserByName" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserByName">findUserByName</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function findUserByName(db: AppDatabase, name: string): Promise&lt;User | null&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserByUsername" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23findUserByUsername">findUserByUsername</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function findUserByUsername(db: AppDatabase, username: string): Promise&lt;User | null&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23getUsers" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23getUsers">getUsers</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getUsers(db: AppDatabase): Promise&lt;User[]&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23updateUser" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Fuser_ts_23updateUser">updateUser</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function updateUser(db: AppDatabase, { id, ...patch }: UpdateUserParams): Promise&lt;void&gt;</pre><div class="doc"><p>This operation leaves updatedAt unchanged.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Frepositories_2Futils_ts" data-crumb="file" data-name="utils.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>utils.ts</h3><span class="synopsis">Operation wrapping and storage identifier generation shared by the repositories in this directory.</span><span class="counts"><span class="pill">4 声明</span><span class="pill missing">2 无注释</span></span></summary>
+<div class="prose file-doc"><p>Operation wrapping and storage identifier generation shared by the repositories in this directory. These helpers are not database operations themselves.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23newCode" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23newCode">newCode</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function newCode(): string</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23newNanoId" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23newNanoId">newNanoId</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export function newNanoId(): string</pre><div class="doc"><p>Six-character IDs preserve compatibility with legacy ID lookups.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23newVerifyCode" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23newVerifyCode">newVerifyCode</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function newVerifyCode(): string</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23wrap" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Frepositories_2Futils_ts_23wrap">wrap</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function wrap&lt;T&gt;(operation: string, fn: () =&gt; Promise&lt;T&gt;): Promise&lt;T&gt;</pre><div class="doc"><p>Use the exported operation name. Known write conflicts become field errors; HTTP errors survive and unexpected failures become DATABASE_ERROR.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+
+</div>
+</details>
+<details class="dir" id="d-src_2Flib_2Fserver_2Ftesting" data-crumb="dir" data-name="testing" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>testing</h2><span class="synopsis">Provide isolated PostgreSQL databases for repository integration tests.</span><span class="counts"><span class="pill">2 声明</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/server/testing/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/server/testing/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/server/testing/"></button>
+<div class="prose dir-doc"><p>Provide isolated PostgreSQL databases for repository integration tests. Reuse the checkout-local provisioning lifecycle; test cases exercise real SQL and internal transactions without connecting to the development database. Application code must not import this test-only module. Importing it performs no I/O.</p><p class="source">来源 <code>docs/shapes/src=lib=server=testing.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Fserver_2Ftesting_2Fdatabase_ts" data-crumb="file" data-name="database.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>database.ts</h3><span class="counts"><span class="pill">2 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Ftesting_2Fdatabase_ts_23TestDatabase" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">interface</span> <a class="name" href="#e-src_2Flib_2Fserver_2Ftesting_2Fdatabase_ts_23TestDatabase">TestDatabase</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export interface TestDatabase {
+  db: AppDatabase;
+  close(): Promise&lt;void&gt;;
+}</pre><div class="doc"><p>Call close in teardown, including after failures. Repeated cleanup is harmless.</p></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Ftesting_2Fdatabase_ts_23createTestDatabase" data-change="unchanged" data-doc="plain">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Ftesting_2Fdatabase_ts_23createTestDatabase">createTestDatabase</a><span class="tag s-plain">// 普通注释</span></h4><pre class="sig">export async function createTestDatabase(suite: string): Promise&lt;TestDatabase&gt;</pre><div class="doc"><p>The clone is independent of development data. An outdated template requires an explicit reset.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+</details>
+
+</div>
+</details>
+<details class="dir" id="d-src_2Flib_2Fserver_2Fuse-cases" data-crumb="dir" data-name="use-cases" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>use-cases</h2><span class="synopsis">Implement server business operations that require external capabilities.</span><span class="counts"><span class="pill">17 声明</span><span class="pill missing">5 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/server/use-cases/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/server/use-cases/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/server/use-cases/"></button>
+<div class="prose dir-doc"><p>Implement server business operations that require external capabilities. Callers supply capabilities in <code>deps</code> and invocation data in <code>params</code>; use cases import repository functions and pass <code>deps.db</code>. Repositories own transactions and persistence consistency. Request boundaries own request context, cookies, redirects, and remote-query refreshes. Use cases neither import the service registry nor read environment variables.</p><p>Deterministic Markdown compilation and business calculations stay in their owning operations; only actual shared business scenarios receive separate exported functions.</p><p><code>AppDatabase</code> comes from <code>src/lib/server/db/schema.ts</code>; business data comes from <code>src/lib/models</code>. Callers supply trusted authenticated actors, provider identities, parsed URLs, and request-independent input values. Repository/adapter failures propagate; expected business failures use tagged application errors, with field keys for correctable input failures. Each use case declares only the dependencies it uses. Request entry points supply <code>now</code> from <code>adapters/clock.ts</code>; use cases never obtain the current time directly.</p><p class="source">来源 <code>docs/shapes/src=lib=server=use-cases.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts" data-crumb="file" data-name="article.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>article.ts</h3><span class="counts"><span class="pill">6 声明</span><span class="pill missing">2 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23SaveExternalArticleResult" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23SaveExternalArticleResult">SaveExternalArticleResult</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type SaveExternalArticleResult = { ok: true; articleId: string } | { ok: false; reason: 'unverified-domain' };</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23SaveMarkdownArticleResult" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23SaveMarkdownArticleResult">SaveMarkdownArticleResult</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type SaveMarkdownArticleResult = { ok: true; articleId: string } | { ok: false; issues: MarkdownArticleIssue[] };</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23getEditableArticle" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23getEditableArticle">getEditableArticle</a></h4><pre class="sig">export async function getEditableArticle(
+  deps: { db: AppDatabase },
+  params: { actor: LoggedInUser; articleId: string },
+): Promise&lt;Article&gt;</pre><div class="doc"><p>Use for editor reads: another author’s article produces FORBIDDEN.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">enforces article permissions before writes and returns Markdown validation issues</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23saveExternalArticle" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23saveExternalArticle">saveExternalArticle</a></h4><pre class="sig">export async function saveExternalArticle(
+  deps: { db: AppDatabase; resolveTxt: (hostname: string) =&gt; Promise&lt;string[]&gt; },
+  params: { actor: LoggedInUser; articleId?: string; url: URL; content: string; title: string; replyToId?: string },
+): Promise&lt;SaveExternalArticleResult&gt;</pre><div class="doc"><p>Domain verification precedes edit-target lookup, preserving form error precedence.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">uses mocked DNS, verifies before ownership lookup, and preserves original URL text</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23saveMarkdownArticle" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23saveMarkdownArticle">saveMarkdownArticle</a></h4><pre class="sig">export async function saveMarkdownArticle(
+  deps: { db: AppDatabase },
+  params: { actor: LoggedInUser; articleId?: string; content: string; replyToId?: string },
+): Promise&lt;SaveMarkdownArticleResult&gt;</pre><div class="doc"><p>Failed validation performs no writes; edits preserve the stored content type and reply parent.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">enforces article permissions before writes and returns Markdown validation issues</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23verifyDomainOwnership" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Farticle_ts_23verifyDomainOwnership">verifyDomainOwnership</a></h4><pre class="sig">export async function verifyDomainOwnership(
+  deps: { resolveTxt: (hostname: string) =&gt; Promise&lt;string[]&gt; },
+  params: { url: URL; verificationCode: string },
+): Promise&lt;boolean&gt;</pre><div class="doc"><p>The marker may occur anywhere in a TXT record; resolver failures propagate.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">uses mocked DNS, verifies before ownership lookup, and preserves original URL text</li></ul></li></ul></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fuse-cases_2Fcomment_ts" data-crumb="file" data-name="comment.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>comment.ts</h3><span class="counts"><span class="pill">1 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fcomment_ts_23saveComment" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fcomment_ts_23saveComment">saveComment</a></h4><pre class="sig">export async function saveComment(
+  deps: { db: AppDatabase },
+  params: { actor: LoggedInUser; articleId?: string; content: string; commentId?: string; replyToId?: string },
+): Promise&lt;{ articleId: string; commentId: string }&gt;</pre><div class="doc"><p>On edits, the stored article and ancestry win over submitted replacements.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">keeps comment edits on their stored article and rejects another actor</li></ul></li></ul></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fuse-cases_2Finvite_code_ts" data-crumb="file" data-name="invite_code.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>invite_code.ts</h3><span class="counts"><span class="pill">3 声明</span><span class="pill missing">2 无注释</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Finvite_code_ts_23acceptInviteCode" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Finvite_code_ts_23acceptInviteCode">acceptInviteCode</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function acceptInviteCode(
+  deps: { db: AppDatabase; now: () =&gt; Date },
+  params: { actor: LoggedInUser; code: string },
+): Promise&lt;void&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">calculates quota, scopes permission, and redeems using one supplied instant</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Finvite_code_ts_23createInviteCode" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Finvite_code_ts_23createInviteCode">createInviteCode</a></h4><pre class="sig">export async function createInviteCode(
+  deps: { db: AppDatabase },
+  params: { actor: LoggedInUser },
+): Promise&lt;InviteCode&gt;</pre><div class="doc"><p>Concurrent changes can reject creation with retry guidance; no automatic retry is performed.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">calculates quota, scopes permission, and redeems using one supplied instant</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Finvite_code_ts_23getInviteQuota" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Finvite_code_ts_23getInviteQuota">getInviteQuota</a><span class="tag s-none">无注释</span></h4><pre class="sig">export async function getInviteQuota(deps: { db: AppDatabase }, params: { userId: string }): Promise&lt;number&gt;</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">calculates quota, scopes permission, and redeems using one supplied instant</li></ul></li></ul></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts" data-crumb="file" data-name="session.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>session.ts</h3><span class="synopsis">Create, validate, and invalidate the sessions behind the <code>auth_session</code> cookie.</span><span class="counts"><span class="pill">4 声明</span><span class="pill missing">1 无注释</span></span></summary>
+<div class="prose file-doc"><p>Create, validate, and invalidate the sessions behind the <code>auth_session</code> cookie.</p></div>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23ValidateSessionResult" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23ValidateSessionResult">ValidateSessionResult</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type ValidateSessionResult = { session: Session; refresh: boolean };</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23createSession" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23createSession">createSession</a></h4><pre class="sig">export async function createSession(
+  deps: { db: AppDatabase; now: () =&gt; Date; random: Random },
+  params: { userId: string },
+): Promise&lt;{ session: Session; token: string }&gt;</pre><div class="doc"><p>Expiry is 30 days after the injected clock's current instant. The token is returned only here because the secret is not stored.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">session policy with an injected clock and real persistence</span><ul><li class="t-unchanged">reads the clock and generators once, storing only the secret hash</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23invalidateSession" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23invalidateSession">invalidateSession</a></h4><pre class="sig">export async function invalidateSession(deps: { db: AppDatabase }, params: { token: string }): Promise&lt;void&gt;</pre><div class="doc"><p>Sign-out: afterwards the token validates as null. Cookie removal stays with the caller.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">session policy with an injected clock and real persistence</span><ul><li class="t-unchanged">treats a mismatched secret as absent without touching the session, even when expired</li><li class="t-unchanged">invalidates a verified token so replaying it is anonymous</li><li class="t-unchanged">ignores malformed tokens on invalidation</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23validateSession" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fsession_ts_23validateSession">validateSession</a></h4><pre class="sig">export async function validateSession(
+  deps: { db: AppDatabase; now: () =&gt; Date },
+  params: { token: string },
+): Promise&lt;ValidateSessionResult | null&gt;</pre><div class="doc"><p>Renewal is inclusive at 20 remaining days; refresh tells the caller to rewrite its cookie with the same token.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">session policy with an injected clock and real persistence</span><ul><li class="t-unchanged">rejects tokens assembled from stored columns</li><li class="t-unchanged">handles the expiry/renewal boundary %i</li><li class="t-unchanged">treats malformed or unknown token %j as absent</li><li class="t-unchanged">treats a mismatched secret as absent without touching the session, even when expired</li><li class="t-unchanged">treats a corrupted stored hash as a mismatch</li></ul></li></ul></div>
+</article>
+</details>
+<details class="file" id="f-src_2Flib_2Fserver_2Fuse-cases_2Fuser_ts" data-crumb="file" data-name="user.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>user.ts</h3><span class="counts"><span class="pill">3 声明</span></span></summary>
+
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fuser_ts_23loginWithGitHub" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fuser_ts_23loginWithGitHub">loginWithGitHub</a></h4><pre class="sig">export async function loginWithGitHub(
+  deps: { db: AppDatabase; now: () =&gt; Date; random: Random },
+  params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },
+): Promise&lt;{ session: Session; token: string }&gt;</pre><div class="doc"><p>Signup hints affect new accounts only. Account and session creation are separate writes.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">validates identities and reuses a GitHub account without overwriting profile</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fuser_ts_23updateUsername" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fuser_ts_23updateUsername">updateUsername</a></h4><pre class="sig">export async function updateUsername(
+  deps: { db: AppDatabase },
+  params: { actor: LoggedInUser; username: string },
+): Promise&lt;void&gt;</pre><div class="doc"><p>Input is preserved verbatim; no trimming or uniqueness precheck is applied.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">validates identities and reuses a GitHub account without overwriting profile</li></ul></li></ul></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Fserver_2Fuse-cases_2Fuser_ts_23validateSignUp" data-change="unchanged" data-doc="jsdoc">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Fserver_2Fuse-cases_2Fuser_ts_23validateSignUp">validateSignUp</a></h4><pre class="sig">export async function validateSignUp(
+  deps: { db: AppDatabase },
+  params: { username?: string; name?: string },
+): Promise&lt;void&gt;</pre><div class="doc"><p>This preflight does not reserve names; creation still relies on database uniqueness constraints.</p></div><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><code class="tests-file">src/lib/server/use-cases/contracts.test.ts</code></div><ul><li class="tests-group"><span class="tests-context">business operations</span><ul><li class="t-unchanged">validates identities and reuses a GitHub account without overwriting profile</li></ul></li></ul></div>
+</article>
+</details>
+
+</div>
+</details>
+</div>
+</details>
+<details class="dir" id="d-src_2Flib_2Ftesting" data-crumb="dir" data-name="testing" open>
+<summary class="dir-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z"/></svg><h2>testing</h2><span class="synopsis">Provide the deterministic shared dataset used by local provisioning and browser journeys, including relationships and derived interaction counts.</span><span class="counts"><span class="pill">9 声明</span><span class="pill missing">9 无注释</span></span><span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 src/lib/testing/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6 8 3l3 3M5 10l3 3 3-3"/></svg></button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 src/lib/testing/ 的全部子项"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l3 3 3-3M5 13l3-3 3 3"/></svg></button></span></summary>
+<div class="dir-body"><button class="guide" type="button" aria-label="收起 src/lib/testing/"></button>
+<div class="prose dir-doc"><p>Provide the deterministic shared dataset used by local provisioning and browser journeys, including relationships and derived interaction counts. Schema-derived seed types import <code>src/lib/server/db/schema.ts</code>; shared roles and path helpers import <code>src/lib/models</code>.</p><p class="source">来源 <code>docs/shapes/src=lib=testing.md</code></p></div>
+<details class="file" id="f-src_2Flib_2Ftesting_2Fdata_ts" data-crumb="file" data-name="data.ts" open>
+<summary class="file-head"><svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path class="c-open" d="M4.5 6.5 8 10l3.5-3.5"/><path class="c-closed" d="M8 4.5 11.5 8 8 11.5"/></svg><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5"/></svg><h3>data.ts</h3><span class="synopsis">Importing builds the shared dataset in memory once, with deterministic minute-spaced timestamps starting at 2026-01-01 UTC.</span><span class="counts"><span class="pill">9 声明</span><span class="pill missing">9 无注释</span></span></summary>
+<div class="prose file-doc"><p>Importing builds the shared dataset in memory once, with deterministic minute-spaced timestamps starting at 2026-01-01 UTC. No database or network work happens on import.</p></div>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23ArticleSeed" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23ArticleSeed">ArticleSeed</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type ArticleSeed = typeof tArticle.$inferInsert;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23BookmarkSeed" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23BookmarkSeed">BookmarkSeed</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type BookmarkSeed = typeof tBookmark.$inferInsert;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23CommentSeed" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23CommentSeed">CommentSeed</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type CommentSeed = typeof tComment.$inferInsert;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23InviteCodeSeed" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23InviteCodeSeed">InviteCodeSeed</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type InviteCodeSeed = typeof tInviteCode.$inferInsert;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23UserRoleSeed" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23UserRoleSeed">UserRoleSeed</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type UserRoleSeed = typeof tUserRole.$inferInsert;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23UserSeed" data-change="unchanged" data-doc="none">
+<h4><span class="kw">type</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23UserSeed">UserSeed</a><span class="tag s-none">无注释</span></h4><pre class="sig">export type UserSeed = typeof tUser.$inferInsert;</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23articleSamples" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23articleSamples">articleSamples</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const articleSamples = {
+  markdownSample: testDataset.articles[24],
+  commentSample: testDataset.articles[24],
+  interactiveSample: testDataset.articles[20],
+  externalSample: testDataset.articles[0],
+};</pre>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23getAuthor" data-change="unchanged" data-doc="none">
+<h4><span class="kw">function</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23getAuthor">getAuthor</a><span class="tag s-none">无注释</span></h4><pre class="sig">export function getAuthor(article: ArticleSeed): UserSeed</pre><div class="tests"><div class="tests-head"><span class="tests-title">Tests</span><span class="tests-na">N/A</span></div></div>
+</article>
+<article class="entry" id="e-src_2Flib_2Ftesting_2Fdata_ts_23testDataset" data-change="unchanged" data-doc="none">
+<h4><span class="kw">const</span> <a class="name" href="#e-src_2Flib_2Ftesting_2Fdata_ts_23testDataset">testDataset</a><span class="tag s-none">无注释</span></h4><pre class="sig">export const testDataset = buildTestDataset();</pre>
+</article>
+</details>
+
+</div>
+</details>
+</div>
+</details>
+</div>
+<script>
+// Clicking an indent guide collapses its directory and brings the header back into view.
+document.addEventListener('click', (event) => {
+  const thread = event.target.closest('.guide');
+  if (!thread) return;
+  const dir = thread.closest('details');
+  dir.open = false;
+  if (dir.getBoundingClientRect().top < 0) dir.scrollIntoView();
+});
+// Row actions open or close everything below a directory; the directory itself stays open. They sit inside the
+// summary, so the click must not also toggle it.
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-fold]');
+  if (!button) return;
+  event.preventDefault();
+  const dir = button.closest('details');
+  dir.open = true;
+  for (const node of dir.querySelectorAll('details.dir, details.file')) node.open = button.dataset.fold === 'open';
+});
+// The breadcrumb links every directory and file enclosing the row under its bottom edge.
+const crumb = document.querySelector('.crumb');
+const crumbIcons = { dir: "<svg class=\"icon\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M1.75 3.5h4.1l1.5 1.5h6.9v7.75H1.75z\"/></svg>", file: "<svg class=\"icon\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M3.25 1.75h6l3.5 3.5v9H3.25z M9.25 1.75v3.5h3.5\"/></svg>" };
+const separator = '<svg class="sep" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+let crumbTarget;
+const escapeText = (text) => text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const updateCrumb = () => {
+  const firstDir = document.querySelector('details.dir');
+  const below = crumb.offsetHeight || 34;
+  const hit = window.scrollY < firstDir.offsetTop
+    ? undefined
+    : document.elementFromPoint(window.innerWidth / 2, below + 16)?.closest('[data-crumb]');
+  if (hit === crumbTarget) return;
+  crumbTarget = hit;
+  const chain = [];
+  for (let node = hit; node; node = node.parentElement?.closest('[data-crumb]')) chain.unshift(node);
+  crumb.innerHTML = chain
+    .map((node) => '<a href="#' + node.id + '" data-kind="' + node.dataset.crumb + '">' +
+      crumbIcons[node.dataset.crumb] + escapeText(node.dataset.name) + '</a>')
+    .join(separator);
+};
+document.addEventListener('scroll', updateCrumb, { passive: true });
+document.addEventListener('toggle', updateCrumb, true);
+updateCrumb();
+</script>
+</html>

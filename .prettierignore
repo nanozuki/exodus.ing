@@ -5,3 +5,9 @@ yarn.lock
 bun.lock
 bun.lockb
 migrations/
+
+# Generated contract view examples
+contracts.html
+contracts.json
+contracts-*.html
+contracts-*.json
