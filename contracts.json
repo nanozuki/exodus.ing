@@ -57,6 +57,86 @@
   ],
   "files": [
     {
+      "path": "src/lib/component/Action.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/ArticleCard.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/ArticleList.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/ArticleListItem.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/Button.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/ButtonLink.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/CommentList.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/Dialog.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/Input.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/InputTextArea.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/Loading.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/Logo.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/Markdown.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/Pager.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/UserBadge.svelte",
+      "doc": "",
+      "docStyle": "none"
+    },
+    {
+      "path": "src/lib/component/markdown.css",
+      "doc": "Import-time stylesheet effect: apply .markdown-scoped typography for headings, paragraphs, lists, quotes, code,\nimages, and horizontally scrollable tables. Images fill the container width. Nested quote backgrounds alternate\nthrough the explicit nesting levels. Consumers can override --p-margin-top and --p-margin-bottom; colors/fonts use\nthe application theme tokens.",
+      "docStyle": "doc"
+    },
+    {
       "path": "src/lib/errors.ts",
       "doc": "",
       "docStyle": "none"
@@ -238,6 +318,306 @@
     }
   ],
   "declarations": [
+    {
+      "key": "src/lib/component/Action.svelte#Action",
+      "path": "src/lib/component/Action.svelte",
+      "symbol": "Action",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "type BaseActionProps = {\n  ['class']?: string;\n  processing?: boolean;\n  children: Snippet;\n};\n\ntype ActionProps =\n  | ({ element: 'a' } & BaseActionProps & HTMLAnchorAttributes)\n  | ({ element: 'button' } & BaseActionProps & HTMLButtonAttributes);\n\ndeclare const Action: Component<ActionProps>;",
+        "doc": "Render an anchor or button according to the discriminant, forward remaining HTML attributes/events, merge classes,\nand render the children snippet. processing changes colors only; it does not disable interaction.",
+        "docStyle": "doc",
+        "body": "import type { Snippet } from 'svelte';\n\nimport type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';\n\nimport { twMerge } from 'tailwind-merge';\n\nconst { element, processing, children, class: classProp, ...rest }: ActionProps = $props();\n\nconst colorClass = $derived(processing ? 'bg-muted/20 hover:bg-muted/30' : 'bg-accent-alt/20 hover:bg-accent-alt/30');\n\n<svelte:element\n  this={element}\n  class={twMerge(`text-accent-alt flex items-center gap-x-1 ${colorClass} px-2 py-1`, classProp)}\n  {...rest}\n>\n  {@render children()}\n</svelte:element>"
+      },
+      "after": {
+        "signature": "type BaseActionProps = {\n  ['class']?: string;\n  processing?: boolean;\n  children: Snippet;\n};\n\ntype ActionProps =\n  | ({ element: 'a' } & BaseActionProps & HTMLAnchorAttributes)\n  | ({ element: 'button' } & BaseActionProps & HTMLButtonAttributes);\n\ndeclare const Action: Component<ActionProps>;",
+        "doc": "Render an anchor or button according to the discriminant, forward remaining HTML attributes/events, merge classes,\nand render the children snippet. processing changes colors only; it does not disable interaction.",
+        "docStyle": "doc",
+        "body": "import type { Snippet } from 'svelte';\n\nimport type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';\n\nimport { twMerge } from 'tailwind-merge';\n\nconst { element, processing, children, class: classProp, ...rest }: ActionProps = $props();\n\nconst colorClass = $derived(processing ? 'bg-muted/20 hover:bg-muted/30' : 'bg-accent-alt/20 hover:bg-accent-alt/30');\n\n<svelte:element\n  this={element}\n  class={twMerge(`text-accent-alt flex items-center gap-x-1 ${colorClass} px-2 py-1`, classProp)}\n  {...rest}\n>\n  {@render children()}\n</svelte:element>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/ArticleCard.svelte#ArticleCard",
+      "path": "src/lib/component/ArticleCard.svelte",
+      "symbol": "ArticleCard",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "declare const ArticleCard: Component<{ article: ArticleSummary }>;",
+        "doc": "Render links to the current author profile and article using the supplied ArticleSummary. Pass its nested author\nUserSummary to UserBadge; perform no query.",
+        "docStyle": "doc",
+        "body": "import UserBadge from './UserBadge.svelte';\n\nimport type { ArticleSummary } from '#lib/models/article.js';\n\nconst { article }: { article: ArticleSummary } = $props();\n\n<div class=\"text-subtle gap-x-2xs bg-quote-odd px-2\">\n  <UserBadge user={article.author} />\n  的\n  <a class=\"inline font-serif font-bold\" href={`/a/${article.id}`}>\n    {article.title}\n  </a>\n</div>"
+      },
+      "after": {
+        "signature": "declare const ArticleCard: Component<{ article: ArticleSummary }>;",
+        "doc": "Render links to the current author profile and article using the supplied ArticleSummary. Pass its nested author\nUserSummary to UserBadge; perform no query.",
+        "docStyle": "doc",
+        "body": "import UserBadge from './UserBadge.svelte';\n\nimport type { ArticleSummary } from '#lib/models/article.js';\n\nconst { article }: { article: ArticleSummary } = $props();\n\n<div class=\"text-subtle gap-x-2xs bg-quote-odd px-2\">\n  <UserBadge user={article.author} />\n  的\n  <a class=\"inline font-serif font-bold\" href={`/a/${article.id}`}>\n    {article.title}\n  </a>\n</div>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/ArticleList.svelte#ArticleList",
+      "path": "src/lib/component/ArticleList.svelte",
+      "symbol": "ArticleList",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface Props {\n  ['class']?: string;\n  articles: Paginated<ArticleItem>;\n  pageLink: (page: number) => string;\n}\n\ndeclare const ArticleList: Component<Props>;",
+        "doc": "Render items in supplied order. When count exceeds the returned pageSize, show Pager using the paginated result’s\ncount, pageSize, and pageNumber and the caller’s pageLink.",
+        "docStyle": "doc",
+        "body": "import ArticleListItem from './ArticleListItem.svelte';\n\nimport type { ArticleListItem as ArticleItem } from '#lib/models/article.js';\n\nimport Pager from './Pager.svelte';\n\nimport type { Paginated } from '#lib/models/page.js';\n\nimport { twMerge } from 'tailwind-merge';\n\nlet { articles, pageLink, class: outerClass }: Props = $props();\n\nlet { pageNumber, pageSize, count, items } = $derived(articles);\n\n<div class={twMerge('gap-y-m flex flex-col', outerClass)}>\n  <div class=\"gap-y-l flex flex-col\">\n    {#each items as a (a.id)}\n      <ArticleListItem article={a} />\n    {/each}\n  </div>\n  {#if count > pageSize}\n    <Pager {count} {pageSize} page={pageNumber} {pageLink} />\n  {/if}\n</div>"
+      },
+      "after": {
+        "signature": "interface Props {\n  ['class']?: string;\n  articles: Paginated<ArticleItem>;\n  pageLink: (page: number) => string;\n}\n\ndeclare const ArticleList: Component<Props>;",
+        "doc": "Render items in supplied order. When count exceeds the returned pageSize, show Pager using the paginated result’s\ncount, pageSize, and pageNumber and the caller’s pageLink.",
+        "docStyle": "doc",
+        "body": "import ArticleListItem from './ArticleListItem.svelte';\n\nimport type { ArticleListItem as ArticleItem } from '#lib/models/article.js';\n\nimport Pager from './Pager.svelte';\n\nimport type { Paginated } from '#lib/models/page.js';\n\nimport { twMerge } from 'tailwind-merge';\n\nlet { articles, pageLink, class: outerClass }: Props = $props();\n\nlet { pageNumber, pageSize, count, items } = $derived(articles);\n\n<div class={twMerge('gap-y-m flex flex-col', outerClass)}>\n  <div class=\"gap-y-l flex flex-col\">\n    {#each items as a (a.id)}\n      <ArticleListItem article={a} />\n    {/each}\n  </div>\n  {#if count > pageSize}\n    <Pager {count} {pageSize} page={pageNumber} {pageLink} />\n  {/if}\n</div>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/ArticleListItem.svelte#ArticleListItem",
+      "path": "src/lib/component/ArticleListItem.svelte",
+      "symbol": "ArticleListItem",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface ArticleHeaderProps {\n  article: ArticleListItem;\n}\n\ndeclare const ArticleListItem: Component<ArticleHeaderProps>;",
+        "doc": "Render an article link, author, created date, optional direct parent, and positive interaction counts. Pass\narticle.author and any direct parent’s author UserSummary to UserBadge. External records also show a separate\noriginal-URL link opening with noopener/noreferrer.",
+        "docStyle": "doc",
+        "body": "import MdiCalendar from '~icons/mdi/calendar';\n\nimport MdiReply from '~icons/mdi/reply';\n\nimport MdiReplyOutline from '~icons/mdi/reply-outline';\n\nimport MdiCommentTextOutline from '~icons/mdi/comment-text-outline';\n\nimport MdiBookmarkOutline from '~icons/mdi/bookmark-outline';\n\nimport MdiLinkVariant from '~icons/mdi/link-variant';\n\nimport { format } from 'date-fns';\n\nimport type { ArticleListItem } from '#lib/models/article.js';\n\nimport UserBadge from './UserBadge.svelte';\n\nconst { article }: ArticleHeaderProps = $props();\n\nconst info = 'flex items-center gap-x-0.5';\n\n<article>\n  {#if article.contentType === 'markdown'}\n    <a href=\"/a/{article.id}\">\n      <h2 class=\"font-serif font-bold\">\n        {article.title}\n      </h2>\n    </a>\n  {:else}\n    <h2 class=\"font-serif font-bold\">\n      <a href={article.content} target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-accent-alt\">\n        <MdiLinkVariant class=\"inline\" />\n      </a>\n      <a href=\"/a/{article.id}\">{article.title}</a>\n    </h2>\n  {/if}\n  {#if article.replyTo}\n    <p class=\"text-subtle bg-accent-alt/10 px-2xs w-fit\">\n      <MdiReply style=\"display: inline; vertical-align: text-top;\" />\n      <UserBadge user={article.replyTo.author} />\n      的\n      <a class=\"text-text inline font-serif font-bold underline\" href={`/a/${article.replyTo.id}`}>\n        {article.replyTo.title}\n      </a>\n    </p>\n  {/if}\n  <div class=\"gap-x-2xs flex flex-wrap items-center text-sm\">\n    <UserBadge user={article.author} />\n    <div class={info}>\n      <MdiCalendar /><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>\n    </div>\n    {#if article.replyCount > 0}\n      <div class={info}><MdiReplyOutline /> {article.replyCount}</div>\n    {/if}\n    {#if article.commentCount > 0}\n      <div class={info}><MdiCommentTextOutline /> {article.commentCount}</div>\n    {/if}\n    {#if article.bookmarkCount > 0}\n      <div class={info}><MdiBookmarkOutline /> {article.bookmarkCount}</div>\n    {/if}\n  </div>\n</article>"
+      },
+      "after": {
+        "signature": "interface ArticleHeaderProps {\n  article: ArticleListItem;\n}\n\ndeclare const ArticleListItem: Component<ArticleHeaderProps>;",
+        "doc": "Render an article link, author, created date, optional direct parent, and positive interaction counts. Pass\narticle.author and any direct parent’s author UserSummary to UserBadge. External records also show a separate\noriginal-URL link opening with noopener/noreferrer.",
+        "docStyle": "doc",
+        "body": "import MdiCalendar from '~icons/mdi/calendar';\n\nimport MdiReply from '~icons/mdi/reply';\n\nimport MdiReplyOutline from '~icons/mdi/reply-outline';\n\nimport MdiCommentTextOutline from '~icons/mdi/comment-text-outline';\n\nimport MdiBookmarkOutline from '~icons/mdi/bookmark-outline';\n\nimport MdiLinkVariant from '~icons/mdi/link-variant';\n\nimport { format } from 'date-fns';\n\nimport type { ArticleListItem } from '#lib/models/article.js';\n\nimport UserBadge from './UserBadge.svelte';\n\nconst { article }: ArticleHeaderProps = $props();\n\nconst info = 'flex items-center gap-x-0.5';\n\n<article>\n  {#if article.contentType === 'markdown'}\n    <a href=\"/a/{article.id}\">\n      <h2 class=\"font-serif font-bold\">\n        {article.title}\n      </h2>\n    </a>\n  {:else}\n    <h2 class=\"font-serif font-bold\">\n      <a href={article.content} target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-accent-alt\">\n        <MdiLinkVariant class=\"inline\" />\n      </a>\n      <a href=\"/a/{article.id}\">{article.title}</a>\n    </h2>\n  {/if}\n  {#if article.replyTo}\n    <p class=\"text-subtle bg-accent-alt/10 px-2xs w-fit\">\n      <MdiReply style=\"display: inline; vertical-align: text-top;\" />\n      <UserBadge user={article.replyTo.author} />\n      的\n      <a class=\"text-text inline font-serif font-bold underline\" href={`/a/${article.replyTo.id}`}>\n        {article.replyTo.title}\n      </a>\n    </p>\n  {/if}\n  <div class=\"gap-x-2xs flex flex-wrap items-center text-sm\">\n    <UserBadge user={article.author} />\n    <div class={info}>\n      <MdiCalendar /><span>{format(article.createdAt, 'yyyy-MM-dd')}</span>\n    </div>\n    {#if article.replyCount > 0}\n      <div class={info}><MdiReplyOutline /> {article.replyCount}</div>\n    {/if}\n    {#if article.commentCount > 0}\n      <div class={info}><MdiCommentTextOutline /> {article.commentCount}</div>\n    {/if}\n    {#if article.bookmarkCount > 0}\n      <div class={info}><MdiBookmarkOutline /> {article.bookmarkCount}</div>\n    {/if}\n  </div>\n</article>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/Button.svelte#Button",
+      "path": "src/lib/component/Button.svelte",
+      "symbol": "Button",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "type Variant = 'normal' | 'primary' | 'danger' | 'accent';\n\ninterface ButtonProps extends HTMLButtonAttributes {\n  variant?: Variant;\n  pending?: number;\n  children: Snippet;\n}\n\ndeclare const Button: Component<ButtonProps>;",
+        "doc": "Default variant to normal and pending to zero. Disable when pending > 0 or the passed disabled attribute is true;\nset aria-busy from pending. Forward other button attributes and event callbacks.",
+        "docStyle": "doc",
+        "body": "import { type Snippet } from 'svelte';\n\nimport type { HTMLButtonAttributes } from 'svelte/elements';\n\nimport { twMerge } from 'tailwind-merge';\n\nconst {\n    variant = 'normal',\n    pending = 0,\n    children,\n    class: classProp,\n    disabled: disabledProp,\n    ...rest\n  }: ButtonProps = $props();\n\nconst disabled = $derived(pending > 0 || disabledProp);\n\nconst colorClasses = {\n    normal: 'bg-text/20 hover:bg-text/30 text-text border-text',\n    primary: 'bg-link/20 hover:bg-link/30 text-link font-semibold border-link',\n    danger: 'bg-error/20 hover:bg-error/30 text-error font-semibold border-error',\n    accent: 'bg-accent/20 hover:bg-accent/30 text-accent font-semibold border-accent',\n    disabled: 'bg-highlight-med text-muted border-muted cursor-not-allowed',\n  };\n\nlet colorClass = $derived.by(() => {\n    if (disabled) return colorClasses.disabled;\n    return colorClasses[variant];\n  });\n\n<button\n  {...rest}\n  class={twMerge(colorClass, 'w-full border-2 px-4 py-1 font-semibold ' + classProp)}\n  {disabled}\n  aria-busy={pending > 0}\n>\n  {@render children()}\n</button>"
+      },
+      "after": {
+        "signature": "type Variant = 'normal' | 'primary' | 'danger' | 'accent';\n\ninterface ButtonProps extends HTMLButtonAttributes {\n  variant?: Variant;\n  pending?: number;\n  children: Snippet;\n}\n\ndeclare const Button: Component<ButtonProps>;",
+        "doc": "Default variant to normal and pending to zero. Disable when pending > 0 or the passed disabled attribute is true;\nset aria-busy from pending. Forward other button attributes and event callbacks.",
+        "docStyle": "doc",
+        "body": "import { type Snippet } from 'svelte';\n\nimport type { HTMLButtonAttributes } from 'svelte/elements';\n\nimport { twMerge } from 'tailwind-merge';\n\nconst {\n    variant = 'normal',\n    pending = 0,\n    children,\n    class: classProp,\n    disabled: disabledProp,\n    ...rest\n  }: ButtonProps = $props();\n\nconst disabled = $derived(pending > 0 || disabledProp);\n\nconst colorClasses = {\n    normal: 'bg-text/20 hover:bg-text/30 text-text border-text',\n    primary: 'bg-link/20 hover:bg-link/30 text-link font-semibold border-link',\n    danger: 'bg-error/20 hover:bg-error/30 text-error font-semibold border-error',\n    accent: 'bg-accent/20 hover:bg-accent/30 text-accent font-semibold border-accent',\n    disabled: 'bg-highlight-med text-muted border-muted cursor-not-allowed',\n  };\n\nlet colorClass = $derived.by(() => {\n    if (disabled) return colorClasses.disabled;\n    return colorClasses[variant];\n  });\n\n<button\n  {...rest}\n  class={twMerge(colorClass, 'w-full border-2 px-4 py-1 font-semibold ' + classProp)}\n  {disabled}\n  aria-busy={pending > 0}\n>\n  {@render children()}\n</button>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/ButtonLink.svelte#ButtonLink",
+      "path": "src/lib/component/ButtonLink.svelte",
+      "symbol": "ButtonLink",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "type Variant = 'normal' | 'primary' | 'danger' | 'accent' | 'disabled';\n\ninterface ButtonLinkProps extends HTMLAnchorAttributes {\n  variant?: Variant;\n  children: Snippet;\n}\n\ndeclare const ButtonLink: Component<ButtonLinkProps>;",
+        "doc": "Render an anchor with the selected variant (default normal), children, merged classes, and forwarded HTML\nattributes/events. The disabled variant changes styling only; callers control href and aria-disabled.",
+        "docStyle": "doc",
+        "body": "import type { Snippet } from 'svelte';\n\nimport type { HTMLAnchorAttributes } from 'svelte/elements';\n\nimport { twMerge } from 'tailwind-merge';\n\nconst { variant = 'normal', class: classProp, children, ...rest }: ButtonLinkProps = $props();\n\nconst colorClass = {\n    normal: 'bg-text/20 hover:bg-text/30 text-text border-text',\n    primary: 'bg-link/20 hover:bg-link/30 text-link font-semibold border-link',\n    danger: 'bg-error/20 hover:bg-error/30 text-error font-semibold border-error',\n    accent: 'bg-accent/20 hover:bg-accent/30 text-accent font-semibold border-accent',\n    disabled: 'bg-highlight-med text-muted border-muted cursor-not-allowed',\n  };\n\n<a {...rest} class={twMerge(colorClass[variant], 'w-full border-2 px-4 py-1 font-semibold ' + classProp)}>\n  {@render children()}\n</a>"
+      },
+      "after": {
+        "signature": "type Variant = 'normal' | 'primary' | 'danger' | 'accent' | 'disabled';\n\ninterface ButtonLinkProps extends HTMLAnchorAttributes {\n  variant?: Variant;\n  children: Snippet;\n}\n\ndeclare const ButtonLink: Component<ButtonLinkProps>;",
+        "doc": "Render an anchor with the selected variant (default normal), children, merged classes, and forwarded HTML\nattributes/events. The disabled variant changes styling only; callers control href and aria-disabled.",
+        "docStyle": "doc",
+        "body": "import type { Snippet } from 'svelte';\n\nimport type { HTMLAnchorAttributes } from 'svelte/elements';\n\nimport { twMerge } from 'tailwind-merge';\n\nconst { variant = 'normal', class: classProp, children, ...rest }: ButtonLinkProps = $props();\n\nconst colorClass = {\n    normal: 'bg-text/20 hover:bg-text/30 text-text border-text',\n    primary: 'bg-link/20 hover:bg-link/30 text-link font-semibold border-link',\n    danger: 'bg-error/20 hover:bg-error/30 text-error font-semibold border-error',\n    accent: 'bg-accent/20 hover:bg-accent/30 text-accent font-semibold border-accent',\n    disabled: 'bg-highlight-med text-muted border-muted cursor-not-allowed',\n  };\n\n<a {...rest} class={twMerge(colorClass[variant], 'w-full border-2 px-4 py-1 font-semibold ' + classProp)}>\n  {@render children()}\n</a>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/CommentList.svelte#CommentList",
+      "path": "src/lib/component/CommentList.svelte",
+      "symbol": "CommentList",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface Props {\n  ['class']?: string;\n  comments: Paginated<CommentListItem>;\n  pageLink: (page: number) => string;\n}\n\ndeclare const CommentList: Component<Props>;",
+        "doc": "Render supplied article groups and comment text/update timestamps in supplied order. Show Pager when count exceeds\nthe returned pageSize, using the paginated result’s count, pageSize, and pageNumber.",
+        "docStyle": "doc",
+        "body": "import ArticleCard from './ArticleCard.svelte';\n\nimport Pager from './Pager.svelte';\n\nimport { type CommentListItem } from '#lib/models/comment.js';\n\nimport type { Paginated } from '#lib/models/page.js';\n\nimport { format } from 'date-fns';\n\nimport { twMerge } from 'tailwind-merge';\n\nlet { comments, pageLink, class: outerClass }: Props = $props();\n\nlet { pageNumber, pageSize, count, items } = $derived(comments);\n\n<div class={twMerge('gap-y-m flex flex-col', outerClass)}>\n  <ul class=\"gap-y-m flex flex-col\">\n    {#each items as item (item.article.id)}\n      <li class=\"gap-y-xs flex flex-col\">\n        <ArticleCard article={item.article} />\n        {#each item.comments as comment (comment.id)}\n          <div class=\"bg-quote-even px-2\">\n            <p class=\"text-muted\">{format(new Date(comment.updatedAt), 'yyyy-MM-dd HH:mm')}</p>\n            <p>{comment.content}</p>\n          </div>\n        {/each}\n      </li>\n    {/each}\n  </ul>\n  {#if count > pageSize}\n    <Pager {count} {pageSize} page={pageNumber} {pageLink} />\n  {/if}\n</div>"
+      },
+      "after": {
+        "signature": "interface Props {\n  ['class']?: string;\n  comments: Paginated<CommentListItem>;\n  pageLink: (page: number) => string;\n}\n\ndeclare const CommentList: Component<Props>;",
+        "doc": "Render supplied article groups and comment text/update timestamps in supplied order. Show Pager when count exceeds\nthe returned pageSize, using the paginated result’s count, pageSize, and pageNumber.",
+        "docStyle": "doc",
+        "body": "import ArticleCard from './ArticleCard.svelte';\n\nimport Pager from './Pager.svelte';\n\nimport { type CommentListItem } from '#lib/models/comment.js';\n\nimport type { Paginated } from '#lib/models/page.js';\n\nimport { format } from 'date-fns';\n\nimport { twMerge } from 'tailwind-merge';\n\nlet { comments, pageLink, class: outerClass }: Props = $props();\n\nlet { pageNumber, pageSize, count, items } = $derived(comments);\n\n<div class={twMerge('gap-y-m flex flex-col', outerClass)}>\n  <ul class=\"gap-y-m flex flex-col\">\n    {#each items as item (item.article.id)}\n      <li class=\"gap-y-xs flex flex-col\">\n        <ArticleCard article={item.article} />\n        {#each item.comments as comment (comment.id)}\n          <div class=\"bg-quote-even px-2\">\n            <p class=\"text-muted\">{format(new Date(comment.updatedAt), 'yyyy-MM-dd HH:mm')}</p>\n            <p>{comment.content}</p>\n          </div>\n        {/each}\n      </li>\n    {/each}\n  </ul>\n  {#if count > pageSize}\n    <Pager {count} {pageSize} page={pageNumber} {pageLink} />\n  {/if}\n</div>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/Dialog.svelte#Dialog",
+      "path": "src/lib/component/Dialog.svelte",
+      "symbol": "Dialog",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface DialogProps {\n  trigger: Snippet;\n  content: Snippet<[close: () => void]>;\n  labelledby: string;\n}\n\ndeclare const Dialog: Component<DialogProps>;",
+        "doc": "Own the trigger button, custom overlay, native modal dialog, and Melt open state. The trigger snippet supplies\nbutton content only. labelledby identifies the heading supplied in content. Pass close to the content snippet.\nClosing through the snippet callback, Escape, or an outside click restores trigger focus. Reopening starts with\nfresh content rather than discarded edits. Use ordinary dialog semantics; no externally bound open state or\nMelt-specific configuration is exposed.",
+        "docStyle": "doc",
+        "body": "import { mergeAttrs } from 'melt';\n\nimport { Dialog as MeltDialog } from 'melt/builders';\n\nimport type { Snippet } from 'svelte';\n\nimport Button from './Button.svelte';\n\nconst { trigger, content, labelledby }: DialogProps = $props();\n\nconst dialog = new MeltDialog();\n\nlet contentVersion = $state(0);\n\nfunction resetContent() {\n    contentVersion += 1;\n  }\n\nfunction close() {\n    dialog.open = false;\n  }\n\n<Button {...dialog.trigger}>\n  {@render trigger()}\n</Button>\n\n<div {...dialog.overlay} class=\"overlay bg-muted/20 fixed inset-0 h-full w-full\"></div>\n<dialog\n  {...mergeAttrs(dialog.content, { onclose: resetContent })}\n  aria-labelledby={labelledby}\n  class=\"dialog bg-surface px-l py-m gap-y-m\"\n>\n  {#key contentVersion}\n    {@render content(close)}\n  {/key}\n</dialog>\n\n<style>\n  .overlay {\n    margin: 0;\n    padding: 0;\n    border: 0;\n  }\n\n  .dialog {\n    /* Transforms would change the containing block of injected fixed-position autofill controls. */\n    position: fixed;\n    inset: 0;\n    width: 80%;\n    max-width: 30rem;\n    max-height: calc(100dvh - 2rem);\n    height: fit-content;\n    margin: auto;\n    color: inherit;\n  }\n\n  .dialog[open] {\n    display: flex;\n    flex-direction: column;\n  }\n\n  .dialog::backdrop {\n    /* Keep the native backdrop hit target so outside clicks reach Melt’s dialog handler. */\n    background: transparent;\n  }\n</style>"
+      },
+      "after": {
+        "signature": "interface DialogProps {\n  trigger: Snippet;\n  content: Snippet<[close: () => void]>;\n  labelledby: string;\n}\n\ndeclare const Dialog: Component<DialogProps>;",
+        "doc": "Own the trigger button, custom overlay, native modal dialog, and Melt open state. The trigger snippet supplies\nbutton content only. labelledby identifies the heading supplied in content. Pass close to the content snippet.\nClosing through the snippet callback, Escape, or an outside click restores trigger focus. Reopening starts with\nfresh content rather than discarded edits. Use ordinary dialog semantics; no externally bound open state or\nMelt-specific configuration is exposed.",
+        "docStyle": "doc",
+        "body": "import { mergeAttrs } from 'melt';\n\nimport { Dialog as MeltDialog } from 'melt/builders';\n\nimport type { Snippet } from 'svelte';\n\nimport Button from './Button.svelte';\n\nconst { trigger, content, labelledby }: DialogProps = $props();\n\nconst dialog = new MeltDialog();\n\nlet contentVersion = $state(0);\n\nfunction resetContent() {\n    contentVersion += 1;\n  }\n\nfunction close() {\n    dialog.open = false;\n  }\n\n<Button {...dialog.trigger}>\n  {@render trigger()}\n</Button>\n\n<div {...dialog.overlay} class=\"overlay bg-muted/20 fixed inset-0 h-full w-full\"></div>\n<dialog\n  {...mergeAttrs(dialog.content, { onclose: resetContent })}\n  aria-labelledby={labelledby}\n  class=\"dialog bg-surface px-l py-m gap-y-m\"\n>\n  {#key contentVersion}\n    {@render content(close)}\n  {/key}\n</dialog>\n\n<style>\n  .overlay {\n    margin: 0;\n    padding: 0;\n    border: 0;\n  }\n\n  .dialog {\n    /* Transforms would change the containing block of injected fixed-position autofill controls. */\n    position: fixed;\n    inset: 0;\n    width: 80%;\n    max-width: 30rem;\n    max-height: calc(100dvh - 2rem);\n    height: fit-content;\n    margin: auto;\n    color: inherit;\n  }\n\n  .dialog[open] {\n    display: flex;\n    flex-direction: column;\n  }\n\n  .dialog::backdrop {\n    /* Keep the native backdrop hit target so outside clicks reach Melt’s dialog handler. */\n    background: transparent;\n  }\n</style>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/Input.svelte#Input",
+      "path": "src/lib/component/Input.svelte",
+      "symbol": "Input",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface Props extends HTMLInputAttributes {\n  label: string;\n  description?: string;\n  error?: string;\n  issues?: RemoteFormIssue[];\n}\n\ndeclare const Input: Component<Props, {}, 'value'>;",
+        "doc": "Forward standard input attributes and events, bind value both ways, and render label, optional description/error,\nand supplied issue messages. A supplied name is used for the label’s for attribute; an ID is not synthesized.\nOmitted `issues` behavior has not been verified.",
+        "docStyle": "doc",
+        "body": "import type { RemoteFormIssue } from '$app/server';\n\nimport type { HTMLInputAttributes } from 'svelte/elements';\n\nlet { name, label, description, value = $bindable(), error, issues, ...rest }: Props = $props();\n\n<div class=\"gap-y-xs flex w-full flex-col\">\n  <label class=\"font-semibold\" for={name}>{label}</label>\n  <div class=\"gap-y-2xs flex w-full flex-col\">\n    <input\n      class=\"bg-surface border-accent-alt focus-visible:border-accent border-2 p-1 leading-6 focus-visible:outline-hidden\"\n      bind:value\n      {name}\n      {...rest}\n    />\n    {#if description}<small class=\"text-subtle\">{description}</small>{/if}\n    {#if error}<small class=\"text-error\">{error}</small>{/if}\n    {#each issues as issue}\n      <small class=\"text-error\">{issue.message}</small>\n    {/each}\n  </div>\n</div>"
+      },
+      "after": {
+        "signature": "interface Props extends HTMLInputAttributes {\n  label: string;\n  description?: string;\n  error?: string;\n  issues?: RemoteFormIssue[];\n}\n\ndeclare const Input: Component<Props, {}, 'value'>;",
+        "doc": "Forward standard input attributes and events, bind value both ways, and render label, optional description/error,\nand supplied issue messages. A supplied name is used for the label’s for attribute; an ID is not synthesized.\nOmitted `issues` behavior has not been verified.",
+        "docStyle": "doc",
+        "body": "import type { RemoteFormIssue } from '$app/server';\n\nimport type { HTMLInputAttributes } from 'svelte/elements';\n\nlet { name, label, description, value = $bindable(), error, issues, ...rest }: Props = $props();\n\n<div class=\"gap-y-xs flex w-full flex-col\">\n  <label class=\"font-semibold\" for={name}>{label}</label>\n  <div class=\"gap-y-2xs flex w-full flex-col\">\n    <input\n      class=\"bg-surface border-accent-alt focus-visible:border-accent border-2 p-1 leading-6 focus-visible:outline-hidden\"\n      bind:value\n      {name}\n      {...rest}\n    />\n    {#if description}<small class=\"text-subtle\">{description}</small>{/if}\n    {#if error}<small class=\"text-error\">{error}</small>{/if}\n    {#each issues as issue}\n      <small class=\"text-error\">{issue.message}</small>\n    {/each}\n  </div>\n</div>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/InputTextArea.svelte#InputTextArea",
+      "path": "src/lib/component/InputTextArea.svelte",
+      "symbol": "InputTextArea",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface Props extends HTMLTextareaAttributes {\n  label: string;\n  description?: string;\n  error?: string;\n  issues?: RemoteFormIssue[];\n  addition?: Snippet;\n}\n\ndeclare const InputTextArea: Component<Props, {}, 'value'>;",
+        "doc": "Bind value both ways, forward standard textarea attributes/events, and render label, optional description/error,\nsupplied issue messages, and an optional addition snippet.",
+        "docStyle": "doc",
+        "body": "import type { RemoteFormIssue } from '$app/server';\n\nimport type { Snippet } from 'svelte';\n\nimport type { HTMLTextareaAttributes } from 'svelte/elements';\n\nlet { name, label, description, value = $bindable(), error, issues, addition, ...rest }: Props = $props();\n\n<div class=\"gap-y-xs flex w-full flex-col\">\n  <label class=\"font-semibold\" for={name}>{label}</label>\n  {#if description}<small class=\"text-subtle\">{description}</small>{/if}\n  {#if error}<small class=\"text-error\">{error}</small>{/if}\n  {#each issues as issue}\n    <small class=\"text-error\">{issue.message}</small>\n  {/each}\n  {#if addition}{@render addition()}{/if}\n  <textarea\n    class=\"bg-surface border-accent-alt focus-visible:border-accent h-[5em] border-2 p-1 focus-visible:outline-hidden\"\n    bind:value\n    {name}\n    {...rest}></textarea>\n</div>"
+      },
+      "after": {
+        "signature": "interface Props extends HTMLTextareaAttributes {\n  label: string;\n  description?: string;\n  error?: string;\n  issues?: RemoteFormIssue[];\n  addition?: Snippet;\n}\n\ndeclare const InputTextArea: Component<Props, {}, 'value'>;",
+        "doc": "Bind value both ways, forward standard textarea attributes/events, and render label, optional description/error,\nsupplied issue messages, and an optional addition snippet.",
+        "docStyle": "doc",
+        "body": "import type { RemoteFormIssue } from '$app/server';\n\nimport type { Snippet } from 'svelte';\n\nimport type { HTMLTextareaAttributes } from 'svelte/elements';\n\nlet { name, label, description, value = $bindable(), error, issues, addition, ...rest }: Props = $props();\n\n<div class=\"gap-y-xs flex w-full flex-col\">\n  <label class=\"font-semibold\" for={name}>{label}</label>\n  {#if description}<small class=\"text-subtle\">{description}</small>{/if}\n  {#if error}<small class=\"text-error\">{error}</small>{/if}\n  {#each issues as issue}\n    <small class=\"text-error\">{issue.message}</small>\n  {/each}\n  {#if addition}{@render addition()}{/if}\n  <textarea\n    class=\"bg-surface border-accent-alt focus-visible:border-accent h-[5em] border-2 p-1 focus-visible:outline-hidden\"\n    bind:value\n    {name}\n    {...rest}></textarea>\n</div>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/Loading.svelte#Loading",
+      "path": "src/lib/component/Loading.svelte",
+      "symbol": "Loading",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "declare const Loading: Component<Record<string, never>>;",
+        "doc": "Render a CSS-animated spinner without component props or application I/O. The --size custom property controls\nwidth/height and defaults to --spacing-l.",
+        "docStyle": "doc",
+        "body": "<div></div>\n\n<style>\n  div {\n    width: var(--size, var(--spacing-l));\n    height: var(--size, var(--spacing-l));\n    border-radius: 50%;\n    border: calc(var(--size, var(--spacing-l)) / 8) solid transparent;\n    border-top-color: var(--color-warn);\n    animation: spin 1s ease infinite;\n  }\n\n  @keyframes spin {\n    to {\n      transform: rotate(360deg);\n    }\n  }\n  @-webkit-keyframes spin {\n    to {\n      transform: rotate(360deg);\n    }\n  }\n</style>"
+      },
+      "after": {
+        "signature": "declare const Loading: Component<Record<string, never>>;",
+        "doc": "Render a CSS-animated spinner without component props or application I/O. The --size custom property controls\nwidth/height and defaults to --spacing-l.",
+        "docStyle": "doc",
+        "body": "<div></div>\n\n<style>\n  div {\n    width: var(--size, var(--spacing-l));\n    height: var(--size, var(--spacing-l));\n    border-radius: 50%;\n    border: calc(var(--size, var(--spacing-l)) / 8) solid transparent;\n    border-top-color: var(--color-warn);\n    animation: spin 1s ease infinite;\n  }\n\n  @keyframes spin {\n    to {\n      transform: rotate(360deg);\n    }\n  }\n  @-webkit-keyframes spin {\n    to {\n      transform: rotate(360deg);\n    }\n  }\n</style>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/Logo.svelte#Logo",
+      "path": "src/lib/component/Logo.svelte",
+      "symbol": "Logo",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "declare const Logo: Component<Record<string, never>>;",
+        "doc": "Render the inline EXODUS SVG mark without props or I/O. --size controls dimensions and defaults to --spacing-l; its\npath uses --color-text.",
+        "docStyle": "doc",
+        "body": "<svg\n  xmlns=\"http://www.w3.org/2000/svg\"\n  version=\"1.1\"\n  id=\"Layer_1\"\n  x=\"0px\"\n  y=\"0px\"\n  width=\"560\"\n  height=\"560\"\n  viewBox=\"0 0 560 560\"\n  xml:space=\"preserve\"\n>\n  <path\n    d=\"M 490.00847,426.30353 476.01016,389.202 c -6.29359,-15.40393 -20.29754,-25.90277 -37.80672,-25.90277 h -6.29359 V 43.395188 H 128.10708 V 220.49813 h 39.90082 l 45.50014,-56.705 c 9.10455,-10.49319 23.09721,-17.50371 38.49535,-17.50371 h 97.30516 c 15.39814,0 28.69653,8.39343 35.69568,21.70324 l 28.70782,54.59395 c 1.39983,2.09977 2.0941,4.9051 2.0941,8.40471 0,9.79327 -8.39898,18.19234 -18.20344,18.19234 -7.69907,0 -13.29275,-3.49397 -16.80361,-9.79327 l -25.89123,-49.70013 h -42.00056 l 32.1961,80.50236 9.80446,102.89424 h 83.28993 c 13.30968,0 23.80841,8.40471 28.70782,19.60911 l 9.0989,23.79736 H 333.19921 c -10.48744,0 -19.59763,-7.6935 -20.2919,-18.19798 l -9.80446,-90.30128 -76.99069,159.59924 c -4.20513,9.10464 -14.00395,15.40394 -25.20259,15.40394 h -37.1068 l 94.5055,-195.30657 -29.3908,-73.4975 -28.0079,34.30185 c -6.99351,9.10463 -18.90901,15.39829 -31.50184,15.39829 h -41.295 v 231.00261 l 65.79768,65.09843 H 0 V 0 h 560 v 559.99436 h -63.00367 l -65.09212,-65.09843 v -68.5924 z M 228.20627,64.39286 c 21.70302,0 39.89517,18.203626 39.89517,39.90122 0,21.70324 -18.19215,39.2013 -39.89517,39.2013 -21.70302,0 -39.20655,-17.49806 -39.20655,-39.2013 0,-21.697594 17.50353,-39.90122 39.20655,-39.90122 M 245.70979,509.59994 296.10934,560 h -60.90957 l -65.79768,-65.10407 h 39.19526 c 14.00959,0 27.30798,5.60502 37.11244,14.70401\"\n  />\n</svg>\n\n<style>\n  svg {\n    width: var(--size, var(--spacing-l));\n    height: var(--size, var(--spacing-l));\n  }\n  path {\n    fill: var(--color-text);\n  }\n</style>"
+      },
+      "after": {
+        "signature": "declare const Logo: Component<Record<string, never>>;",
+        "doc": "Render the inline EXODUS SVG mark without props or I/O. --size controls dimensions and defaults to --spacing-l; its\npath uses --color-text.",
+        "docStyle": "doc",
+        "body": "<svg\n  xmlns=\"http://www.w3.org/2000/svg\"\n  version=\"1.1\"\n  id=\"Layer_1\"\n  x=\"0px\"\n  y=\"0px\"\n  width=\"560\"\n  height=\"560\"\n  viewBox=\"0 0 560 560\"\n  xml:space=\"preserve\"\n>\n  <path\n    d=\"M 490.00847,426.30353 476.01016,389.202 c -6.29359,-15.40393 -20.29754,-25.90277 -37.80672,-25.90277 h -6.29359 V 43.395188 H 128.10708 V 220.49813 h 39.90082 l 45.50014,-56.705 c 9.10455,-10.49319 23.09721,-17.50371 38.49535,-17.50371 h 97.30516 c 15.39814,0 28.69653,8.39343 35.69568,21.70324 l 28.70782,54.59395 c 1.39983,2.09977 2.0941,4.9051 2.0941,8.40471 0,9.79327 -8.39898,18.19234 -18.20344,18.19234 -7.69907,0 -13.29275,-3.49397 -16.80361,-9.79327 l -25.89123,-49.70013 h -42.00056 l 32.1961,80.50236 9.80446,102.89424 h 83.28993 c 13.30968,0 23.80841,8.40471 28.70782,19.60911 l 9.0989,23.79736 H 333.19921 c -10.48744,0 -19.59763,-7.6935 -20.2919,-18.19798 l -9.80446,-90.30128 -76.99069,159.59924 c -4.20513,9.10464 -14.00395,15.40394 -25.20259,15.40394 h -37.1068 l 94.5055,-195.30657 -29.3908,-73.4975 -28.0079,34.30185 c -6.99351,9.10463 -18.90901,15.39829 -31.50184,15.39829 h -41.295 v 231.00261 l 65.79768,65.09843 H 0 V 0 h 560 v 559.99436 h -63.00367 l -65.09212,-65.09843 v -68.5924 z M 228.20627,64.39286 c 21.70302,0 39.89517,18.203626 39.89517,39.90122 0,21.70324 -18.19215,39.2013 -39.89517,39.2013 -21.70302,0 -39.20655,-17.49806 -39.20655,-39.2013 0,-21.697594 17.50353,-39.90122 39.20655,-39.90122 M 245.70979,509.59994 296.10934,560 h -60.90957 l -65.79768,-65.10407 h 39.19526 c 14.00959,0 27.30798,5.60502 37.11244,14.70401\"\n  />\n</svg>\n\n<style>\n  svg {\n    width: var(--size, var(--spacing-l));\n    height: var(--size, var(--spacing-l));\n  }\n  path {\n    fill: var(--color-text);\n  }\n</style>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/Markdown.svelte#Markdown",
+      "path": "src/lib/component/Markdown.svelte",
+      "symbol": "Markdown",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface MarkdownProps {\n  markup: string;\n}\n\ndeclare const Markdown: Component<MarkdownProps>;",
+        "doc": "Import markdown.css and insert supplied markup as raw HTML inside .markdown. Sanitization belongs to the upstream\ncompiler; this component does not sanitize or escape the markup.",
+        "docStyle": "doc",
+        "body": "import './markdown.css';\n\nconst { markup }: MarkdownProps = $props();\n\n<div class=\"markdown\">\n  <!-- eslint-disable-next-line svelte/no-at-html-tags -->\n  {@html markup}\n</div>"
+      },
+      "after": {
+        "signature": "interface MarkdownProps {\n  markup: string;\n}\n\ndeclare const Markdown: Component<MarkdownProps>;",
+        "doc": "Import markdown.css and insert supplied markup as raw HTML inside .markdown. Sanitization belongs to the upstream\ncompiler; this component does not sanitize or escape the markup.",
+        "docStyle": "doc",
+        "body": "import './markdown.css';\n\nconst { markup }: MarkdownProps = $props();\n\n<div class=\"markdown\">\n  <!-- eslint-disable-next-line svelte/no-at-html-tags -->\n  {@html markup}\n</div>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/Pager.svelte#Pager",
+      "path": "src/lib/component/Pager.svelte",
+      "symbol": "Pager",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface Props {\n  count: number;\n  pageSize: number;\n  page: number;\n  siblingCount?: number;\n  pageLink: (page: number) => string;\n}\n\ndeclare const Pager: Component<Props>;",
+        "doc": "Compute total pages with ceil(count/pageSize), use one-based page, and default siblingCount to 1. Always include\npage 1, include the last page when distinct, and shift the sibling window at boundaries with ellipsis markers. Use\npageLink for destinations; omit href and set aria-disabled for unavailable previous/next links. Page ranges and zero\npage sizes are not validated at runtime.",
+        "docStyle": "doc",
+        "body": "import MdiChevronLeft from '~icons/mdi/chevron-left';\n\nimport MdiChevronRight from '~icons/mdi/chevron-right';\n\nimport ButtonLink from './ButtonLink.svelte';\n\ntype PageItem = number | 'ellipsis';\n\nconst { count, pageSize, page, siblingCount = 1, pageLink }: Props = $props();\n\nconst totalPages = $derived(Math.ceil(count / pageSize));\n\nconst hasPrev = $derived(page > 1);\n\nconst hasNext = $derived(page < totalPages);\n\nconst pageItems = $derived.by(() => {\n    let start: number;\n    let end: number;\n    if (totalPages <= siblingCount * 2 + 3) {\n      start = 2;\n      end = totalPages - 1;\n    } else {\n      start = page - siblingCount;\n      end = page + siblingCount;\n      if (start <= 1) {\n        end += 2 - start;\n        start = 2;\n      }\n      if (end >= totalPages) {\n        start -= end - (totalPages - 1);\n        end = totalPages - 1;\n      }\n    }\n\n    const items: PageItem[] = [1];\n    if (start > 2) {\n      items.push('ellipsis');\n    }\n    for (let i = start; i <= end; i++) {\n      items.push(i);\n    }\n    if (end < totalPages - 1) {\n      items.push('ellipsis');\n    }\n    if (totalPages > 1) {\n      items.push(totalPages);\n    }\n    return items;\n  });\n\n<nav class=\"gap-xs flex flex-row items-center\" aria-label=\"pagination\">\n  <ButtonLink\n    class=\"h-8 w-8 p-0.5\"\n    variant={hasPrev ? 'normal' : 'disabled'}\n    href={hasPrev ? pageLink(page - 1) : undefined}\n    aria-disabled={!hasPrev}\n    aria-label=\"Previous page\"\n  >\n    <MdiChevronLeft class=\"size-6\" />\n  </ButtonLink>\n  {#each pageItems as item}\n    {#if item === 'ellipsis'}\n      <div class=\"text-text grid h-8 items-center justify-center\">\n        <span>/</span>\n      </div>\n    {:else}\n      <ButtonLink\n        class=\"flex h-8 w-fit min-w-8 items-center justify-center p-0.5 font-normal\"\n        variant={item === page ? 'accent' : 'normal'}\n        href={pageLink(item)}\n        aria-current={item === page ? 'page' : undefined}\n        aria-label={item === page ? `Current page, page ${item}` : `Go to page ${item}`}\n      >\n        {item}\n      </ButtonLink>\n    {/if}\n  {/each}\n  <ButtonLink\n    class=\"h-8 w-8 p-0.5\"\n    variant={hasNext ? 'normal' : 'disabled'}\n    href={hasNext ? pageLink(page + 1) : undefined}\n    aria-disabled={!hasNext}\n    aria-label=\"Next page\"\n  >\n    <MdiChevronRight class=\"size-6\" />\n  </ButtonLink>\n</nav>"
+      },
+      "after": {
+        "signature": "interface Props {\n  count: number;\n  pageSize: number;\n  page: number;\n  siblingCount?: number;\n  pageLink: (page: number) => string;\n}\n\ndeclare const Pager: Component<Props>;",
+        "doc": "Compute total pages with ceil(count/pageSize), use one-based page, and default siblingCount to 1. Always include\npage 1, include the last page when distinct, and shift the sibling window at boundaries with ellipsis markers. Use\npageLink for destinations; omit href and set aria-disabled for unavailable previous/next links. Page ranges and zero\npage sizes are not validated at runtime.",
+        "docStyle": "doc",
+        "body": "import MdiChevronLeft from '~icons/mdi/chevron-left';\n\nimport MdiChevronRight from '~icons/mdi/chevron-right';\n\nimport ButtonLink from './ButtonLink.svelte';\n\ntype PageItem = number | 'ellipsis';\n\nconst { count, pageSize, page, siblingCount = 1, pageLink }: Props = $props();\n\nconst totalPages = $derived(Math.ceil(count / pageSize));\n\nconst hasPrev = $derived(page > 1);\n\nconst hasNext = $derived(page < totalPages);\n\nconst pageItems = $derived.by(() => {\n    let start: number;\n    let end: number;\n    if (totalPages <= siblingCount * 2 + 3) {\n      start = 2;\n      end = totalPages - 1;\n    } else {\n      start = page - siblingCount;\n      end = page + siblingCount;\n      if (start <= 1) {\n        end += 2 - start;\n        start = 2;\n      }\n      if (end >= totalPages) {\n        start -= end - (totalPages - 1);\n        end = totalPages - 1;\n      }\n    }\n\n    const items: PageItem[] = [1];\n    if (start > 2) {\n      items.push('ellipsis');\n    }\n    for (let i = start; i <= end; i++) {\n      items.push(i);\n    }\n    if (end < totalPages - 1) {\n      items.push('ellipsis');\n    }\n    if (totalPages > 1) {\n      items.push(totalPages);\n    }\n    return items;\n  });\n\n<nav class=\"gap-xs flex flex-row items-center\" aria-label=\"pagination\">\n  <ButtonLink\n    class=\"h-8 w-8 p-0.5\"\n    variant={hasPrev ? 'normal' : 'disabled'}\n    href={hasPrev ? pageLink(page - 1) : undefined}\n    aria-disabled={!hasPrev}\n    aria-label=\"Previous page\"\n  >\n    <MdiChevronLeft class=\"size-6\" />\n  </ButtonLink>\n  {#each pageItems as item}\n    {#if item === 'ellipsis'}\n      <div class=\"text-text grid h-8 items-center justify-center\">\n        <span>/</span>\n      </div>\n    {:else}\n      <ButtonLink\n        class=\"flex h-8 w-fit min-w-8 items-center justify-center p-0.5 font-normal\"\n        variant={item === page ? 'accent' : 'normal'}\n        href={pageLink(item)}\n        aria-current={item === page ? 'page' : undefined}\n        aria-label={item === page ? `Current page, page ${item}` : `Go to page ${item}`}\n      >\n        {item}\n      </ButtonLink>\n    {/if}\n  {/each}\n  <ButtonLink\n    class=\"h-8 w-8 p-0.5\"\n    variant={hasNext ? 'normal' : 'disabled'}\n    href={hasNext ? pageLink(page + 1) : undefined}\n    aria-disabled={!hasNext}\n    aria-label=\"Next page\"\n  >\n    <MdiChevronRight class=\"size-6\" />\n  </ButtonLink>\n</nav>"
+      },
+      "tests": []
+    },
+    {
+      "key": "src/lib/component/UserBadge.svelte#UserBadge",
+      "path": "src/lib/component/UserBadge.svelte",
+      "symbol": "UserBadge",
+      "kind": "component",
+      "change": "unchanged",
+      "before": {
+        "signature": "interface UserBadgeProps {\n  user: UserSummary;\n}\n\ndeclare const UserBadge: Component<UserBadgeProps>;",
+        "doc": "Render user.name linked to `/u/@<user.username>` without encoding or data lookup. Accept the shared UserSummary\nprojection from article authors, invitation relations, or a fuller User/LoggedInUser value; display requires no\nadditional user lookup.",
+        "docStyle": "doc",
+        "body": "import type { UserSummary } from '#lib/models/user.js';\n\nconst { user }: UserBadgeProps = $props();\n\n<a class=\"text-accent hover:text-accent-alt font-medium\" href={`/u/@${user.username}`}>{user.name}</a>"
+      },
+      "after": {
+        "signature": "interface UserBadgeProps {\n  user: UserSummary;\n}\n\ndeclare const UserBadge: Component<UserBadgeProps>;",
+        "doc": "Render user.name linked to `/u/@<user.username>` without encoding or data lookup. Accept the shared UserSummary\nprojection from article authors, invitation relations, or a fuller User/LoggedInUser value; display requires no\nadditional user lookup.",
+        "docStyle": "doc",
+        "body": "import type { UserSummary } from '#lib/models/user.js';\n\nconst { user }: UserBadgeProps = $props();\n\n<a class=\"text-accent hover:text-accent-alt font-medium\" href={`/u/@${user.username}`}>{user.name}</a>"
+      },
+      "tests": []
+    },
     {
       "key": "src/lib/errors.ts#ErrorDetail",
       "path": "src/lib/errors.ts",
@@ -3169,19 +3549,22 @@
       "before": {
         "signature": "export async function getEditableArticle(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; articleId: string },\n): Promise<Article>",
         "doc": "Use for editor reads: another author’s article produces FORBIDDEN.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  requireAuthor(params.actor);\n  const article = await getArticleById(deps.db, params.articleId);\n  if (article.author.id !== params.actor.id) return throwError('FORBIDDEN', { operation: '编辑其他作者的文章' });\n  return article;\n}"
       },
       "after": {
         "signature": "export async function getEditableArticle(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; articleId: string },\n): Promise<Article>",
         "doc": "Use for editor reads: another author’s article produces FORBIDDEN.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  requireAuthor(params.actor);\n  const article = await getArticleById(deps.db, params.articleId);\n  if (article.author.id !== params.actor.id) return throwError('FORBIDDEN', { operation: '编辑其他作者的文章' });\n  return article;\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › enforces article permissions before writes and returns Markdown validation issues",
+          "name": [
+            "business operations",
+            "enforces article permissions before writes and returns Markdown validation issues"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3195,19 +3578,22 @@
       "before": {
         "signature": "export async function saveExternalArticle(\n  deps: { db: AppDatabase; resolveTxt: (hostname: string) => Promise<string[]> },\n  params: { actor: LoggedInUser; articleId?: string; url: URL; content: string; title: string; replyToId?: string },\n): Promise<SaveExternalArticleResult>",
         "doc": "Domain verification precedes edit-target lookup, preserving form error precedence.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  requireAuthor(params.actor);\n  if (!(await verifyDomainOwnership(deps, { url: params.url, verificationCode: params.actor.verifyCode })))\n    return { ok: false, reason: 'unverified-domain' };\n  if (params.articleId) {\n    const article = await getArticleById(deps.db, params.articleId);\n    if (article.author.id !== params.actor.id) return throwError('BAD_REQUEST', '只能编辑自己的文章');\n    await updateArticle(deps.db, { id: params.articleId, title: params.title, content: params.content });\n    return { ok: true, articleId: params.articleId };\n  }\n  const article = await createArticle(deps.db, {\n    authorId: params.actor.id,\n    title: params.title,\n    content: params.content,\n    contentType: 'external',\n    replyToId: params.replyToId,\n  });\n  return { ok: true, articleId: article.id };\n}"
       },
       "after": {
         "signature": "export async function saveExternalArticle(\n  deps: { db: AppDatabase; resolveTxt: (hostname: string) => Promise<string[]> },\n  params: { actor: LoggedInUser; articleId?: string; url: URL; content: string; title: string; replyToId?: string },\n): Promise<SaveExternalArticleResult>",
         "doc": "Domain verification precedes edit-target lookup, preserving form error precedence.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  requireAuthor(params.actor);\n  if (!(await verifyDomainOwnership(deps, { url: params.url, verificationCode: params.actor.verifyCode })))\n    return { ok: false, reason: 'unverified-domain' };\n  if (params.articleId) {\n    const article = await getArticleById(deps.db, params.articleId);\n    if (article.author.id !== params.actor.id) return throwError('BAD_REQUEST', '只能编辑自己的文章');\n    await updateArticle(deps.db, { id: params.articleId, title: params.title, content: params.content });\n    return { ok: true, articleId: params.articleId };\n  }\n  const article = await createArticle(deps.db, {\n    authorId: params.actor.id,\n    title: params.title,\n    content: params.content,\n    contentType: 'external',\n    replyToId: params.replyToId,\n  });\n  return { ok: true, articleId: article.id };\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › uses mocked DNS, verifies before ownership lookup, and preserves original URL text",
+          "name": [
+            "business operations",
+            "uses mocked DNS, verifies before ownership lookup, and preserves original URL text"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3221,19 +3607,22 @@
       "before": {
         "signature": "export async function saveMarkdownArticle(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; articleId?: string; content: string; replyToId?: string },\n): Promise<SaveMarkdownArticleResult>",
         "doc": "Failed validation performs no writes; edits preserve the stored content type and reply parent.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  requireAuthor(params.actor);\n  const { title, issues } = await compileArticle(params.content);\n  if (issues.length) return { ok: false, issues };\n  if (params.articleId) {\n    const article = await getArticleById(deps.db, params.articleId);\n    if (article.author.id !== params.actor.id) return throwError('BAD_REQUEST', '只能编辑自己的文章');\n    await updateArticle(deps.db, { id: params.articleId, title, content: params.content });\n    return { ok: true, articleId: params.articleId };\n  }\n  const article = await createArticle(deps.db, {\n    authorId: params.actor.id,\n    title,\n    content: params.content,\n    contentType: 'markdown',\n    replyToId: params.replyToId,\n  });\n  return { ok: true, articleId: article.id };\n}"
       },
       "after": {
         "signature": "export async function saveMarkdownArticle(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; articleId?: string; content: string; replyToId?: string },\n): Promise<SaveMarkdownArticleResult>",
         "doc": "Failed validation performs no writes; edits preserve the stored content type and reply parent.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  requireAuthor(params.actor);\n  const { title, issues } = await compileArticle(params.content);\n  if (issues.length) return { ok: false, issues };\n  if (params.articleId) {\n    const article = await getArticleById(deps.db, params.articleId);\n    if (article.author.id !== params.actor.id) return throwError('BAD_REQUEST', '只能编辑自己的文章');\n    await updateArticle(deps.db, { id: params.articleId, title, content: params.content });\n    return { ok: true, articleId: params.articleId };\n  }\n  const article = await createArticle(deps.db, {\n    authorId: params.actor.id,\n    title,\n    content: params.content,\n    contentType: 'markdown',\n    replyToId: params.replyToId,\n  });\n  return { ok: true, articleId: article.id };\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › enforces article permissions before writes and returns Markdown validation issues",
+          "name": [
+            "business operations",
+            "enforces article permissions before writes and returns Markdown validation issues"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3247,19 +3636,22 @@
       "before": {
         "signature": "export async function verifyDomainOwnership(\n  deps: { resolveTxt: (hostname: string) => Promise<string[]> },\n  params: { url: URL; verificationCode: string },\n): Promise<boolean>",
         "doc": "The marker may occur anywhere in a TXT record; resolver failures propagate.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  return (await deps.resolveTxt(params.url.hostname)).some((record) =>\n    record.includes(`exodus-site-verification=${params.verificationCode}`),\n  );\n}"
       },
       "after": {
         "signature": "export async function verifyDomainOwnership(\n  deps: { resolveTxt: (hostname: string) => Promise<string[]> },\n  params: { url: URL; verificationCode: string },\n): Promise<boolean>",
         "doc": "The marker may occur anywhere in a TXT record; resolver failures propagate.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  return (await deps.resolveTxt(params.url.hostname)).some((record) =>\n    record.includes(`exodus-site-verification=${params.verificationCode}`),\n  );\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › uses mocked DNS, verifies before ownership lookup, and preserves original URL text",
+          "name": [
+            "business operations",
+            "uses mocked DNS, verifies before ownership lookup, and preserves original URL text"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3273,19 +3665,22 @@
       "before": {
         "signature": "export async function saveComment(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; articleId?: string; content: string; commentId?: string; replyToId?: string },\n): Promise<{ articleId: string; commentId: string }>",
         "doc": "On edits, the stored article and ancestry win over submitted replacements.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (params.commentId) {\n    const comment = await getCommentById(deps.db, params.commentId);\n    if (comment.author.id !== params.actor.id) return throwError('BAD_REQUEST', '只能编辑自己的评论');\n    await updateComment(deps.db, { id: comment.id, content: params.content });\n    return { articleId: comment.articleId, commentId: comment.id };\n  }\n  if (!params.articleId) return throwError('BAD_REQUEST', '缺少文章ID');\n  const comment = await createComment(deps.db, {\n    articleId: params.articleId,\n    userId: params.actor.id,\n    content: params.content,\n    replyToId: params.replyToId,\n  });\n  return { articleId: comment.articleId, commentId: comment.id };\n}"
       },
       "after": {
         "signature": "export async function saveComment(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; articleId?: string; content: string; commentId?: string; replyToId?: string },\n): Promise<{ articleId: string; commentId: string }>",
         "doc": "On edits, the stored article and ancestry win over submitted replacements.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (params.commentId) {\n    const comment = await getCommentById(deps.db, params.commentId);\n    if (comment.author.id !== params.actor.id) return throwError('BAD_REQUEST', '只能编辑自己的评论');\n    await updateComment(deps.db, { id: comment.id, content: params.content });\n    return { articleId: comment.articleId, commentId: comment.id };\n  }\n  if (!params.articleId) return throwError('BAD_REQUEST', '缺少文章ID');\n  const comment = await createComment(deps.db, {\n    articleId: params.articleId,\n    userId: params.actor.id,\n    content: params.content,\n    replyToId: params.replyToId,\n  });\n  return { articleId: comment.articleId, commentId: comment.id };\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › keeps comment edits on their stored article and rejects another actor",
+          "name": [
+            "business operations",
+            "keeps comment edits on their stored article and rejects another actor"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3311,7 +3706,10 @@
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › calculates quota, scopes permission, and redeems using one supplied instant",
+          "name": [
+            "business operations",
+            "calculates quota, scopes permission, and redeems using one supplied instant"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3325,19 +3723,22 @@
       "before": {
         "signature": "export async function createInviteCode(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser },\n): Promise<InviteCode>",
         "doc": "Concurrent changes can reject creation with retry guidance; no automatic retry is performed.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (!userHasPermission(params.actor, Permission.CreateArticle))\n    return throwError('FORBIDDEN', { operation: 'create invite code' });\n  const expectedStats = await invites.getInviteStatsOfUser(deps.db, params.actor.id);\n  const { articleCount, validCodeCount, invitedCount } = expectedStats;\n  if (Math.max(articleCount - validCodeCount - invitedCount, 0) <= 0)\n    return throwError('BAD_REQUEST', '邀请码配额已用完');\n  return invites.createInviteCode(deps.db, { inviterId: params.actor.id, roleKey: Role.ArticleAuthor, expectedStats });\n}"
       },
       "after": {
         "signature": "export async function createInviteCode(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser },\n): Promise<InviteCode>",
         "doc": "Concurrent changes can reject creation with retry guidance; no automatic retry is performed.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (!userHasPermission(params.actor, Permission.CreateArticle))\n    return throwError('FORBIDDEN', { operation: 'create invite code' });\n  const expectedStats = await invites.getInviteStatsOfUser(deps.db, params.actor.id);\n  const { articleCount, validCodeCount, invitedCount } = expectedStats;\n  if (Math.max(articleCount - validCodeCount - invitedCount, 0) <= 0)\n    return throwError('BAD_REQUEST', '邀请码配额已用完');\n  return invites.createInviteCode(deps.db, { inviterId: params.actor.id, roleKey: Role.ArticleAuthor, expectedStats });\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › calculates quota, scopes permission, and redeems using one supplied instant",
+          "name": [
+            "business operations",
+            "calculates quota, scopes permission, and redeems using one supplied instant"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3363,7 +3764,10 @@
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › calculates quota, scopes permission, and redeems using one supplied instant",
+          "name": [
+            "business operations",
+            "calculates quota, scopes permission, and redeems using one supplied instant"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3397,19 +3801,22 @@
       "before": {
         "signature": "export async function createSession(\n  deps: { db: AppDatabase; now: () => Date; random: Random },\n  params: { userId: string },\n): Promise<{ session: Session; token: string }>",
         "doc": "Expiry is 30 days after the injected clock's current instant. The token is returned only here because the\nsecret is not stored.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  const currentTime = deps.now();\n  const id = deps.random.sessionId();\n  const secret = deps.random.sessionSecret();\n  const session = await sessions.createSession(deps.db, {\n    id,\n    userId: params.userId,\n    secretHash: hashSessionSecret(secret),\n    expiresAt: new Date(+currentTime + duration),\n  });\n  return { session, token: `${id}.${secret}` };\n}"
       },
       "after": {
         "signature": "export async function createSession(\n  deps: { db: AppDatabase; now: () => Date; random: Random },\n  params: { userId: string },\n): Promise<{ session: Session; token: string }>",
         "doc": "Expiry is 30 days after the injected clock's current instant. The token is returned only here because the\nsecret is not stored.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  const currentTime = deps.now();\n  const id = deps.random.sessionId();\n  const secret = deps.random.sessionSecret();\n  const session = await sessions.createSession(deps.db, {\n    id,\n    userId: params.userId,\n    secretHash: hashSessionSecret(secret),\n    expiresAt: new Date(+currentTime + duration),\n  });\n  return { session, token: `${id}.${secret}` };\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › reads the clock and generators once, storing only the secret hash",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "reads the clock and generators once, storing only the secret hash"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3423,29 +3830,38 @@
       "before": {
         "signature": "export async function invalidateSession(deps: { db: AppDatabase }, params: { token: string }): Promise<void>",
         "doc": "Sign-out: afterwards the token validates as null. Cookie removal stays with the caller.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  const session = await findVerifiedSession(deps, params);\n  if (session) {\n    await sessions.deleteSession(deps.db, session.id);\n  }\n}"
       },
       "after": {
         "signature": "export async function invalidateSession(deps: { db: AppDatabase }, params: { token: string }): Promise<void>",
         "doc": "Sign-out: afterwards the token validates as null. Cookie removal stays with the caller.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  const session = await findVerifiedSession(deps, params);\n  if (session) {\n    await sessions.deleteSession(deps.db, session.id);\n  }\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › treats a mismatched secret as absent without touching the session, even when expired",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "treats a mismatched secret as absent without touching the session, even when expired"
+          ],
           "change": "unchanged"
         },
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › invalidates a verified token so replaying it is anonymous",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "invalidates a verified token so replaying it is anonymous"
+          ],
           "change": "unchanged"
         },
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › ignores malformed tokens on invalidation",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "ignores malformed tokens on invalidation"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3459,39 +3875,54 @@
       "before": {
         "signature": "export async function validateSession(\n  deps: { db: AppDatabase; now: () => Date },\n  params: { token: string },\n): Promise<ValidateSessionResult | null>",
         "doc": "Renewal is inclusive at 20 remaining days; refresh tells the caller to rewrite its cookie with the same token.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  const currentTime = deps.now();\n  const session = await findVerifiedSession(deps, params);\n  if (!session) return null;\n  if (+currentTime >= +session.expiresAt) {\n    await sessions.deleteSession(deps.db, session.id);\n    return null;\n  }\n  const refresh = +session.expiresAt - +currentTime <= threshold;\n  if (refresh) {\n    session.expiresAt = new Date(+currentTime + duration);\n    await sessions.updateSession(deps.db, { id: session.id, expiresAt: session.expiresAt });\n  }\n  return { session, refresh };\n}"
       },
       "after": {
         "signature": "export async function validateSession(\n  deps: { db: AppDatabase; now: () => Date },\n  params: { token: string },\n): Promise<ValidateSessionResult | null>",
         "doc": "Renewal is inclusive at 20 remaining days; refresh tells the caller to rewrite its cookie with the same token.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  const currentTime = deps.now();\n  const session = await findVerifiedSession(deps, params);\n  if (!session) return null;\n  if (+currentTime >= +session.expiresAt) {\n    await sessions.deleteSession(deps.db, session.id);\n    return null;\n  }\n  const refresh = +session.expiresAt - +currentTime <= threshold;\n  if (refresh) {\n    session.expiresAt = new Date(+currentTime + duration);\n    await sessions.updateSession(deps.db, { id: session.id, expiresAt: session.expiresAt });\n  }\n  return { session, refresh };\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › rejects tokens assembled from stored columns",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "rejects tokens assembled from stored columns"
+          ],
           "change": "unchanged"
         },
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › handles the expiry/renewal boundary %i",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "handles the expiry/renewal boundary %i"
+          ],
           "change": "unchanged"
         },
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › treats malformed or unknown token %j as absent",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "treats malformed or unknown token %j as absent"
+          ],
           "change": "unchanged"
         },
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › treats a mismatched secret as absent without touching the session, even when expired",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "treats a mismatched secret as absent without touching the session, even when expired"
+          ],
           "change": "unchanged"
         },
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "session policy with an injected clock and real persistence › treats a corrupted stored hash as a mismatch",
+          "name": [
+            "session policy with an injected clock and real persistence",
+            "treats a corrupted stored hash as a mismatch"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3505,19 +3936,22 @@
       "before": {
         "signature": "export async function loginWithGitHub(\n  deps: { db: AppDatabase; now: () => Date; random: Random },\n  params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },\n): Promise<{ session: Session; token: string }>",
         "doc": "Signup hints affect new accounts only. Account and session creation are separate writes.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  let user = await findUserByGitHubId(deps.db, params.githubUser.id);\n  if (!user) {\n    const username = params.signUp?.username || params.githubUser.username;\n    const name = params.signUp?.name || username;\n    if (username.startsWith('@')) return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });\n    user = await createUser(deps.db, { username, name, githubId: params.githubUser.id, aboutMe: '' });\n  }\n  return createSession(deps, { userId: user.id });\n}"
       },
       "after": {
         "signature": "export async function loginWithGitHub(\n  deps: { db: AppDatabase; now: () => Date; random: Random },\n  params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },\n): Promise<{ session: Session; token: string }>",
         "doc": "Signup hints affect new accounts only. Account and session creation are separate writes.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  let user = await findUserByGitHubId(deps.db, params.githubUser.id);\n  if (!user) {\n    const username = params.signUp?.username || params.githubUser.username;\n    const name = params.signUp?.name || username;\n    if (username.startsWith('@')) return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });\n    user = await createUser(deps.db, { username, name, githubId: params.githubUser.id, aboutMe: '' });\n  }\n  return createSession(deps, { userId: user.id });\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › validates identities and reuses a GitHub account without overwriting profile",
+          "name": [
+            "business operations",
+            "validates identities and reuses a GitHub account without overwriting profile"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3531,19 +3965,22 @@
       "before": {
         "signature": "export async function updateUsername(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; username: string },\n): Promise<void>",
         "doc": "Input is preserved verbatim; no trimming or uniqueness precheck is applied.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (params.username.startsWith('@')) return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });\n  if (params.username === params.actor.username) return;\n  await updateUser(deps.db, { id: params.actor.id, username: params.username });\n}"
       },
       "after": {
         "signature": "export async function updateUsername(\n  deps: { db: AppDatabase },\n  params: { actor: LoggedInUser; username: string },\n): Promise<void>",
         "doc": "Input is preserved verbatim; no trimming or uniqueness precheck is applied.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (params.username.startsWith('@')) return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });\n  if (params.username === params.actor.username) return;\n  await updateUser(deps.db, { id: params.actor.id, username: params.username });\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › validates identities and reuses a GitHub account without overwriting profile",
+          "name": [
+            "business operations",
+            "validates identities and reuses a GitHub account without overwriting profile"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3557,19 +3994,22 @@
       "before": {
         "signature": "export async function validateSignUp(\n  deps: { db: AppDatabase },\n  params: { username?: string; name?: string },\n): Promise<void>",
         "doc": "This preflight does not reserve names; creation still relies on database uniqueness constraints.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (params.username) {\n    if (params.username.startsWith('@')) return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });\n    if (await findUserByUsername(deps.db, params.username))\n      return throwError('PARAMETER_INVALID', { username: '用户名已存在' });\n  }\n  if (params.name && (await findUserByName(deps.db, params.name)))\n    return throwError('PARAMETER_INVALID', { name: '昵称已存在' });\n}"
       },
       "after": {
         "signature": "export async function validateSignUp(\n  deps: { db: AppDatabase },\n  params: { username?: string; name?: string },\n): Promise<void>",
         "doc": "This preflight does not reserve names; creation still relies on database uniqueness constraints.",
-        "docStyle": "jsdoc",
+        "docStyle": "doc",
         "body": "{\n  if (params.username) {\n    if (params.username.startsWith('@')) return throwError('PARAMETER_INVALID', { username: '用户名不能以 @ 开头' });\n    if (await findUserByUsername(deps.db, params.username))\n      return throwError('PARAMETER_INVALID', { username: '用户名已存在' });\n  }\n  if (params.name && (await findUserByName(deps.db, params.name)))\n    return throwError('PARAMETER_INVALID', { name: '昵称已存在' });\n}"
       },
       "tests": [
         {
           "file": "src/lib/server/use-cases/contracts.test.ts",
-          "name": "business operations › validates identities and reuses a GitHub account without overwriting profile",
+          "name": [
+            "business operations",
+            "validates identities and reuses a GitHub account without overwriting profile"
+          ],
           "change": "unchanged"
         }
       ]
@@ -3758,419 +4198,588 @@
   "warnings": [
     {
       "kind": "test-unlinked",
-      "message": "src/lib/component/Dialog.svelte.test.ts：测试「Content closes the dialog and reopening discards edits」没有关联任何声明"
+      "file": "src/lib/component/Dialog.svelte.test.ts",
+      "test": [
+        "Content closes the dialog and reopening discards edits"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/errors.test.ts：测试「preserves the status, message and typed details for $args.0」没有关联任何声明"
+      "file": "src/lib/errors.test.ts",
+      "test": [
+        "preserves the status, message and typed details for $args.0"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/errors.test.ts：测试「narrows field error parameters after the official HTTP error check」没有关联任何声明"
+      "file": "src/lib/errors.test.ts",
+      "test": [
+        "narrows field error parameters after the official HTTP error check"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/errors.test.ts：测试「allows framework-shaped errors without business details」没有关联任何声明"
+      "file": "src/lib/errors.test.ts",
+      "test": [
+        "allows framework-shaped errors without business details"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/models/session.test.ts：测试「hashes the secret as lowercase hex SHA-256」没有关联任何声明"
+      "file": "src/lib/models/session.test.ts",
+      "test": [
+        "hashes the secret as lowercase hex SHA-256"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/github_auth.test.ts：测试「passes state only and requests no additional scopes」没有关联任何声明"
+      "file": "src/lib/server/adapters/github_auth.test.ts",
+      "test": [
+        "passes state only and requests no additional scopes"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/github_auth.test.ts：测试「maps a trusted provider identity with the existing request headers」没有关联任何声明"
+      "file": "src/lib/server/adapters/github_auth.test.ts",
+      "test": [
+        "maps a trusted provider identity with the existing request headers"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/github_auth.test.ts：测试「preserves provider rejection and unexpected failure error categories」没有关联任何声明"
+      "file": "src/lib/server/adapters/github_auth.test.ts",
+      "test": [
+        "preserves provider rejection and unexpected failure error categories"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/github_auth.test.ts：测试「treats a non-2xx user response as an exchange failure without reading it as user data」没有关联任何声明"
+      "file": "src/lib/server/adapters/github_auth.test.ts",
+      "test": [
+        "treats a non-2xx user response as an exchange failure without reading it as user data"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/name_resolver.test.ts：测试「treats nonexistent domains and missing TXT answers as unverified」没有关联任何声明"
+      "file": "src/lib/server/adapters/name_resolver.test.ts",
+      "test": [
+        "treats nonexistent domains and missing TXT answers as unverified"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/name_resolver.test.ts：测试「propagates DNS service, HTTP, network and response failures」没有关联任何声明"
+      "file": "src/lib/server/adapters/name_resolver.test.ts",
+      "test": [
+        "propagates DNS service, HTTP, network and response failures"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/random.test.ts：测试「generates 32-character lowercase alphanumeric session IDs」没有关联任何声明"
+      "file": "src/lib/server/adapters/random.test.ts",
+      "test": [
+        "generates 32-character lowercase alphanumeric session IDs"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/adapters/random.test.ts：测试「generates 32-byte base64url session secrets that never contain the token separator」没有关联任何声明"
+      "file": "src/lib/server/adapters/random.test.ts",
+      "test": [
+        "generates 32-byte base64url session secrets that never contain the token separator"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「writes the session token with the supplied expiry and lax same-site」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "writes the session token with the supplied expiry and lax same-site"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「turns next %j into %j」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "turns next %j into %j"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「keeps next %j on the app host」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "keeps next %j on the app host"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「owns OAuth state cookies while passing only a state string to the provider」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "owns OAuth state cookies while passing only a state string to the provider"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「deletes the OAuth state cookie for %s」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "deletes the OAuth state cookie for %s"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「validates callback state and retains malformed JSON error behavior」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "validates callback state and retains malformed JSON error behavior"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「attaches anonymous locals and enforces authentication for missing sessions」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "attaches anonymous locals and enforces authentication for missing sessions"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/auth.test.ts：测试「refreshes the cookie with the same token on renewal and loads current identity and roles」没有关联任何声明"
+      "file": "src/lib/server/auth.test.ts",
+      "test": [
+        "refreshes the cookie with the same token on renewal and loads current identity and roles"
+      ]
     },
     {
       "kind": "test-file-without-source",
-      "message": "src/lib/server/repositories/contracts.test.ts：找不到对应的源文件 src/lib/server/repositories/contracts.ts"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "source": "src/lib/server/repositories/contracts.ts"
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › maps nested authors and direct parents at every depth, with effective pagination」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "maps nested authors and direct parents at every depth, with effective pagination"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › rolls back article creation and parent count when author mapping fails」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "rolls back article creation and parent count when author mapping fails"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › counts actual duplicate bookmarks and subtracts only deleted relationships」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "counts actual duplicate bookmarks and subtracts only deleted relationships"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › creates comment ancestry atomically and pages raw comments before grouping」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "creates comment ancestry atomically and pages raw comments before grouping"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › rejects a stale invitation snapshot and concurrent over-issuance」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "rejects a stale invitation snapshot and concurrent over-issuance"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › redeems invitations once and preserves an already assigned role」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "redeems invitations once and preserves an already assigned role"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › rolls back invitation consumption when a role write fails」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "rolls back invitation consumption when a role write fails"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「repository contracts against PostgreSQL › returns complete users, preserves legacy IDs, and normalizes database errors」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "repository contracts against PostgreSQL",
+        "returns complete users, preserves legacy IDs, and normalizes database errors"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「maps known write conflicts to fields without changing stored data」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "maps known write conflicts to fields without changing stored data"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「reports both missing and concurrently consumed invitations against inviteCode」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "reports both missing and concurrently consumed invitations against inviteCode"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/repositories/contracts.test.ts：测试「rejects missing discussion context without saving a comment」没有关联任何声明"
+      "file": "src/lib/server/repositories/contracts.test.ts",
+      "test": [
+        "rejects missing discussion context without saving a comment"
+      ]
     },
     {
       "kind": "test-unlinked",
-      "message": "src/lib/server/testing/database.test.ts：测试「isolates concurrent clones, preserves connection environment, and closes only its owned clone」没有关联任何声明"
+      "file": "src/lib/server/testing/database.test.ts",
+      "test": [
+        "isolates concurrent clones, preserves connection environment, and closes only its owned clone"
+      ]
     },
     {
       "kind": "test-file-without-source",
-      "message": "src/lib/server/use-cases/contracts.test.ts：找不到对应的源文件 src/lib/server/use-cases/contracts.ts"
+      "file": "src/lib/server/use-cases/contracts.test.ts",
+      "source": "src/lib/server/use-cases/contracts.ts"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/errors.ts#throwError：没有任何测试"
+      "key": "src/lib/component/Action.svelte#Action"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/markdown.ts#compileMarkdown：没有任何测试"
+      "key": "src/lib/component/ArticleCard.svelte#ArticleCard"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/markdown.ts#throwArticleIssue：没有任何测试"
+      "key": "src/lib/component/ArticleList.svelte#ArticleList"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/markdown.ts#compileArticle：没有任何测试"
+      "key": "src/lib/component/ArticleListItem.svelte#ArticleListItem"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/id_path.ts#encodeIdPath：没有任何测试"
+      "key": "src/lib/component/Button.svelte#Button"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/id_path.ts#decodeIdPath：没有任何测试"
+      "key": "src/lib/component/ButtonLink.svelte#ButtonLink"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/id_path.ts#decodePathField：没有任何测试"
+      "key": "src/lib/component/CommentList.svelte#CommentList"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/id_path.ts#encodePathField：没有任何测试"
+      "key": "src/lib/component/Dialog.svelte#Dialog"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/id_path.ts#getPathParent：没有任何测试"
+      "key": "src/lib/component/Input.svelte#Input"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/role.ts#hasPermission：没有任何测试"
+      "key": "src/lib/component/InputTextArea.svelte#InputTextArea"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/session.ts#hashSessionSecret：没有任何测试"
+      "key": "src/lib/component/Loading.svelte#Loading"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/models/user.ts#userHasPermission：没有任何测试"
+      "key": "src/lib/component/Logo.svelte#Logo"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/adapters/clock.ts#now：没有任何测试"
+      "key": "src/lib/component/Markdown.svelte#Markdown"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/adapters/github_auth.ts#GitHubOAuth.createAuthUrl：没有任何测试"
+      "key": "src/lib/component/Pager.svelte#Pager"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/adapters/github_auth.ts#GitHubOAuth.getUser：没有任何测试"
+      "key": "src/lib/component/UserBadge.svelte#UserBadge"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/adapters/index.ts#createAdapterSet：没有任何测试"
+      "key": "src/lib/errors.ts#throwError"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/adapters/name_resolver.ts#resolveTxt：没有任何测试"
+      "key": "src/lib/markdown.ts#compileMarkdown"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/auth.ts#setAuthCookie：没有任何测试"
+      "key": "src/lib/markdown.ts#throwArticleIssue"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/auth.ts#sanitizeNext：没有任何测试"
+      "key": "src/lib/markdown.ts#compileArticle"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/auth.ts#createGitHubAuthUrl：没有任何测试"
+      "key": "src/lib/models/id_path.ts#encodeIdPath"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/auth.ts#readGitHubCallbackData：没有任何测试"
+      "key": "src/lib/models/id_path.ts#decodeIdPath"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/auth.ts#attachLocals：没有任何测试"
+      "key": "src/lib/models/id_path.ts#decodePathField"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/config.ts#getConfig：没有任何测试"
+      "key": "src/lib/models/id_path.ts#encodePathField"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/db/index.ts#getDatabase：没有任何测试"
+      "key": "src/lib/models/id_path.ts#getPathParent"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/registry.ts#buildServices：没有任何测试"
+      "key": "src/lib/models/role.ts#hasPermission"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#getArticleById：没有任何测试"
+      "key": "src/lib/models/session.ts#hashSessionSecret"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#getArticleContentById：没有任何测试"
+      "key": "src/lib/models/user.ts#userHasPermission"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#getArticleSummaryById：没有任何测试"
+      "key": "src/lib/server/adapters/clock.ts#now"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#listArticles：没有任何测试"
+      "key": "src/lib/server/adapters/github_auth.ts#GitHubOAuth.createAuthUrl"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#listArticlesOfUser：没有任何测试"
+      "key": "src/lib/server/adapters/github_auth.ts#GitHubOAuth.getUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#listBookmarkedArticlesOfUser：没有任何测试"
+      "key": "src/lib/server/adapters/index.ts#createAdapterSet"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#getRepliesOfArticle：没有任何测试"
+      "key": "src/lib/server/adapters/name_resolver.ts#resolveTxt"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#listArticleFeeds：没有任何测试"
+      "key": "src/lib/server/auth.ts#setAuthCookie"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#createArticle：没有任何测试"
+      "key": "src/lib/server/auth.ts#sanitizeNext"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/article.ts#updateArticle：没有任何测试"
+      "key": "src/lib/server/auth.ts#createGitHubAuthUrl"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/bookmark.ts#getBookmarkStateOfArticle：没有任何测试"
+      "key": "src/lib/server/auth.ts#readGitHubCallbackData"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/bookmark.ts#createBookmark：没有任何测试"
+      "key": "src/lib/server/auth.ts#attachLocals"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/bookmark.ts#deleteBookmark：没有任何测试"
+      "key": "src/lib/server/config.ts#getConfig"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/comment.ts#getCommentsOfArticle：没有任何测试"
+      "key": "src/lib/server/db/index.ts#getDatabase"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/comment.ts#listCommentsOfUser：没有任何测试"
+      "key": "src/lib/server/registry.ts#buildServices"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/comment.ts#getCommentById：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#getArticleById"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/comment.ts#createComment：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#getArticleContentById"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/comment.ts#updateComment：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#getArticleSummaryById"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/invite_code.ts#findInviteCodeByCode：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#listArticles"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/invite_code.ts#getUnusedInviteCodesOfUser：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#listArticlesOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/invite_code.ts#getInviteStatsOfUser：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#listBookmarkedArticlesOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/invite_code.ts#createInviteCode：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#getRepliesOfArticle"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/invite_code.ts#deleteInviteCode：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#listArticleFeeds"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/role.ts#getRolesOfUser：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#createArticle"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/role.ts#findInviterOfUser：没有任何测试"
+      "key": "src/lib/server/repositories/article.ts#updateArticle"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/role.ts#getInviteesOfUser：没有任何测试"
+      "key": "src/lib/server/repositories/bookmark.ts#getBookmarkStateOfArticle"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/role.ts#createRoleOfUserByInviteCode：没有任何测试"
+      "key": "src/lib/server/repositories/bookmark.ts#createBookmark"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/session.ts#findSessionById：没有任何测试"
+      "key": "src/lib/server/repositories/bookmark.ts#deleteBookmark"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/session.ts#createSession：没有任何测试"
+      "key": "src/lib/server/repositories/comment.ts#getCommentsOfArticle"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/session.ts#updateSession：没有任何测试"
+      "key": "src/lib/server/repositories/comment.ts#listCommentsOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/session.ts#deleteSession：没有任何测试"
+      "key": "src/lib/server/repositories/comment.ts#getCommentById"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/user.ts#findUserById：没有任何测试"
+      "key": "src/lib/server/repositories/comment.ts#createComment"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/user.ts#findUserByUsername：没有任何测试"
+      "key": "src/lib/server/repositories/comment.ts#updateComment"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/user.ts#findUserByName：没有任何测试"
+      "key": "src/lib/server/repositories/invite_code.ts#findInviteCodeByCode"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/user.ts#findUserByGitHubId：没有任何测试"
+      "key": "src/lib/server/repositories/invite_code.ts#getUnusedInviteCodesOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/user.ts#getUsers：没有任何测试"
+      "key": "src/lib/server/repositories/invite_code.ts#getInviteStatsOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/user.ts#createUser：没有任何测试"
+      "key": "src/lib/server/repositories/invite_code.ts#createInviteCode"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/user.ts#updateUser：没有任何测试"
+      "key": "src/lib/server/repositories/invite_code.ts#deleteInviteCode"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/utils.ts#wrap：没有任何测试"
+      "key": "src/lib/server/repositories/role.ts#getRolesOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/utils.ts#newNanoId：没有任何测试"
+      "key": "src/lib/server/repositories/role.ts#findInviterOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/utils.ts#newCode：没有任何测试"
+      "key": "src/lib/server/repositories/role.ts#getInviteesOfUser"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/repositories/utils.ts#newVerifyCode：没有任何测试"
+      "key": "src/lib/server/repositories/role.ts#createRoleOfUserByInviteCode"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/server/testing/database.ts#createTestDatabase：没有任何测试"
+      "key": "src/lib/server/repositories/session.ts#findSessionById"
     },
     {
       "kind": "declaration-untested",
-      "message": "src/lib/testing/data.ts#getAuthor：没有任何测试"
+      "key": "src/lib/server/repositories/session.ts#createSession"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/session.ts#updateSession"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/session.ts#deleteSession"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/user.ts#findUserById"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/user.ts#findUserByUsername"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/user.ts#findUserByName"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/user.ts#findUserByGitHubId"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/user.ts#getUsers"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/user.ts#createUser"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/user.ts#updateUser"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/utils.ts#wrap"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/utils.ts#newNanoId"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/utils.ts#newCode"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/repositories/utils.ts#newVerifyCode"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/server/testing/database.ts#createTestDatabase"
+    },
+    {
+      "kind": "declaration-untested",
+      "key": "src/lib/testing/data.ts#getAuthor"
     }
   ]
 }

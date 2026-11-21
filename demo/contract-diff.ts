@@ -1,5 +1,6 @@
 // Demo of the contract-diff workflow proposed in draft.md. It extracts every exported declaration (signature and
-// doc comment) and the tests linked to it from two snapshots of one directory, compares them by `path#symbol`,
+// doc comment) of TS modules and Svelte components, and the tests linked to it, from two snapshots of one directory,
+// compares them by `path#symbol`,
 // and writes contracts.json (the source of truth, also the review agent's input) and contracts.html (the human
 // review page) to the output directory.
 //
@@ -9,16 +10,19 @@
 // A snapshot is either `git:<ref>` or the path of a checkout root. `--mode snapshot` reads only `--head` and lists
 // every contract in it instead of comparing two snapshots.
 //
-// With `--comments doc` (the default) only `/** */` comments count as contracts. `--comments loose` also counts a
-// run of `//` or `/* */` comments with no blank line between it and the exported declaration. A test is linked to a declaration by a `// Covers: a, b` line above
-// it, or by an enclosing `describe('<declaration name>')`.
+// With `--comments doc` (the default) only doc comments count as contracts: `/** */` in TS and `<!-- @component -->`
+// in Svelte. `--comments loose` also counts a run of `//` or `/* */` comments with no blank line between it and the
+// exported declaration. A test is linked to a declaration by a `// Covers: a, b` line above it, or by an enclosing
+// `describe('<declaration name>')`; a component's declaration name is its file name, such as `Dialog`.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parse as parseSvelte } from 'svelte/compiler';
 import ts from 'typescript';
 
-// Where a contract's doc comment came from: `/** */`, a plain comment accepted by `--comments loose`, or nothing.
-type DocStyle = 'jsdoc' | 'plain' | 'none';
+// Where a contract's doc comment came from: the language's doc comment (`/** */`, `<!-- @component -->`), a plain
+// comment accepted by `--comments loose`, or nothing.
+type DocStyle = 'doc' | 'plain' | 'none';
 
 type Contract = { signature: string; doc: string; docStyle: DocStyle; body: string };
 
@@ -29,8 +33,20 @@ type Declaration = Contract & {
   path: string;
   symbol: string;
   // The keyword the declaration is introduced with; a `const` holding a function expression counts as a function.
-  // Public class members are declarations of their own, keyed `Class.member`.
-  kind: 'function' | 'type' | 'interface' | 'class' | 'enum' | 'const' | 'let' | 'var' | 'method' | 'getter' | 'setter';
+  // Public class members are declarations of their own, keyed `Class.member`. A Svelte file is one `component`.
+  kind:
+    | 'function'
+    | 'type'
+    | 'interface'
+    | 'class'
+    | 'enum'
+    | 'const'
+    | 'let'
+    | 'var'
+    | 'method'
+    | 'getter'
+    | 'setter'
+    | 'component';
   // The enclosing class of a member declaration.
   parent?: string;
   signatureKey: string;
@@ -39,19 +55,28 @@ type Declaration = Contract & {
 
 // Only executable declarations can be tested, so types, interfaces, enums and plain values show no test section
 // unless a test does name them.
-const testableKinds = new Set<Declaration['kind']>(['function', 'method', 'getter', 'setter']);
+const testableKinds = new Set<Declaration['kind']>(['function', 'method', 'getter', 'setter', 'component']);
 
+// A test's name is the titles of its enclosing `describe` blocks followed by its own, outermost first.
 type RawTest = {
-  name: string;
+  name: string[];
   describe?: string;
   coversNames?: string[];
   identifiers: Set<string>;
   bodyKey: string;
 };
 
-type Test = { file: string; name: string; covers: string[]; bodyKey: string };
+type Test = { file: string; name: string[]; covers: string[]; bodyKey: string };
 
-type Warning = { kind: string; message: string };
+// Findings of the tool's own checks. `file` is a test file, `test` a test name as in Test, `key` a declaration key,
+// and `symbol` a name written in a `Covers:` line.
+type Warning =
+  | { kind: 'test-file-without-source'; file: string; source: string }
+  | { kind: 'test-unlinked'; file: string; test: string[] }
+  | { kind: 'covers-unknown'; file: string; test: string[]; symbol: string }
+  | { kind: 'covers-unreferenced'; file: string; test: string[]; key: string }
+  | { kind: 'declaration-untested'; key: string }
+  | { kind: 'test-removed'; file: string; test: string[] };
 
 // A source file's overview comment, taken from the head snapshot. In a diff report `before` holds the base
 // overview when it differs from head ('' when the base had none); it is absent when nothing changed.
@@ -82,7 +107,7 @@ type Entry = {
   change: Change;
   before?: Contract;
   after?: Contract;
-  tests: { file: string; name: string; change: TestChange }[];
+  tests: { file: string; name: string[]; change: TestChange }[];
 };
 
 type Report = {
@@ -97,14 +122,18 @@ type Report = {
   warnings: Warning[];
 };
 
-// `paths` lists every file in the snapshot so test files for non-TS sources, such as `Foo.svelte.test.ts`, can
-// still find their source; `files` holds only the TS sources the extractor reads.
+// `paths` lists every file in the snapshot so a test file can look for its source among all of them; `files` holds
+// only the TS, Svelte and CSS sources the extractor reads.
 type SourceTree = { files: Map<string, string>; paths: Set<string> };
 
 function readFiles(source: string, dir: string): SourceTree {
   const files = new Map<string, string>();
   const paths = new Set<string>();
-  const isSource = (path: string) => path.endsWith('.ts') && !path.endsWith('.d.ts');
+  // `Foo.test.svelte` is a harness that renders a component for its test, not a component of its own.
+  const isSource = (path: string) =>
+    (path.endsWith('.ts') && !path.endsWith('.d.ts')) ||
+    (path.endsWith('.svelte') && !path.endsWith('.test.svelte')) ||
+    path.endsWith('.css');
   if (source.startsWith('git:')) {
     const ref = source.slice(4);
     const listing = execFileSync('git', ['ls-tree', '-r', '--name-only', ref, '--', dir], { encoding: 'utf8' });
@@ -195,7 +224,7 @@ function docComment(
   if (!last) return { doc: '', docStyle: 'none' };
   const lastText = text.slice(last.pos, last.end);
   if (lastText.startsWith('/**') && !lastText.startsWith('/**/'))
-    return { doc: cleanComment(lastText, last.kind), docStyle: 'jsdoc' };
+    return { doc: cleanComment(lastText, last.kind), docStyle: 'doc' };
   if (mode !== 'loose') return { doc: '', docStyle: 'none' };
 
   const isAdjacent = (end: number, next: number) => (text.slice(end, next).match(/\n/g)?.length ?? 0) <= 1;
@@ -251,7 +280,7 @@ function fileOverview(text: string, sourceFile: ts.SourceFile): FileDoc & { end:
     .join('\n')
     .replace(/^@(module|packageDocumentation)\b.*$/gm, '')
     .trim();
-  const docStyle: DocStyle = run.every((range) => text.startsWith('/**', range.pos)) ? 'jsdoc' : 'plain';
+  const docStyle: DocStyle = run.every((range) => text.startsWith('/**', range.pos)) ? 'doc' : 'plain';
   return { path: sourceFile.fileName, doc, docStyle: doc ? docStyle : 'none', end: last.end };
 }
 
@@ -459,6 +488,162 @@ function extractFile(
   return { overview, declarations };
 }
 
+// Removes the indentation a statement inherits from its `<script>` block, so it reads as it would at the top level
+// of a module. `column` is the statement's own column; continuation lines lose up to that much leading space.
+function dedent(text: string, column: number): string {
+  const prefix = new RegExp(`^ {0,${column}}`);
+  return text
+    .split('\n')
+    .map((line, index) => (index === 0 ? line : line.replace(prefix, '')))
+    .join('\n');
+}
+
+// Svelte's own convention for a component's documentation, the one its language tools show on hover.
+function componentDoc(comment: string): string {
+  const lines = comment.replace(/^\s*@component\b/, '').split('\n');
+  const indent = Math.min(...lines.filter((line) => line.trim()).map((line) => line.match(/^\s*/)![0].length));
+  return lines
+    .map((line) => line.slice(Number.isFinite(indent) ? indent : 0).trimEnd())
+    .join('\n')
+    .trim();
+}
+
+type SvelteNode = { type: string; start: number; end: number; data?: string };
+type SvelteScript = {
+  start: number;
+  end: number;
+  content: { start: number; end: number };
+  attributes: { name: string; start: number; end: number }[];
+};
+
+// A Svelte component is one declaration named after its file, the name consumers import it by. Its contract is the
+// `<!-- @component -->` comment, the `generics` attribute, and its type written as
+// `declare const Name: Component<Props, {}, Bindings>` after the local types the props annotation reaches; the
+// instance script, including the `$props()` statement, the markup and the styles are its implementation.
+// Exports of `<script module>` are extracted as a TS module's are, under the same file.
+function extractComponent(
+  path: string,
+  text: string,
+  mode: CommentMode,
+): { overview: FileDoc; declarations: Declaration[] } {
+  const ast = parseSvelte(text, { modern: true }) as unknown as {
+    fragment: { nodes: SvelteNode[] };
+    instance: SvelteScript | null;
+    module: SvelteScript | null;
+  };
+  const declarations: Declaration[] = [];
+  if (ast.module) {
+    const { start, end } = ast.module.content;
+    declarations.push(...extractFile(path, text.slice(start, end), mode).declarations);
+  }
+
+  const docNode = ast.fragment.nodes.find((node) => node.type === 'Comment' && /^\s*@component\b/.test(node.data!));
+  const script = ast.instance ? text.slice(ast.instance.content.start, ast.instance.content.end) : '';
+  const sourceFile = ts.createSourceFile(path, script, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const generics = ast.instance?.attributes.find((attribute) => attribute.name === 'generics');
+  const genericsText = generics ? text.slice(generics.start, generics.end) : '';
+
+  const isPropsCall = (expression: ts.Expression | undefined) =>
+    expression !== undefined &&
+    ts.isCallExpression(expression) &&
+    ts.isIdentifier(expression.expression) &&
+    expression.expression.text === '$props';
+  const isBindable = (expression: ts.Expression | undefined) =>
+    expression !== undefined &&
+    ts.isCallExpression(expression) &&
+    ts.isIdentifier(expression.expression) &&
+    expression.expression.text === '$bindable';
+  const sliceOf = (node: ts.Node, edits: TextEdit[] = []) => {
+    const start = node.getStart(sourceFile);
+    return dedent(applyEdits(script, start, node.end, edits), start - script.lastIndexOf('\n', start - 1) - 1);
+  };
+
+  const localTypes = new Map<string, ts.Statement>();
+  for (const statement of sourceFile.statements)
+    if (ts.isTypeAliasDeclaration(statement) || ts.isInterfaceDeclaration(statement))
+      localTypes.set(statement.name.text, statement);
+  // Every local type named from the props annotation, directly or through another local type, is part of the
+  // contract; imported types keep their own contracts in their own files.
+  const contract = new Set<ts.Statement>();
+  const reach = (node: ts.Node) => {
+    const local = ts.isIdentifier(node) ? localTypes.get(node.text) : undefined;
+    if (local && !contract.has(local)) {
+      contract.add(local);
+      ts.forEachChild(local, reach);
+    }
+    ts.forEachChild(node, reach);
+  };
+  // The component's type is what consumers see, as Svelte's language tools derive it: the props annotation, and
+  // the props declared with `$bindable()`. The `$props()` statement itself stays implementation, so local names and
+  // default values in its destructuring change no contract.
+  let propsType = 'Record<string, never>';
+  const bindings: string[] = [];
+  for (const statement of sourceFile.statements) {
+    if (!ts.isVariableStatement(statement)) continue;
+    const props = statement.declarationList.declarations.find((declaration) => isPropsCall(declaration.initializer));
+    if (!props) continue;
+    propsType = props.type ? sliceOf(props.type) : 'Record<string, any>';
+    if (props.type) reach(props.type);
+    if (ts.isObjectBindingPattern(props.name))
+      for (const element of props.name.elements)
+        if (isBindable(element.initializer)) bindings.push((element.propertyName ?? element.name).getText(sourceFile));
+  }
+
+  const symbol = path.slice(path.lastIndexOf('/') + 1).replace(/\.svelte$/, '');
+  const typeArguments = bindings.length
+    ? `${propsType}, {}, ${bindings.map((name) => `'${name}'`).join(' | ')}`
+    : propsType;
+  const typeText = [
+    ...sourceFile.statements
+      .filter((statement) => contract.has(statement))
+      .map((statement) =>
+        sliceOf(
+          statement,
+          functionBodies(statement).map((body) => elideEdit(body, sourceFile)),
+        ),
+      ),
+    `declare const ${symbol}: Component<${typeArguments}>;`,
+  ].join('\n\n');
+  const implementation = sourceFile.statements.filter((statement) => !contract.has(statement));
+  // Markup and styles reach the implementation as text; comments and whitespace in them carry no behavior.
+  const cuts = [ast.instance, ast.module, docNode]
+    .filter((node): node is SvelteNode | SvelteScript => !!node)
+    .sort((a, b) => a.start - b.start);
+  let markup = '';
+  let cursor = 0;
+  for (const cut of cuts) {
+    markup += text.slice(cursor, cut.start);
+    cursor = cut.end;
+  }
+  markup = (markup + text.slice(cursor)).trim();
+
+  const typeFile = ts.createSourceFile(path, typeText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  declarations.unshift({
+    key: `${path}#${symbol}`,
+    path,
+    symbol,
+    kind: 'component',
+    signature: [genericsText, typeText].filter(Boolean).join('\n\n'),
+    ...(docNode ? { doc: componentDoc(docNode.data!), docStyle: 'doc' } : { doc: '', docStyle: 'none' }),
+    body: [...implementation.map((statement) => statement.getText(sourceFile)), markup].filter(Boolean).join('\n\n'),
+    signatureKey: [genericsText, tokenKey(typeFile, typeFile)].join(' | '),
+    bodyKey: [
+      ...implementation.map((statement) => tokenKey(statement, sourceFile)),
+      markup.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' '),
+    ].join(' | '),
+  });
+  return { overview: { path, doc: '', docStyle: 'none' }, declarations };
+}
+
+// A stylesheet declares nothing to extract, but its importers depend on what it styles, so its file overview, a
+// leading `/* */` comment followed by a blank line, is kept. CSS has a single comment syntax, so it counts as a doc
+// comment in either comment mode.
+function extractStylesheet(path: string, text: string): { overview: FileDoc; declarations: Declaration[] } {
+  const comment = text.match(/^\s*(\/\*[\s\S]*?\*\/)[ \t]*\n[ \t]*\n/)?.[1];
+  const doc = comment ? cleanComment(comment, ts.SyntaxKind.MultiLineCommentTrivia) : '';
+  return { overview: { path, doc, docStyle: doc ? 'doc' : 'none' }, declarations: [] };
+}
+
 // Resolves `it.each(...)(...)`, `describe.skip(...)`, and similar forms to the runner function they start from.
 function runnerName(callee: ts.Expression): string | undefined {
   let current = callee;
@@ -490,7 +675,7 @@ function extractTests(path: string, text: string): RawTest[] {
           .join('\n')
           .match(/Covers:\s*([^\n*]+)/);
         tests.push({
-          name: [...describes, title.text].join(' › '),
+          name: [...describes, title.text],
           describe: describes.at(-1),
           coversNames: covers?.[1].split(',').map((name) => name.trim()),
           identifiers,
@@ -515,7 +700,11 @@ function takeSnapshot(source: string, dir: string, mode: CommentMode): Snapshot 
   const overviews: FileDoc[] = [];
   for (const [path, text] of files) {
     if (isTestFile(path)) continue;
-    const extracted = extractFile(path, text, mode);
+    const extracted = path.endsWith('.svelte')
+      ? extractComponent(path, text, mode)
+      : path.endsWith('.css')
+        ? extractStylesheet(path, text)
+        : extractFile(path, text, mode);
     overviews.push(extracted.overview);
     for (const declaration of extracted.declarations) {
       declarations.set(declaration.key, declaration);
@@ -531,8 +720,7 @@ function takeSnapshot(source: string, dir: string, mode: CommentMode): Snapshot 
     const stem = path.replace(testFilePattern, '');
     const sourcePath = stem.endsWith('.svelte') ? stem : `${stem}.ts`;
     const hasSource = paths.has(sourcePath);
-    if (!hasSource)
-      warnings.push({ kind: 'test-file-without-source', message: `${path}：找不到对应的源文件 ${sourcePath}` });
+    if (!hasSource) warnings.push({ kind: 'test-file-without-source', file: path, source: sourcePath });
 
     // Demo concession: a test file without its own source file resolves names within its own directory, so the
     // not-yet-split contracts.test.ts files can still be linked.
@@ -547,19 +735,18 @@ function takeSnapshot(source: string, dir: string, mode: CommentMode): Snapshot 
 
     for (const raw of extractTests(path, text)) {
       const names = raw.coversNames ?? (raw.describe && resolve(raw.describe) ? [raw.describe] : []);
-      if (!names.length)
-        warnings.push({ kind: 'test-unlinked', message: `${path}：测试「${raw.name}」没有关联任何声明` });
+      if (!names.length) warnings.push({ kind: 'test-unlinked', file: path, test: raw.name });
 
       const covers: string[] = [];
       for (const name of names) {
         const key = resolve(name);
         if (!key) {
-          warnings.push({ kind: 'covers-unknown', message: `${path}：测试「${raw.name}」关联的声明 ${name} 不存在` });
+          warnings.push({ kind: 'covers-unknown', file: path, test: raw.name, symbol: name });
           continue;
         }
         // `Class.member` counts as referenced when the test names both parts.
         if (!name.split('.').every((part) => raw.identifiers.has(part)))
-          warnings.push({ kind: 'covers-unreferenced', message: `${path}：测试「${raw.name}」没有引用 ${name}` });
+          warnings.push({ kind: 'covers-unreferenced', file: path, test: raw.name, key });
         covers.push(key);
       }
       tests.push({ file: path, name: raw.name, covers, bodyKey: raw.bodyKey });
@@ -568,15 +755,30 @@ function takeSnapshot(source: string, dir: string, mode: CommentMode): Snapshot 
 
   for (const declaration of declarations.values())
     if (testableKinds.has(declaration.kind) && !tests.some((test) => test.covers.includes(declaration.key)))
-      warnings.push({ kind: 'declaration-untested', message: `${declaration.key}：没有任何测试` });
+      warnings.push({ kind: 'declaration-untested', key: declaration.key });
   return { declarations, files: overviews, tests, warnings, paths };
+}
+
+// The comments inside a signature, such as those on interface members or component props, as one prose text.
+// Signature keys are built from tokens and never see them.
+function signatureComments(signature: string): string {
+  const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, signature);
+  const comments: string[] = [];
+  for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan())
+    if (token === ts.SyntaxKind.SingleLineCommentTrivia || token === ts.SyntaxKind.MultiLineCommentTrivia)
+      comments.push(cleanComment(scanner.getTokenText(), token));
+  return normalizeProse(comments.join('\n\n'));
 }
 
 function classify(before: Declaration | undefined, after: Declaration | undefined): Change {
   if (!before) return 'added';
   if (!after) return 'removed';
   if (before.signatureKey !== after.signatureKey) return 'signature';
-  if (before.doc !== after.doc) return 'doc';
+  if (
+    normalizeProse(before.doc) !== normalizeProse(after.doc) ||
+    signatureComments(before.signature) !== signatureComments(after.signature)
+  )
+    return 'doc';
   if (before.bodyKey !== after.bodyKey) return 'impl';
   return 'unchanged';
 }
@@ -589,13 +791,12 @@ function compare(base: Snapshot, head: Snapshot): { declarations: Entry[]; warni
       docStyle: declaration.docStyle,
       body: declaration.body,
     };
-  const testId = (test: Test) => `${test.file}\n${test.name}`;
+  const testId = (test: Test) => [test.file, ...test.name].join('\n');
   const baseTests = new Map(base.tests.map((test) => [testId(test), test]));
   const headTests = new Map(head.tests.map((test) => [testId(test), test]));
   const warnings = [...head.warnings];
   for (const [id, test] of baseTests)
-    if (!headTests.has(id))
-      warnings.push({ kind: 'test-removed', message: `${test.file}：测试「${test.name}」被删除` });
+    if (!headTests.has(id)) warnings.push({ kind: 'test-removed', file: test.file, test: test.name });
 
   const keys = [...new Set([...base.declarations.keys(), ...head.declarations.keys()])].sort();
   const declarations = keys.map((key): Entry => {
@@ -797,7 +998,26 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char]!);
 }
 
-const docStyleLabels: Record<DocStyle, string> = { jsdoc: '/** */ 文档注释', plain: '// 普通注释', none: '无注释' };
+const docStyleLabels: Record<DocStyle, string> = { doc: '文档注释', plain: '// 普通注释', none: '无注释' };
+
+const testTitle = (name: string[]) => name.join(' › ');
+
+function warningText(warning: Warning): string {
+  switch (warning.kind) {
+    case 'test-file-without-source':
+      return `${warning.file}：找不到对应的源文件 ${warning.source}`;
+    case 'test-unlinked':
+      return `${warning.file}：测试「${testTitle(warning.test)}」没有关联任何声明`;
+    case 'covers-unknown':
+      return `${warning.file}：测试「${testTitle(warning.test)}」关联的声明 ${warning.symbol} 不存在`;
+    case 'covers-unreferenced':
+      return `${warning.file}：测试「${testTitle(warning.test)}」没有引用 ${warning.key}`;
+    case 'declaration-untested':
+      return `${warning.key}：没有任何测试`;
+    case 'test-removed':
+      return `${warning.file}：测试「${testTitle(warning.test)}」被删除`;
+  }
+}
 
 // Renders the small Markdown subset comments and directory descriptions use: paragraphs separated by blank lines,
 // inline code, and links. Wrapped lines join into one paragraph, as godoc does. Links become plain text because
@@ -821,7 +1041,6 @@ function renderTests(entry: Entry): string {
 
   const byFile = new Map<string, Entry['tests']>();
   for (const test of entry.tests) byFile.set(test.file, [...(byFile.get(test.file) ?? []), test]);
-  const prefix = `${entry.symbol} › `;
   const item = (test: Entry['tests'][number], title: string) => {
     const mark = test.change === 'unchanged' ? '' : `<span class="mark">${testMarks[test.change]}</span>`;
     return `<li class="t-${test.change}">${mark}${escapeHtml(title)}</li>`;
@@ -831,7 +1050,7 @@ function renderTests(entry: Entry): string {
       // Tests sharing an enclosing describe are listed once under it instead of repeating it on every line.
       const byContext = new Map<string, string[]>();
       for (const test of tests) {
-        const parts = (test.name.startsWith(prefix) ? test.name.slice(prefix.length) : test.name).split(' › ');
+        const parts = test.name.length > 1 && test.name[0] === entry.symbol ? test.name.slice(1) : test.name;
         const context = parts.slice(0, -1).join(' › ');
         byContext.set(context, [...(byContext.get(context) ?? []), item(test, parts.at(-1)!)]);
       }
@@ -860,7 +1079,7 @@ function renderEntry(entry: Entry, mode: Report['mode']): string {
   const category = entryCategory(entry);
   const id = anchorOf('e', entry.key);
   const styleTag =
-    mode === 'diff' || contract.docStyle === 'jsdoc'
+    mode === 'diff' || contract.docStyle === 'doc'
       ? ''
       : `<span class="tag s-${contract.docStyle}">${docStyleLabels[contract.docStyle]}</span>`;
   const kindLabel = entry.kind === 'getter' ? 'get' : entry.kind === 'setter' ? 'set' : entry.kind;
@@ -887,7 +1106,7 @@ function renderEntry(entry: Entry, mode: Report['mode']): string {
         : '';
     body = signature + doc;
   } else {
-    body = `<pre class="sig">${escapeHtml(contract.signature)}</pre>${contract.doc ? `<div class="doc">${renderMarkdown(contract.doc)}</div>` : ''}`;
+    body = `${`<pre class="sig">${escapeHtml(contract.signature)}</pre>`}${contract.doc ? `<div class="doc">${renderMarkdown(contract.doc)}</div>` : ''}`;
   }
   const note =
     entry.change === 'impl'
@@ -904,7 +1123,7 @@ type FileGroup = { path: string; name: string; doc?: FileDoc; entries: Entry[] }
 type DirNode = { path: string; name: string; doc: DirDoc; files: FileGroup[]; children: DirNode[] };
 
 // Builds the directory tree under `report.dir`. Every described directory and every extracted file appears, even
-// without declarations (such as a directory of Svelte components), and directories with no files of their own are
+// without declarations, and directories with no files of their own are
 // still created so each subdirectory hangs under its real parent.
 function buildTree(report: Report): DirNode {
   const root = report.dir.replace(/\/$/, '');
@@ -1054,10 +1273,7 @@ function renderDir(node: DirNode, mode: Report['mode']): string {
   const counts = countLine(allEntries(node), mode, (node.doc.before !== undefined ? docChangedPill : '') + subdirs);
   const label = escapeHtml(node.path);
   const actions = `<span class="actions"><button type="button" data-fold="open" title="展开全部子项" aria-label="展开 ${label}/ 的全部子项">${icons.unfold}</button><button type="button" data-fold="close" title="收起全部子项" aria-label="收起 ${label}/ 的全部子项">${icons.fold}</button></span>`;
-  const empty =
-    node.files.length || node.children.length
-      ? ''
-      : '<p class="muted">没有提取到导出声明（.svelte 等文件尚无提取规则）</p>';
+  const empty = node.files.length || node.children.length ? '' : '<p class="muted">没有提取到导出声明</p>';
   return `<details class="dir" id="${anchorOf('d', node.path)}" data-crumb="dir" data-name="${escapeHtml(node.name)}" open>
 <summary class="dir-head">${icons.chevron}${icons.folder}<h2>${escapeHtml(node.name)}</h2>${synopsis(node.doc.doc)}${counts}${actions}</summary>
 <div class="dir-body"><button class="guide" type="button" aria-label="收起 ${label}/"></button>
@@ -1110,7 +1326,7 @@ function renderHtml(report: Report): string {
       ]
         .map(([kind, total]) => `${kind} ${total}`)
         .join(' · ')}</span></summary><ul>${report.warnings
-        .map((warning) => `<li><code>${warning.kind}</code> ${escapeHtml(warning.message)}</li>`)
+        .map((warning) => `<li><code>${warning.kind}</code> ${escapeHtml(warningText(warning))}</li>`)
         .join('')}</ul></details>`
     : '';
 
@@ -1130,10 +1346,10 @@ function renderHtml(report: Report): string {
 :root{--bg:#f6f5f2;--panel:#fff;--text:#1f2328;--muted:#6b7280;--line:#e2e0db;--sig:#f3f2ef;--accent:#2b6f8f;
 --dir:#5b4a8b;--del:#ffd7d5;--ins:#c8f0d2;
 --added:#1a7f37;--removed:#cf222e;--signature:#9a6700;--doc:#0969da;--impl:#bc4c00;--tests:#8250df;--unchanged:#6b7280;
---jsdoc:#1a7f37;--plain:#0969da;--none:#cf222e}
+--doc-comment:#1a7f37;--plain:#0969da;--none:#cf222e}
 @media (prefers-color-scheme:dark){:root{--bg:#131518;--panel:#1b1e22;--text:#e6e6e6;--muted:#9aa3ad;--line:#30343a;
 --sig:#23272c;--accent:#6cb6d9;--dir:#b3a3e6;--del:#67201f;--ins:#1c4a2b;--added:#4ac26b;--removed:#ff7b72;
---signature:#d4a72c;--doc:#58a6ff;--impl:#f0883e;--tests:#bc8cff;--unchanged:#9aa3ad;--jsdoc:#4ac26b;--plain:#58a6ff;
+--signature:#d4a72c;--doc:#58a6ff;--impl:#f0883e;--tests:#bc8cff;--unchanged:#9aa3ad;--doc-comment:#4ac26b;--plain:#58a6ff;
 --none:#ff7b72}}
 *{box-sizing:border-box}
 html{scroll-padding-top:40px}
@@ -1164,7 +1380,7 @@ font:12px/1.6 system-ui,sans-serif;white-space:nowrap}
 ${Object.keys(changeLabels)
   .map((category) => `.b-${category}{color:var(--${category})}`)
   .join('')}
-.s-jsdoc{color:var(--jsdoc)}.s-plain{color:var(--plain)}.s-none{color:var(--none)}
+.s-doc{color:var(--doc-comment)}.s-plain{color:var(--plain)}.s-none{color:var(--none)}
 .prose p{margin:0 0 8px}.prose code{font-size:.9em;padding:0 3px;background:var(--sig);border-radius:3px}
 .source{color:var(--muted);font-size:12px}.source code{background:none}
 
