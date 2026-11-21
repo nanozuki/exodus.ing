@@ -1,3 +1,11 @@
+<!--
+  @component
+  Own the trigger button, custom overlay, native modal dialog, and Melt open state. The trigger snippet supplies
+  button content only. labelledby identifies the heading supplied in content. Pass close to the content snippet.
+  Closing through the snippet callback, Escape, or an outside click restores trigger focus. Reopening starts with
+  fresh content rather than discarded edits. Use ordinary dialog semantics; no externally bound open state or
+  Melt-specific configuration is exposed.
+-->
 <script lang="ts">
   import { mergeAttrs } from 'melt';
   import { Dialog as MeltDialog } from 'melt/builders';

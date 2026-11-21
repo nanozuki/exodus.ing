@@ -1,3 +1,8 @@
+<!--
+  @component
+  Default variant to normal and pending to zero. Disable when pending > 0 or the passed disabled attribute is true;
+  set aria-busy from pending. Forward other button attributes and event callbacks.
+-->
 <script lang="ts">
   import { type Snippet } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';

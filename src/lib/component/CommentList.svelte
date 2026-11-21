@@ -1,3 +1,8 @@
+<!--
+  @component
+  Render supplied article groups and comment text/update timestamps in supplied order. Show Pager when count exceeds
+  the returned pageSize, using the paginated result’s count, pageSize, and pageNumber.
+-->
 <script lang="ts">
   import ArticleCard from './ArticleCard.svelte';
   import Pager from './Pager.svelte';

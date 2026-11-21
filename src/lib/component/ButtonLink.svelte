@@ -1,3 +1,8 @@
+<!--
+  @component
+  Render an anchor with the selected variant (default normal), children, merged classes, and forwarded HTML
+  attributes/events. The disabled variant changes styling only; callers control href and aria-disabled.
+-->
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes } from 'svelte/elements';

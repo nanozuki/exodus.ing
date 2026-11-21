@@ -1,3 +1,10 @@
+<!--
+  @component
+  Compute total pages with ceil(count/pageSize), use one-based page, and default siblingCount to 1. Always include
+  page 1, include the last page when distinct, and shift the sibling window at boundaries with ellipsis markers. Use
+  pageLink for destinations; omit href and set aria-disabled for unavailable previous/next links. Page ranges and zero
+  page sizes are not validated at runtime.
+-->
 <script lang="ts">
   import MdiChevronLeft from '~icons/mdi/chevron-left';
   import MdiChevronRight from '~icons/mdi/chevron-right';

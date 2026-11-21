@@ -1,3 +1,8 @@
+<!--
+  @component
+  Import markdown.css and insert supplied markup as raw HTML inside .markdown. Sanitization belongs to the upstream
+  compiler; this component does not sanitize or escape the markup.
+-->
 <script lang="ts">
   import './markdown.css';
 
