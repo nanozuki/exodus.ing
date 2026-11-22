@@ -7,6 +7,12 @@ import { acceptInviteCode as acceptInviteCodeUseCase } from '#lib/server/use-cas
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { loadLayoutData } from '../../layout.remote';
 
+/**
+ * Requires login and redeems the invite code for the viewer; the code is consumed and its role granted atomically, so
+ * a code cannot be redeemed twice. On success it sets the root layout query to the viewer with reloaded roles and
+ * redirects 302 to `/console/invites?welcome=true`. PARAMETER_INVALID `inviteCode` becomes a field issue; other errors
+ * propagate.
+ */
 export const acceptInviteCode = form(
   z.object({ inviteCode: z.string().min(1, '邀请码不能为空') }),
   async ({ inviteCode }, issue) => {

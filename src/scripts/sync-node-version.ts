@@ -1,6 +1,8 @@
-// Run from the repository root through nix develop so this process uses the
-// locked development runtime. --check leaves files unchanged; --write updates
-// the single Node base image and rejects an unexpected Dockerfile layout.
+// sync-node-version.ts keeps the Dockerfile's `FROM node:<version>-slim AS base` image at the running Node version.
+// Run it from the repository root inside `nix develop` so the locked development runtime supplies that version;
+// Renovate runs `--write` after lock file maintenance. `--write` rewrites only that line; `--check` changes nothing and
+// fails on a mismatch. Invalid arguments and a missing or repeated base image fail in both modes. It uses only Node
+// built-ins, so it needs no installed dependencies.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 

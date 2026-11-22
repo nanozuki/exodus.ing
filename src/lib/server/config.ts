@@ -10,11 +10,17 @@ export type Config = {
     user: string;
     password: string;
     database: string;
-    // Uses channel binding when offered; the driver may fall back without it.
+    /** Best effort: the driver uses channel binding when the server offers it and falls back otherwise. */
     enableChannelBinding: boolean;
   };
 };
 
+/**
+ * Reads configuration from `env` when called. GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, APP_URL, PGHOST, PGPORT, PGUSER,
+ * PGPASSWORD, and PGDATABASE are required: a missing one throws MISSING_CONFIG, while an empty string is accepted.
+ * PGPORT is converted with `Number`, without range or NaN checks. PGCHANNELBINDING `prefer` or `require` enables
+ * `enableChannelBinding`; any other value, or none, disables it, so `require` is not enforced.
+ */
 export function getConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const getEnv = (key: string): string => {
     const value = env[key];

@@ -1,10 +1,9 @@
 # Architecture and Development Conventions
 
 Use this document to decide responsibility and dependency boundaries. Before
-changing or reviewing a module's interfaces or behavior, read its directory
-contract in [shapes/](shapes/). For directory coverage and filename mapping, use
-the shape skill's
-[lookup rules](../.agents/skills/shape/README.md#modules-storage-and-naming).
+changing or reviewing a module's interfaces or behavior, read its contract: the
+directory's `README.md`, each file's overview, and the doc comments on its
+exported declarations, as described under [Comments](code-style.md#comments).
 
 ## Responsibilities and Placement
 
@@ -168,8 +167,7 @@ in hooks, and refresh affected remote query data after mutations.
 
 Choose pagination size directly in the owning remote function. Pass it to the
 repository as pagination input and return the effective size to consumers
-through `Paginated<T>`. Its fields are defined in the
-[models contract](shapes/src=lib=models.md).
+through `Paginated<T>` from `src/lib/models/page.ts`.
 
 ## Repositories
 
@@ -188,14 +186,8 @@ models, including projections, aggregates, arrays, and paginated results. The
 `void` results of update and delete operations follow the contracts below.
 
 Inputs describe an operation's needs and need not be models; use the
-[type placement rules](#data-and-type-placement).
-
-For a proposed public shape change or an exception to the operation contracts,
-follow the shape skill's
-[approval boundary](../.agents/skills/shape/SKILL.md#approval-boundary).
-Existing approval covers implementation of the agreed contract. This applies
-equally to named types, anonymous object types, and shapes derived with `Pick`
-or `Omit`. Internal implementation types may be defined locally.
+[type placement rules](#data-and-type-placement). Internal implementation types
+may be defined locally.
 
 ### Operation Names and Contracts
 
@@ -262,6 +254,5 @@ and normalize unexpected failures.
 
 ## Testing
 
-Repository and use-case tests verify the observable behavior promised by their
-shape contracts. For which testing files belong in shape, follow the skill's
-[testing boundary](../.agents/skills/shape/README.md#tests-and-shared-test-infrastructure).
+Repository and use-case tests verify the observable behavior promised by the doc
+comments of the declarations they test.

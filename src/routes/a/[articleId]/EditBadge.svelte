@@ -1,3 +1,8 @@
+<!--
+  @component
+  A link to `/a/<article.id>/edit`, shown only when `user` is the article's author. Hiding it does not replace the
+  editor's server-side authorization.
+-->
 <script lang="ts">
   import MdiTextBoxEditOutline from '~icons/mdi/text-box-edit-outline';
   import Action from '#lib/component/Action.svelte';

@@ -1,3 +1,10 @@
+/*
+ * app.css is the global stylesheet: it loads Tailwind, replaces Tailwind's default color, font, and text scales with
+ * the application theme tokens, and adds the layout and spacing tokens. `--palette-*` values are RGB channels from
+ * Rosé Pine Dawn in light mode and Rosé Pine in dark mode, switched by `prefers-color-scheme`; `--color-*` tokens wrap
+ * them as CSS colors.
+ */
+
 @import 'tailwindcss';
 
 @layer base {

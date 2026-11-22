@@ -8,7 +8,10 @@ export interface InviteCode {
 
 export type InviteCodeSummary = Pick<InviteCode, 'code' | 'roleKey'>;
 
-// All counts describe the same database snapshot.
+/**
+ * An inviter's invitation statistics: articles they authored, unused codes they issued, and role assignments they are
+ * the inviter of. All counts describe the same database snapshot. Use cases derive the quota from them.
+ */
 export interface InviteStats {
   articleCount: number;
   validCodeCount: number;

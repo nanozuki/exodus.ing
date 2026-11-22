@@ -57,13 +57,22 @@ declarations, private helpers, fields, and inline comments. Leave
 self-explanatory code uncommented, including public declarations.
 
 Keep each fact in one authoritative place. Put caller-facing information beside
-the relevant interface, implementation rationale beside the decision, and
-module-wide constraints in a file overview only when they apply to the whole
-file. Keep a necessary file overview separate from imports with one blank line;
-keep a declaration comment directly adjacent to its declaration.
+the relevant interface, implementation rationale beside the decision,
+constraints that span a file in its overview, and constraints that span a
+directory in that directory's `README.md`.
 
-Use `//` in JavaScript, TypeScript, and Svelte scripts, including multiline
-explanations. Use the language's native comment syntax in markup, CSS, and SQL.
+Write interface comments in the form the language server shows on hover, so the
+editor and the contract view read the same text: `/** */` directly above a
+TypeScript or JavaScript declaration, `<!-- @component -->` for a Svelte
+component, and `/** */` on each member of its `Props` type, with `@default` for
+a default value the caller needs. Write implementation comments with `//`.
+
+A file overview is a plain comment in the file's native syntax that opens with
+the file's name as its subject, such as `// session.ts creates ...`, followed by
+a blank line. It sits at the top level, apart from any declaration, and may
+follow imports or required directives. A Svelte component's `@component` comment
+takes its place.
+
 Preserve required license notices and tool directives in the syntax their tools
 recognize. Update or remove a comment when its explanation stops applying.
 

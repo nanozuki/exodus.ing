@@ -9,6 +9,10 @@ import { Permission } from '#lib/models/role.js';
 import { db } from '#lib/server/registry.js';
 import z from 'zod';
 
+/**
+ * Requires `CreateArticle` and returns the viewer's inviter (undefined when invited directly by the site), invitees,
+ * unused codes, and remaining quota. The sections are read concurrently and need not reflect one snapshot.
+ */
 export const loadPageData = query(z.object({}), async () => {
   const { locals } = getRequestEvent();
   const loggedInUser = locals.requirePermission(Permission.CreateArticle, 'invite code');
@@ -21,6 +25,10 @@ export const loadPageData = query(z.object({}), async () => {
   return { inviter: inviter ?? undefined, invitees, unusedCodes, quota };
 });
 
+/**
+ * Requires `CreateArticle`, creates an invite code within the viewer's quota, and refreshes the page data. A used-up
+ * quota or a concurrent change to the quota statistics throws BAD_REQUEST.
+ */
 export const createInviteCode = form(async () => {
   const { locals } = getRequestEvent();
   const loggedInUser = locals.requirePermission(Permission.CreateArticle, 'create invite code');
@@ -32,6 +40,7 @@ const deleteInviteCodeSchema = z.object({
   code: z.string().min(1, '邀请码不能为空'),
 });
 
+/** Requires `CreateArticle`, deletes the viewer's own `code` (a missing one is a no-op), and refreshes the data. */
 export const deleteInviteCode = form(deleteInviteCodeSchema, async ({ code }) => {
   const { locals } = getRequestEvent();
   const loggedInUser = locals.requirePermission(Permission.CreateArticle, 'delete invite code');

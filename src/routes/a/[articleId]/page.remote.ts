@@ -6,11 +6,17 @@ import { throwError } from '#lib/errors.js';
 import { db } from '#lib/server/registry.js';
 import { getArticleById, getRepliesOfArticle } from '#lib/server/repositories/article.js';
 
+/** An article prepared for the article page; `loadPageData` defines its title and markup. */
 export interface ArticleDetail extends Article {
   markup: string;
 }
 
-// Only the detail lookup shortens legacy IDs; the replies lookup keeps the supplied ID.
+/**
+ * Loads an article with its direct responses. Markdown articles get sanitized markup and take their title from the H1;
+ * external articles keep their stored title and get empty markup. A missing article throws NOT_FOUND and an unknown
+ * content type INTERNAL_SERVER_ERROR. An exactly 16-character legacy ID finds the article by its first six characters,
+ * but responses are looked up by the full supplied ID. Comments and bookmark state are separate queries.
+ */
 export const loadPageData = query(z.object({ articleId: z.string() }), async ({ articleId }) => {
   const [stored, replies] = await Promise.all([
     getArticleById(db, articleId.length === 16 ? articleId.slice(0, 6) : articleId),

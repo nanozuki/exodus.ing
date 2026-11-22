@@ -1,7 +1,7 @@
-# fly.toml app configuration file generated for exodus-ing on 2025-12-23T21:56:08+01:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
+# fly.toml deploys exodus-ing to fra: port 3000 behind forced HTTPS, machines started on demand and suspended when
+# idle with none kept running, each with one shared CPU and 256MB. APP_URL is https://exodus.ing; database and provider
+# credentials come from runtime configuration outside this file. GET /healthcheck runs every 10 seconds with a
+# 30-second startup grace period and a 5-second timeout.
 
 app = 'exodus-ing'
 primary_region = 'fra'

@@ -1,3 +1,8 @@
+# Dockerfile builds the production image in stages: it enables Corepack, installs production and full dependencies
+# from the frozen lockfile with a cached pnpm store, runs the application build, and copies package.json, production
+# dependencies, and the build output into the runner, which runs `node build` on port 3000. The base image's Node
+# version follows the development runtime through src/scripts/sync-node-version.ts.
+
 FROM node:24.22.2-slim AS base
 ENV NODE_ENV=production
 WORKDIR /app

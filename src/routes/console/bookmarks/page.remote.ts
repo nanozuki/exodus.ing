@@ -3,6 +3,7 @@ import z from 'zod';
 import { db } from '#lib/server/registry.js';
 import { listBookmarkedArticlesOfUser } from '#lib/server/repositories/article.js';
 
+/** Requires login and returns one page of the viewer's bookmarked articles, 20 per page. */
 export const loadPageData = query(z.object({ page: z.number().min(1) }), async ({ page }) => {
   const user = getRequestEvent().locals.requireLoggedInUser('console bookmarks');
   const pageSize = 20;

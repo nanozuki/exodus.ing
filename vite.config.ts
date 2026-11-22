@@ -6,6 +6,13 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import Icons from 'unplugin-icons/vite';
 import { defineConfig } from 'vitest/config';
 
+/**
+ * Builds with Tailwind, SvelteKit (Vite preprocessing, the Node adapter, experimental remote functions, and async
+ * components), and auto-installed Svelte icons, emitting sourcemaps. Every test must make an assertion. The `client`
+ * project runs `*.svelte.{test,spec}` files in headless Chromium, excluding `src/lib/server`; the `server` project
+ * runs the other `src` test and spec files, including repository integration and use-case unit tests, in Node, with
+ * timeouts that cover local database provisioning. `vitest-setup-client.ts` is not registered as a setup file.
+ */
 export default defineConfig({
   plugins: [
     tailwindcss(),

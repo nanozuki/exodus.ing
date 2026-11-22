@@ -1,3 +1,8 @@
+<!--
+  @component
+  Shows the bookmark page named by the `page` search parameter (at least 1), or an empty-state message when there are
+  no bookmarks. Pager links change only `page`.
+-->
 <script lang="ts">
   import ArticleList from '#lib/component/ArticleList.svelte';
   import { page } from '$app/state';

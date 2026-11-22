@@ -5,8 +5,8 @@
 // review page) to the output directory.
 //
 // Usage: tsx demo/contract-diff.ts [--mode diff|snapshot] [--comments doc|loose] [--base git:main] [--head .]
-//          [--dir src/lib/server/use-cases] [--out .] [--name contracts]
-// `--name` sets the basename of the two output files, so several reports can sit side by side.
+//          [--dir src,e2e] [--out .] [--name contracts]
+// `--dir` takes one directory or a comma-separated list. `--name` sets the basename of the two output files, so several reports can sit side by side.
 // A snapshot is either `git:<ref>` or the path of a checkout root. `--mode snapshot` reads only `--head` and lists
 // every contract in it instead of comparing two snapshots.
 //
@@ -126,7 +126,7 @@ type Report = {
 // only the TS, Svelte and CSS sources the extractor reads.
 type SourceTree = { files: Map<string, string>; paths: Set<string> };
 
-function readFiles(source: string, dir: string): SourceTree {
+function readFiles(source: string, dirs: string[]): SourceTree {
   const files = new Map<string, string>();
   const paths = new Set<string>();
   // `Foo.test.svelte` is a harness that renders a component for its test, not a component of its own.
@@ -136,7 +136,7 @@ function readFiles(source: string, dir: string): SourceTree {
     path.endsWith('.css');
   if (source.startsWith('git:')) {
     const ref = source.slice(4);
-    const listing = execFileSync('git', ['ls-tree', '-r', '--name-only', ref, '--', dir], { encoding: 'utf8' });
+    const listing = execFileSync('git', ['ls-tree', '-r', '--name-only', ref, '--', ...dirs], { encoding: 'utf8' });
     for (const path of listing.split('\n').filter(Boolean)) {
       paths.add(path);
       if (isSource(path)) files.set(path, execFileSync('git', ['show', `${ref}:${path}`], { encoding: 'utf8' }));
@@ -144,7 +144,7 @@ function readFiles(source: string, dir: string): SourceTree {
     return { files, paths };
   }
   // A working tree is read through git so ignored and generated files stay out, matching the `git:` form.
-  const listing = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '--', dir], {
+  const listing = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '--', ...dirs], {
     cwd: source,
     encoding: 'utf8',
   });
@@ -165,29 +165,28 @@ function readText(source: string, path: string): string | undefined {
   }
 }
 
-// Where directory rules will live is still open (draft.md: docs/architecture.md or each directory's README.md), so
-// a directory README wins and the intro of its shape file, the text before `## Files`, fills in until migration.
-// The leading `# title` line is dropped because the page already shows the directory path.
-function readDirDocs(source: string, root: string, paths: Set<string>): DirDoc[] {
-  const dirs = new Set<string>([root]);
-  // Every ancestor up to the root counts, including directories that hold only subdirectories.
+// A directory's description is its README.md, the place TS has for directory documentation (draft.md). The leading
+// `# title` line is dropped because the page already shows the directory path.
+function readDirDocs(source: string, roots: string[], paths: Set<string>): DirDoc[] {
+  const dirs = new Set<string>(roots);
+  // Every ancestor up to its root counts, including directories that hold only subdirectories.
   for (const path of paths) {
-    let dir = path.slice(0, path.lastIndexOf('/'));
-    while (dir.startsWith(root) && !dirs.has(dir)) {
-      dirs.add(dir);
-      dir = dir.slice(0, dir.lastIndexOf('/'));
-    }
+    const root = roots.find((candidate) => path.startsWith(`${candidate}/`));
+    if (!root) continue;
+    for (let dir = parentDir(path); dir !== root && !dirs.has(dir); dir = parentDir(dir)) dirs.add(dir);
   }
   return [...dirs].sort().map((path) => {
-    const candidates = [`${path}/README.md`, `docs/shapes/${path.replaceAll('/', '=')}.md`];
-    for (const candidate of candidates) {
-      const text = readText(source, candidate);
-      if (text === undefined) continue;
-      const intro = candidate.endsWith('README.md') ? text : text.split(/^## /m)[0];
-      return { path, doc: intro.replace(/^# .*\n/, '').trim(), source: candidate };
-    }
-    return { path, doc: '', source: '' };
+    const candidate = `${path}/README.md`;
+    const text = readText(source, candidate);
+    if (text === undefined) return { path, doc: '', source: '' };
+    return { path, doc: text.replace(/^# .*\n/, '').trim(), source: candidate };
   });
+}
+
+// The directory holding a path; top-level paths sit under `.`, the root of a report over several directories.
+function parentDir(path: string): string {
+  const index = path.lastIndexOf('/');
+  return index < 0 ? '.' : path.slice(0, index);
 }
 
 // Leaf tokens compare code independently of formatting and comments.
@@ -215,10 +214,10 @@ function docComment(
   node: ts.Node,
   sourceFile: ts.SourceFile,
   mode: CommentMode,
-  overviewEnd = 0,
+  overview: ts.CommentRange[] = [],
 ): Pick<Contract, 'doc' | 'docStyle'> {
   const ranges = (ts.getLeadingCommentRanges(text, node.getFullStart()) ?? []).filter(
-    (range) => range.pos >= overviewEnd,
+    (range) => !overview.some((taken) => taken.pos === range.pos),
   );
   const last = ranges.at(-1);
   if (!last) return { doc: '', docStyle: 'none' };
@@ -252,36 +251,52 @@ function cleanComment(comment: string, kind: ts.CommentKind): string {
     .trim();
 }
 
-// A file overview is the run of comments that opens the file and is followed by a blank line (docs/code-style.md).
-// When the next statement is exported, a closing `/** */` stays with that declaration, as the TS language service
-// would attach it, unless it carries `@module` or `@packageDocumentation`. `end` is where the overview stops, so
-// declaration extraction never reads the same comment twice.
-function fileOverview(text: string, sourceFile: ts.SourceFile): FileDoc & { end: number } {
-  const none = { path: sourceFile.fileName, doc: '', docStyle: 'none' as DocStyle, end: 0 };
-  const first = sourceFile.statements[0];
-  const ranges = ts.getLeadingCommentRanges(text, 0) ?? [];
-  const run: ts.CommentRange[] = [];
-  for (const range of ranges) {
-    const previous = run.at(-1);
-    if (previous && (text.slice(previous.end, range.pos).match(/\n/g)?.length ?? 0) > 1) break;
-    run.push(range);
-  }
-  const last = run.at(-1);
-  if (!last) return none;
-  const next = first ? first.getStart(sourceFile) : text.length;
-  if (first && (text.slice(last.end, next).match(/\n/g)?.length ?? 0) < 2) return none;
-  const lastText = text.slice(last.pos, last.end);
-  const exported =
-    first && ts.canHaveModifiers(first) && ts.getModifiers(first)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
-  if (exported && lastText.startsWith('/**') && !/@module|@packageDocumentation/.test(lastText)) return none;
+const newlines = (text: string) => text.match(/\n/g)?.length ?? 0;
 
-  const doc = run
-    .map((range) => cleanComment(text.slice(range.pos, range.end), range.kind))
-    .join('\n')
-    .replace(/^@(module|packageDocumentation)\b.*$/gm, '')
-    .trim();
-  const docStyle: DocStyle = run.every((range) => text.startsWith('/**', range.pos)) ? 'doc' : 'plain';
-  return { path: sourceFile.fileName, doc, docStyle: doc ? docStyle : 'none', end: last.end };
+// Whether a comment's text opens with the file's own name, such as `article.ts implements …`.
+function namesFile(doc: string, path: string): boolean {
+  const name = path.slice(path.lastIndexOf('/') + 1);
+  return doc.startsWith(name) && /^(\s|[:,.]|$)/.test(doc.slice(name.length));
+}
+
+// A file overview is a top-level run of comments that opens with the file's name and is followed by a blank line
+// (docs/code-style.md). Naming the file, rather than taking whatever comment opens it, keeps the overview apart from
+// each language's own placement rules, such as a Go package comment or a `/** */` that the TS language service
+// attaches to the next declaration across a blank line. In loose mode a run that opens the file and is followed by
+// a blank line also counts, as a plain comment, for files written before the convention. `ranges` are the comments
+// the overview took, so declaration extraction never reads them again.
+function fileOverview(
+  text: string,
+  sourceFile: ts.SourceFile,
+  mode: CommentMode,
+): FileDoc & { ranges: ts.CommentRange[] } {
+  const path = sourceFile.fileName;
+  const runs: { ranges: ts.CommentRange[]; next: number }[] = [];
+  for (const node of [...sourceFile.statements, sourceFile.endOfFileToken]) {
+    const next = node.getStart(sourceFile);
+    for (const range of ts.getLeadingCommentRanges(text, node.getFullStart()) ?? []) {
+      const current = runs.at(-1);
+      if (current?.next === next && newlines(text.slice(current.ranges.at(-1)!.end, range.pos)) <= 1)
+        current.ranges.push(range);
+      else runs.push({ ranges: [range], next });
+    }
+  }
+  const textOf = (ranges: ts.CommentRange[]) =>
+    ranges
+      .map((range) => cleanComment(text.slice(range.pos, range.end), range.kind))
+      .join('\n')
+      .trim();
+  // A run that touches the next token is that token's comment, not a standalone overview.
+  const standalone = runs.filter(
+    (run) => run.next === text.length || newlines(text.slice(run.ranges.at(-1)!.end, run.next)) >= 2,
+  );
+
+  const named = standalone.find((run) => namesFile(textOf(run.ranges), path));
+  if (named) return { path, doc: textOf(named.ranges), docStyle: 'doc', ranges: named.ranges };
+  const opening = standalone[0];
+  if (mode === 'loose' && opening && !text.slice(0, opening.ranges[0].pos).trim())
+    return { path, doc: textOf(opening.ranges), docStyle: 'plain', ranges: opening.ranges };
+  return { path, doc: '', docStyle: 'none', ranges: [] };
 }
 
 type TextEdit = { pos: number; end: number; replacement: string };
@@ -423,14 +438,14 @@ function extractFile(
   mode: CommentMode,
 ): { overview: FileDoc; declarations: Declaration[] } {
   const sourceFile = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
-  const { end: overviewEnd, ...overview } = fileOverview(text, sourceFile);
+  const { ranges: overviewRanges, ...overview } = fileOverview(text, sourceFile, mode);
   const declarations: Declaration[] = [];
   for (const statement of sourceFile.statements) {
     const exported =
       ts.canHaveModifiers(statement) &&
       ts.getModifiers(statement)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword);
     if (!exported) continue;
-    const doc = docComment(text, statement, sourceFile, mode, overviewEnd);
+    const doc = docComment(text, statement, sourceFile, mode, overviewRanges);
 
     if (ts.isClassDeclaration(statement)) {
       if (statement.name)
@@ -635,13 +650,22 @@ function extractComponent(
   return { overview: { path, doc: '', docStyle: 'none' }, declarations };
 }
 
-// A stylesheet declares nothing to extract, but its importers depend on what it styles, so its file overview, a
-// leading `/* */` comment followed by a blank line, is kept. CSS has a single comment syntax, so it counts as a doc
-// comment in either comment mode.
-function extractStylesheet(path: string, text: string): { overview: FileDoc; declarations: Declaration[] } {
-  const comment = text.match(/^\s*(\/\*[\s\S]*?\*\/)[ \t]*\n[ \t]*\n/)?.[1];
-  const doc = comment ? cleanComment(comment, ts.SyntaxKind.MultiLineCommentTrivia) : '';
-  return { overview: { path, doc, docStyle: doc ? 'doc' : 'none' }, declarations: [] };
+// A stylesheet declares nothing to extract, but its importers depend on what it styles, so its file overview is
+// kept: a top-level comment opening with the file's name, or in loose mode the comment that opens the file and is
+// followed by a blank line, as for TS files.
+function extractStylesheet(
+  path: string,
+  text: string,
+  mode: CommentMode,
+): { overview: FileDoc; declarations: Declaration[] } {
+  const comments = [...text.matchAll(/\/\*[\s\S]*?\*\//g)].map((match) =>
+    cleanComment(match[0], ts.SyntaxKind.MultiLineCommentTrivia),
+  );
+  const named = comments.find((doc) => namesFile(doc, path));
+  if (named) return { overview: { path, doc: named, docStyle: 'doc' }, declarations: [] };
+  const opening = text.match(/^\s*(\/\*[\s\S]*?\*\/)[ \t]*\n[ \t]*\n/)?.[1];
+  const doc = mode === 'loose' && opening ? cleanComment(opening, ts.SyntaxKind.MultiLineCommentTrivia) : '';
+  return { overview: { path, doc, docStyle: doc ? 'plain' : 'none' }, declarations: [] };
 }
 
 // Resolves `it.each(...)(...)`, `describe.skip(...)`, and similar forms to the runner function they start from.
@@ -692,8 +716,8 @@ function extractTests(path: string, text: string): RawTest[] {
 
 const testFilePattern = /\.(type-)?test\.ts$/;
 
-function takeSnapshot(source: string, dir: string, mode: CommentMode): Snapshot {
-  const { files, paths } = readFiles(source, dir);
+function takeSnapshot(source: string, dirs: string[], mode: CommentMode): Snapshot {
+  const { files, paths } = readFiles(source, dirs);
   const isTestFile = (path: string) => testFilePattern.test(path);
   const declarations = new Map<string, Declaration>();
   const keysBySymbol = new Map<string, string[]>();
@@ -703,7 +727,7 @@ function takeSnapshot(source: string, dir: string, mode: CommentMode): Snapshot 
     const extracted = path.endsWith('.svelte')
       ? extractComponent(path, text, mode)
       : path.endsWith('.css')
-        ? extractStylesheet(path, text)
+        ? extractStylesheet(path, text, mode)
         : extractFile(path, text, mode);
     overviews.push(extracted.overview);
     for (const declaration of extracted.declarations) {
@@ -1122,11 +1146,12 @@ type FileGroup = { path: string; name: string; doc?: FileDoc; entries: Entry[] }
 // One directory in the nested view: its own files first, then its subdirectories, mirroring the file system.
 type DirNode = { path: string; name: string; doc: DirDoc; files: FileGroup[]; children: DirNode[] };
 
-// Builds the directory tree under `report.dir`. Every described directory and every extracted file appears, even
-// without declarations, and directories with no files of their own are
-// still created so each subdirectory hangs under its real parent.
+// Builds the directory tree under `report.dir`, or under `.` when it names several directories. Every described
+// directory and every extracted file appears, even without declarations, and directories with no files of their own
+// are still created so each subdirectory hangs under its real parent.
 function buildTree(report: Report): DirNode {
-  const root = report.dir.replace(/\/$/, '');
+  const dirs = report.dir.split(',');
+  const root = dirs.length === 1 ? dirs[0] : '.';
   const dirDocs = new Map(report.directories.map((doc) => [doc.path, doc]));
   const fileDocs = new Map(report.files.map((doc) => [doc.path, doc]));
   const nodes = new Map<string, DirNode>();
@@ -1141,11 +1166,11 @@ function buildTree(report: Report): DirNode {
       children: [],
     };
     nodes.set(path, node);
-    if (path !== root) nodeOf(path.slice(0, path.lastIndexOf('/'))).children.push(node);
+    if (path !== root) nodeOf(parentDir(path)).children.push(node);
     return node;
   };
   const fileOf = (path: string): FileGroup => {
-    const dir = nodeOf(path.slice(0, path.lastIndexOf('/')));
+    const dir = nodeOf(parentDir(path));
     let file = dir.files.find((candidate) => candidate.path === path);
     if (!file) {
       file = { path, name: path.slice(path.lastIndexOf('/') + 1), doc: fileDocs.get(path), entries: [] };
@@ -1526,7 +1551,7 @@ function main(): void {
     comments: 'doc',
     base: 'git:main',
     head: '.',
-    dir: 'src/lib/server/use-cases',
+    dir: 'src,e2e',
     out: '.',
     name: 'contracts',
   };
@@ -1542,27 +1567,35 @@ function main(): void {
   if (comments !== 'doc' && comments !== 'loose') throw new Error(`--comments must be doc or loose, got ${comments}`);
 
   // A snapshot is compared with itself, so every entry and test comes out unchanged and no removals are reported.
-  const root = dir.replace(/\/$/, '');
-  const headSnapshot = takeSnapshot(head, dir, comments);
-  const directories = readDirDocs(head, root, headSnapshot.paths);
-  const baseSnapshot = mode === 'diff' ? takeSnapshot(base, dir, comments) : headSnapshot;
+  const dirs = dir.split(',').map((path) => path.replace(/\/$/, ''));
+  const headSnapshot = takeSnapshot(head, dirs, comments);
+  const directories = readDirDocs(head, dirs, headSnapshot.paths);
+  const baseSnapshot = mode === 'diff' ? takeSnapshot(base, dirs, comments) : headSnapshot;
   if (mode === 'diff') {
     const changedFrom = (before: string, after: string) =>
       normalizeProse(before) === normalizeProse(after) ? undefined : before;
-    const baseDirs = new Map(readDirDocs(base, root, baseSnapshot.paths).map((doc) => [doc.path, doc.doc]));
+    const baseDirs = new Map(readDirDocs(base, dirs, baseSnapshot.paths).map((doc) => [doc.path, doc.doc]));
     for (const doc of directories) doc.before = changedFrom(baseDirs.get(doc.path) ?? '', doc.doc);
     const baseFiles = new Map(baseSnapshot.files.map((doc) => [doc.path, doc.doc]));
     for (const doc of headSnapshot.files) doc.before = changedFrom(baseFiles.get(doc.path) ?? '', doc.doc);
   }
   const report: Report =
     mode === 'snapshot'
-      ? { mode, comments, head, dir, directories, files: headSnapshot.files, ...compare(headSnapshot, headSnapshot) }
+      ? {
+          mode,
+          comments,
+          head,
+          dir: dirs.join(','),
+          directories,
+          files: headSnapshot.files,
+          ...compare(headSnapshot, headSnapshot),
+        }
       : {
           mode,
           comments,
           base,
           head,
-          dir,
+          dir: dirs.join(','),
           directories,
           files: headSnapshot.files,
           ...compare(baseSnapshot, headSnapshot),

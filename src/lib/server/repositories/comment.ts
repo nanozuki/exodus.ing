@@ -1,5 +1,5 @@
-// Read comment records and per-user grouped projections; insert and update comments while preserving article
-// counts.
+// comment.ts reads comment records and per-user grouped projections, and inserts and updates comments while keeping
+// article comment counts consistent.
 
 import type { Comment, CommentListItem } from '#lib/models/comment.js';
 import { decodeIdPath, decodePathField, encodeIdPath } from '#lib/models/id_path.js';
@@ -33,12 +33,17 @@ async function readComment(db: QueryDatabase, id: string): Promise<Comment> {
   return row ? decodePathField(row) : throwError('NOT_FOUND', { resource: '评论' });
 }
 
+/** Returns all of the article's comments, oldest first, without truncation. */
 export async function getCommentsOfArticle(db: AppDatabase, articleId: string): Promise<Comment[]> {
   return wrap('getCommentsOfArticle', async () =>
     (await query(db).where(eq(tComment.articleId, articleId)).orderBy(tComment.createdAt)).map(decodePathField),
   );
 }
 
+/**
+ * Pages the user's comments, most recently updated first, then groups each page by article. `count` is the number of
+ * comments, not groups, so an article's group can recur on another page. Count and rows share one snapshot.
+ */
 export async function listCommentsOfUser(
   db: AppDatabase,
   userId: string,
@@ -79,6 +84,7 @@ export async function listCommentsOfUser(
   );
 }
 
+/** A missing comment throws NOT_FOUND. */
 export async function getCommentById(db: AppDatabase, commentId: string): Promise<Comment> {
   return wrap('getCommentById', () => readComment(db, commentId));
 }
@@ -90,6 +96,11 @@ export interface CreateCommentParams {
   replyToId?: string;
 }
 
+/**
+ * Creates a comment with a generated unique six-character ID and the current time as both timestamps, and increments
+ * the article's comment count, in one transaction that also maps the returned comment. A missing reply parent or
+ * article throws NOT_FOUND and writes nothing. A reply parent is not checked to belong to the same article.
+ */
 export async function createComment(db: AppDatabase, params: CreateCommentParams): Promise<Comment> {
   return wrap('createComment', () =>
     db.transaction(async (tx) => {
@@ -123,11 +134,13 @@ export async function createComment(db: AppDatabase, params: CreateCommentParams
   );
 }
 
+/** Article, author, and ancestry cannot change through `updateComment`. */
 export interface UpdateCommentParams {
   id: string;
   content?: string;
 }
 
+/** Updates the supplied content and sets `updatedAt` to the current time, without checking existence. */
 export async function updateComment(db: AppDatabase, { id, content }: UpdateCommentParams): Promise<void> {
   return wrap('updateComment', async () => {
     await db.update(tComment).set({ content, updatedAt: new Date() }).where(eq(tComment.id, id));

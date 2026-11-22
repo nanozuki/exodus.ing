@@ -9,6 +9,10 @@ const updateProfileSchema = z.object({
   aboutMe: z.string(),
 });
 
+/**
+ * Requires login, updates the viewer's name and biography, and redirects 303 to `/console/profile`. PARAMETER_INVALID
+ * `name` becomes a field issue; other errors propagate.
+ */
 export const updateProfile = form(updateProfileSchema, async ({ name, aboutMe }, issue) => {
   const { locals } = getRequestEvent();
   const user = locals.requireLoggedInUser('update profile');

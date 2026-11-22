@@ -1,3 +1,10 @@
+<!--
+  @component
+  Shows the author's inviter (with a welcome line after `?welcome=true`), remaining quota, unused codes, and invited
+  authors with their invitation times. Creating a code is offered only while quota remains. Each code can be deleted
+  or copied to the clipboard, which marks it as the last copied; clipboard failures are not handled. The remotes
+  refresh the page data after each write.
+-->
 <script lang="ts">
   import { page } from '$app/state';
   import Action from '#lib/component/Action.svelte';

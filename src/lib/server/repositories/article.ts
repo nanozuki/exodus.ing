@@ -1,5 +1,5 @@
-// Read article models and projections; insert and update persisted articles together with their direct parent's
-// reply count.
+// article.ts reads article models and projections, and inserts and updates persisted articles together with their
+// direct parent's reply count.
 
 import type {
   Article,
@@ -66,12 +66,18 @@ async function readArticle(db: QueryDatabase, articleId: string): Promise<Articl
   return (await populateParents(db, rows.map(decodePathField)))[0];
 }
 
-// Author and parent projections reflect one consistent snapshot.
+/**
+ * Reads an article with its current author and direct parent summary, all from one consistent snapshot. A missing
+ * article throws NOT_FOUND; a stored path whose parent is unavailable throws INTERNAL_SERVER_ERROR.
+ */
 export async function getArticleById(db: AppDatabase, articleId: string): Promise<Article> {
   return wrap('getArticleById', () => db.transaction((tx) => readArticle(tx, articleId), snapshot));
 }
 
-// This read remains available even when the stored author relationship is missing.
+/**
+ * Reads editable content without joining the author, so it works even when the stored author relationship is missing.
+ * A missing article throws NOT_FOUND.
+ */
 export async function getArticleContentById(db: AppDatabase, articleId: string): Promise<ArticleContent> {
   return wrap(
     'getArticleContentById',
@@ -90,6 +96,7 @@ export async function getArticleContentById(db: AppDatabase, articleId: string):
   );
 }
 
+/** Reads an article's title and current author. A missing article throws NOT_FOUND. */
 export async function getArticleSummaryById(db: AppDatabase, articleId: string): Promise<ArticleSummary> {
   return wrap(
     'getArticleSummaryById',
@@ -122,11 +129,12 @@ async function list(
   }, snapshot);
 }
 
-// Pages are creation-descending; their rows, total and parent projections share a snapshot.
+/** Pages articles newest-created first, with parent summaries; rows, total, and parents share one snapshot. */
 export async function listArticles(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleListItem>> {
   return wrap('listArticles', () => list(db, page));
 }
 
+/** Pages the user's authored articles like `listArticles`. */
 export async function listArticlesOfUser(
   db: AppDatabase,
   userId: string,
@@ -135,7 +143,10 @@ export async function listArticlesOfUser(
   return wrap('listArticlesOfUser', () => list(db, page, eq(tArticle.userId, userId)));
 }
 
-// A duplicate bookmark relationship can repeat an article within the results.
+/**
+ * Pages the articles the user bookmarked, newest-created first, mapped like `listArticles`. `count` counts bookmark
+ * relationships; the schema permits duplicates, and a duplicate relationship repeats its article in the results.
+ */
 export async function listBookmarkedArticlesOfUser(
   db: AppDatabase,
   userId: string,
@@ -144,8 +155,9 @@ export async function listBookmarkedArticlesOfUser(
   return wrap('listBookmarkedArticlesOfUser', () => list(db, page, eq(tBookmark.userId, userId), true));
 }
 
-// Trailing-slash paths put the direct parent in the third segment from the end.
+/** Returns every direct reply to the article, at any ancestry depth, without truncation, in unspecified order. */
 export async function getRepliesOfArticle(db: AppDatabase, articleId: string): Promise<ArticleSummary[]> {
+  // Trailing-slash paths put the direct parent in the third segment from the end.
   return wrap('getRepliesOfArticle', () =>
     db
       .select(summary)
@@ -155,6 +167,7 @@ export async function getRepliesOfArticle(db: AppDatabase, articleId: string): P
   );
 }
 
+/** Pages articles for feeds, most recently updated first, with a total from the same snapshot. */
 export async function listArticleFeeds(db: AppDatabase, page: Pagination): Promise<Paginated<ArticleFeedsItem>> {
   return wrap('listArticleFeeds', () =>
     db.transaction(
@@ -188,6 +201,13 @@ export interface CreateArticleParams {
   replyToId?: string;
 }
 
+/**
+ * Creates an article with a generated unique six-character ID and the current time as both timestamps. With
+ * `replyToId`, the parent's ancestry extends the new path and the parent's reply count is incremented; a missing
+ * parent throws NOT_FOUND. The insert, counter update, and mapping of the returned article run in one transaction, so
+ * a mapping failure rolls back all writes. A duplicate title for the same author throws PARAMETER_INVALID on `title`.
+ * Authorization and content policy belong to use cases.
+ */
 export async function createArticle(db: AppDatabase, params: CreateArticleParams): Promise<Article> {
   return wrap('createArticle', () =>
     db.transaction(async (tx) => {
@@ -216,13 +236,17 @@ export async function createArticle(db: AppDatabase, params: CreateArticleParams
   );
 }
 
+/** Omitted fields stay unchanged; content type and reply ancestry cannot change through `updateArticle`. */
 export interface UpdateArticleParams {
   id: string;
   title?: string;
   content?: string;
 }
 
-// This operation leaves updatedAt unchanged.
+/**
+ * Updates the supplied fields by ID without checking existence or authorization, and leaves `updatedAt` unchanged. A
+ * duplicate title for the same author throws PARAMETER_INVALID on `title`.
+ */
 export async function updateArticle(db: AppDatabase, { id, ...patch }: UpdateArticleParams): Promise<void> {
   return wrap('updateArticle', async () => {
     await db.update(tArticle).set(patch).where(eq(tArticle.id, id));

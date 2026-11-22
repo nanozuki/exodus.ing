@@ -1,3 +1,6 @@
+// tsconfig.json type-checks the browser tests and support code with the root compiler configuration, including
+// playwright.config.ts and the application's ambient types.
+
 {
   "extends": "../tsconfig.json",
   "include": ["./**/*.ts", "../playwright.config.ts", "../src/app.d.ts"]

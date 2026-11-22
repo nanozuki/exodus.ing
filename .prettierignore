@@ -1,3 +1,6 @@
+# .prettierignore excludes package-manager lockfiles, migrations, and the generated contract view examples from
+# formatting. Prettier also skips everything .gitignore excludes.
+
 # Package Managers
 package-lock.json
 pnpm-lock.yaml

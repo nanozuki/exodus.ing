@@ -12,7 +12,11 @@ import {
 } from '#lib/server/repositories/user.js';
 import { createSession } from './session';
 
-/** This preflight does not reserve names; creation still relies on database uniqueness constraints. */
+/**
+ * Checks signup choices before account creation: a supplied `username` must not start with `@` or already exist, and
+ * a supplied `name` must not already exist; a failure throws PARAMETER_INVALID on that field. Callers pass trimmed
+ * values and omit empty ones. This preflight reserves nothing; creation still relies on database uniqueness.
+ */
 export async function validateSignUp(
   deps: { db: AppDatabase },
   params: { username?: string; name?: string },
@@ -26,7 +30,10 @@ export async function validateSignUp(
     return throwError('PARAMETER_INVALID', { name: '昵称已存在' });
 }
 
-/** Input is preserved verbatim; no trimming or uniqueness precheck is applied. */
+/**
+ * Sets the actor's username to `username` exactly as given, relying on database uniqueness alone. A leading `@`
+ * throws PARAMETER_INVALID; the current username is a no-op.
+ */
 export async function updateUsername(
   deps: { db: AppDatabase },
   params: { actor: LoggedInUser; username: string },
@@ -36,7 +43,12 @@ export async function updateUsername(
   await updateUser(deps.db, { id: params.actor.id, username: params.username });
 }
 
-/** Signup hints affect new accounts only. Account and session creation are separate writes. */
+/**
+ * Signs in a GitHub identity the OAuth adapter has verified and returns a new session from `createSession`. An
+ * account with that GitHub ID is reused unchanged; otherwise one is created from `signUp`, with the GitHub username as
+ * the fallback username and name and an empty bio. A new username starting with `@` throws PARAMETER_INVALID. Account
+ * and session creation are separate writes. OAuth state, cookies, and redirects stay with the caller.
+ */
 export async function loginWithGitHub(
   deps: { db: AppDatabase; now: () => Date; random: Random },
   params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },

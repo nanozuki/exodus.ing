@@ -1,4 +1,4 @@
-// Read user identity and profile data, and persist supplied profile changes.
+// user.ts reads user identity and profile data, and persists supplied profile changes.
 
 import type { User } from '#lib/models/user.js';
 import { asc, eq } from 'drizzle-orm';
@@ -10,7 +10,7 @@ function model(row: UserRow): User {
   return { id, username, githubId, name, aboutMe, verifyCode };
 }
 
-// Exactly 16-character legacy IDs are looked up using their first six characters.
+/** Looks up a 16-character legacy ID by its first six characters; other IDs are used as given. */
 export async function findUserById(db: AppDatabase, id: string): Promise<User | null> {
   return wrap('findUserById', async () => {
     const [row] = await db
@@ -42,6 +42,7 @@ export async function findUserByGitHubId(db: AppDatabase, githubId: number): Pro
   });
 }
 
+/** Returns every user ordered by ID, without truncation. */
 export async function getUsers(db: AppDatabase): Promise<User[]> {
   return wrap('getUsers', async () => (await db.select().from(tUser).orderBy(asc(tUser.id))).map(model));
 }
@@ -53,6 +54,10 @@ export interface CreateUserParams {
   aboutMe: string;
 }
 
+/**
+ * Creates a user with a generated unique six-character ID, a 32-character verification code, and the current time as
+ * both timestamps. A uniqueness conflict throws DATABASE_ERROR.
+ */
 export async function createUser(db: AppDatabase, params: CreateUserParams): Promise<User> {
   return wrap('createUser', async () => {
     let id = newNanoId();
@@ -66,6 +71,7 @@ export async function createUser(db: AppDatabase, params: CreateUserParams): Pro
   });
 }
 
+/** Omitted fields stay unchanged; GitHub identity and verification code cannot change through `updateUser`. */
 export interface UpdateUserParams {
   id: string;
   username?: string;
@@ -73,7 +79,10 @@ export interface UpdateUserParams {
   aboutMe?: string;
 }
 
-// This operation leaves updatedAt unchanged.
+/**
+ * Updates the supplied fields by ID without checking existence, and leaves `updatedAt` unchanged. A taken username or
+ * name throws PARAMETER_INVALID on `username` or `name`. Username rules and authorization belong to callers.
+ */
 export async function updateUser(db: AppDatabase, { id, ...patch }: UpdateUserParams): Promise<void> {
   return wrap('updateUser', async () => {
     await db.update(tUser).set(patch).where(eq(tUser.id, id));

@@ -1,4 +1,7 @@
 import type { RequestHandler } from '@sveltejs/kit';
 
-// Reports HTTP server availability without querying external services.
+/**
+ * Returns 200 with an empty body. The server hook resolves this path before canonical-origin redirects and
+ * authentication.
+ */
 export const GET: RequestHandler = () => new Response(null, { status: 200 });

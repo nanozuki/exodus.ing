@@ -7,12 +7,17 @@ import type { AppDatabase } from '#lib/server/db/schema.js';
 import * as invites from '#lib/server/repositories/invite_code.js';
 import { createRoleOfUserByInviteCode } from '#lib/server/repositories/role.js';
 
+/** How many more invitations the user may create: articles minus unused codes minus invited users, at least 0. */
 export async function getInviteQuota(deps: { db: AppDatabase }, params: { userId: string }): Promise<number> {
   const { articleCount, validCodeCount, invitedCount } = await invites.getInviteStatsOfUser(deps.db, params.userId);
   return Math.max(articleCount - validCodeCount - invitedCount, 0);
 }
 
-/** Concurrent changes can reject creation with retry guidance; no automatic retry is performed. */
+/**
+ * Creates an `ArticleAuthor` invitation from the actor. Requires `CreateArticle` (FORBIDDEN otherwise); a used-up
+ * quota throws BAD_REQUEST `邀请码配额已用完`. The quota statistics are rechecked atomically on insert, so a
+ * concurrent change throws BAD_REQUEST `邀请状态已变化，请重试` instead of over-issuing; nothing retries it.
+ */
 export async function createInviteCode(
   deps: { db: AppDatabase },
   params: { actor: LoggedInUser },
@@ -26,6 +31,11 @@ export async function createInviteCode(
   return invites.createInviteCode(deps.db, { inviterId: params.actor.id, roleKey: Role.ArticleAuthor, expectedStats });
 }
 
+/**
+ * Redeems `code` for the actor: grants the code's role and marks it used at `now()` in one transaction, so a
+ * concurrent redemption cannot grant a second role. A missing or already used code throws PARAMETER_INVALID on
+ * `inviteCode`. The code is consumed even when the actor already has its role; self-invitation is allowed.
+ */
 export async function acceptInviteCode(
   deps: { db: AppDatabase; now: () => Date },
   params: { actor: LoggedInUser; code: string },

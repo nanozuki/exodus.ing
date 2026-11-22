@@ -18,6 +18,11 @@ interface FileData {
 
 type File = VFile & { data: FileData };
 
+/**
+ * Renders Markdown to sanitized HTML: parses YAML frontmatter (not rendered), GFM, and raw HTML, then sanitizes with
+ * the default rehype-sanitize policy. The first H1 stays in the output, unlike `compileArticle`. Empty input returns an
+ * empty string; parser and processor failures reject.
+ */
 export const compileMarkdown = async (content: string): Promise<Value> => {
   if (content.length === 0) {
     return '';
@@ -43,6 +48,7 @@ type IssueMessage = {
   description: string;
 };
 
+/** The title and description shown for each article issue. */
 export const articleIssueMessages: Record<MarkdownArticleIssue, IssueMessage> = {
   [MarkdownArticleIssue.MissingTitle]: {
     title: '缺少标题',
@@ -50,6 +56,7 @@ export const articleIssueMessages: Record<MarkdownArticleIssue, IssueMessage> = 
   },
 };
 
+/** Throws PARAMETER_INVALID on `field` with the issue's title as the message. */
 export function throwArticleIssue(issue: MarkdownArticleIssue, field: string): never {
   return throwError('PARAMETER_INVALID', {
     [field]: articleIssueMessages[issue].title,
@@ -81,6 +88,11 @@ function remarkMeta() {
   };
 }
 
+/**
+ * Compiles an article like `compileMarkdown`, taking its title from the first top-level H1. The title joins only that
+ * heading's direct text children, so inline formatting such as emphasis or code is left out. The heading and every node
+ * before it are removed from `markup`. A missing or empty title yields the `MissingTitle` issue and an empty `title`.
+ */
 export const compileArticle = async (article: string): Promise<CompiledArticle> => {
   const file: File = await unified()
     .use(remarkParse)

@@ -1,3 +1,6 @@
+# .dockerignore keeps dependencies, build output, local environment and state, editor files, and operating-system
+# metadata out of the Docker build context; `.env.example` and `.env.test` stay in it.
+
 test-results
 node_modules
 

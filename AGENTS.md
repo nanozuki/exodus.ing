@@ -21,10 +21,9 @@ document until a complete review pass finds no remaining actionable issues.
 
 ## Approval boundary
 
-Change shape contracts in `docs/shapes/` and the database schema in
-`src/lib/server/db/schema.ts` only when the user initiates or approves the
-change. When another task needs either change, present the proposed diff and
-apply it after the user approves.
+Change the database schema in `src/lib/server/db/schema.ts` only when the user
+initiates or approves the change. When another task needs it, present the
+proposed diff and apply it after the user approves.
 
 ## Ownership and Git workflow
 

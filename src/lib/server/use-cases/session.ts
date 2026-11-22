@@ -1,4 +1,5 @@
-// Create, validate, and invalidate the sessions behind the `auth_session` cookie.
+// session.ts creates, validates, and invalidates the sessions behind the `auth_session` cookie. A token is
+// `<id>.<secret>`; only the secret's hash is stored. Cookie handling stays with the caller.
 
 import { constantTimeEqual } from '@oslojs/crypto/subtle';
 import { hashSessionSecret, type Session } from '#lib/models/session.js';
@@ -9,6 +10,7 @@ import * as sessions from '#lib/server/repositories/session.js';
 const duration = 30 * 86400000;
 const threshold = 20 * 86400000;
 
+/** `refresh` is true when validation extended the expiry; the caller then rewrites its cookie with the same token. */
 export type ValidateSessionResult = { session: Session; refresh: boolean };
 
 // A malformed token, unknown ID, or mismatched secret yields null and leaves stored sessions untouched.
@@ -25,8 +27,8 @@ async function findVerifiedSession(deps: { db: AppDatabase }, params: { token: s
 }
 
 /**
- * Expiry is 30 days after the injected clock's current instant. The token is returned only here because the
- * secret is not stored.
+ * Creates a session for `userId` that expires 30 days after `now()`, and returns it with its token. This is the only
+ * place the token is available.
  */
 export async function createSession(
   deps: { db: AppDatabase; now: () => Date; random: Random },
@@ -44,7 +46,12 @@ export async function createSession(
   return { session, token: `${id}.${secret}` };
 }
 
-/** Renewal is inclusive at 20 remaining days; refresh tells the caller to rewrite its cookie with the same token. */
+/**
+ * Returns the session `token` names, or null when the token is malformed (not two non-empty parts), names no session,
+ * or carries the wrong secret; such tokens leave stored sessions untouched. A session at or past `expiresAt` is
+ * deleted and yields null. With 20 days or less remaining, the expiry moves to 30 days after `now()` and `refresh` is
+ * true. The token itself never changes.
+ */
 export async function validateSession(
   deps: { db: AppDatabase; now: () => Date },
   params: { token: string },
@@ -64,7 +71,10 @@ export async function validateSession(
   return { session, refresh };
 }
 
-/** Sign-out: afterwards the token validates as null. Cookie removal stays with the caller. */
+/**
+ * Signs out: deletes the session a valid token names, even an expired one, so the token validates as null afterwards.
+ * Any other token is a no-op.
+ */
 export async function invalidateSession(deps: { db: AppDatabase }, params: { token: string }): Promise<void> {
   const session = await findVerifiedSession(deps, params);
   if (session) {

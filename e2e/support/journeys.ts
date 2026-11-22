@@ -1,13 +1,16 @@
 import type { Page, Locator } from '@playwright/test';
 import { expect } from './fixtures';
 
-/** Assert saved article content at its current address. */
+/** Asserts a visible H1 with exactly `title` and, when `body` is non-empty, visible article text exactly `body`. */
 export async function articleContent(page: Page, title: string, body?: string): Promise<void> {
   await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible();
   if (body) await expect(page.getByRole('article').getByText(body, { exact: true })).toBeVisible();
 }
 
-/** Fill the Markdown editor, check its preview and publish through the visible form. */
+/**
+ * Fills the editor with `# title` and `body`, checks the preview's title, `previewBody`, and valid state, publishes,
+ * and returns the new article's `/a/<id>` pathname. Pass `previewBody` when the rendered body differs from its source.
+ */
 export async function publishMarkdown(page: Page, title: string, body: string, previewBody = body): Promise<string> {
   await page.getByRole('textbox').fill(`# ${title}\n\n${body}`);
   await page.getByRole('button', { name: '预览', exact: true }).click();
@@ -20,12 +23,15 @@ export async function publishMarkdown(page: Page, title: string, body: string, p
   return new URL(page.url()).pathname;
 }
 
-/** Find a comment by the fragment used for links and post-submit navigation. */
+/** Locates the `comment-<id>` anchor used for links and post-submit navigation. */
 export function comment(page: Page, id: string): Locator {
   return page.locator(`[id="comment-${id}"]`);
 }
 
-/** Submit a comment and return the application-selected comment identifier. */
+/**
+ * Submits `text` as a comment, expects navigation to its `#comment-<id>` fragment, a cleared textbox, and each line
+ * visible in the comment, and returns the comment ID.
+ */
 export async function postComment(page: Page, text: string): Promise<string> {
   await page.getByRole('textbox').fill(text);
   await page.getByRole('button', { name: '发表评论', exact: true }).click();
@@ -36,7 +42,7 @@ export async function postComment(page: Page, text: string): Promise<string> {
   return id;
 }
 
-/** Check that a protected destination does not expose its editing controls. */
+/** Asserts a visible 401 or 403 error heading and no textboxes on a protected destination. */
 export async function restricted(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: /Error: (401|403)/ })).toBeVisible();
   await expect(page.getByRole('textbox')).toHaveCount(0);

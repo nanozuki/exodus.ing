@@ -1,3 +1,10 @@
+<!--
+  @component
+  The article page. Loads the article and its responses, the viewer, comments, and bookmark state in parallel, and
+  follows `params.articleId` across navigation. Renders Markdown articles in full and external articles as a notice
+  with a link to the original, plus article social metadata, author-only edit links, responses, and comments. The top
+  and bottom bookmark badges are independent form instances.
+-->
 <script lang="ts">
   import Markdown from '#lib/component/Markdown.svelte';
   import MdiArrowTopRight from '~icons/mdi/arrow-top-right';

@@ -1,3 +1,7 @@
+<!--
+  @component
+  A comment action linking to `#reply-section`, the article-response section; shows `count` when it is positive.
+-->
 <script lang="ts">
   import MdiCommentTextOutline from '~icons/mdi/comment-text-outline';
   import Action from '#lib/component/Action.svelte';

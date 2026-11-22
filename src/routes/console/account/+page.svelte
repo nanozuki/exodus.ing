@@ -1,3 +1,10 @@
+<!--
+  @component
+  Shows the viewer from the console layout query and edits the username in a dialog. The dialog form starts from the
+  current username and shows field issues; Cancel closes it without submitting. Reopening the dialog resets the form,
+  discarding the closed dialog's edits and issues, while the first mount keeps native-submission feedback. A
+  successful submission navigates to the renamed profile; other submission errors go to the error page.
+-->
 <script lang="ts">
   import { page } from '$app/state';
   import { loadLayoutData } from '../layout.remote';

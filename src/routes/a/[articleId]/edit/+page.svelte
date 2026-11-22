@@ -1,3 +1,11 @@
+<!--
+  @component
+  The article editor for `params.articleId` (`new` creates), reading `replyTo` and `contentType` from the search
+  parameters. Shows no editing controls until the server has authorized the viewer. A new article without a recognized
+  content type first offers the Markdown or external choice, keeping the reply target in the links. Markdown mode
+  shows the reply target, the live editor, and a publish button enabled while the source compiles without issues;
+  external mode renders ExternalArticleForm.
+-->
 <script lang="ts">
   import ArticleCard from '#lib/component/ArticleCard.svelte';
   import Button from '#lib/component/Button.svelte';

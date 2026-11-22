@@ -1,3 +1,8 @@
+<!--
+  @component
+  The homepage: the article list for the `page` search parameter, with `?page=<n>` links, an empty state, the EXODUS
+  title, and social metadata. The server awaits the first page; client navigation changes the query argument.
+-->
 <script lang="ts">
   import ArticleList from '#lib/component/ArticleList.svelte';
   import { loadPageData } from './page.remote';

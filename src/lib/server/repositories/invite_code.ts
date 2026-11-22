@@ -1,4 +1,5 @@
-// Persist invitation codes and expose consistent quota inputs. Quota arithmetic belongs to the invitation use case.
+// invite_code.ts persists invitation codes and exposes consistent quota inputs. Quota arithmetic belongs to the
+// invitation use case.
 
 import type { InviteCode, InviteCodeSummary, InviteStats } from '#lib/models/invite_code.js';
 import { throwError } from '#lib/errors.js';
@@ -27,6 +28,7 @@ export async function findInviteCodeByCode(db: AppDatabase, code: string): Promi
   );
 }
 
+/** Returns every unused code the user issued, in unspecified order. */
 export async function getUnusedInviteCodesOfUser(db: AppDatabase, userId: string): Promise<InviteCodeSummary[]> {
   return wrap('getUnusedInviteCodesOfUser', () =>
     db
@@ -36,18 +38,26 @@ export async function getUnusedInviteCodesOfUser(db: AppDatabase, userId: string
   );
 }
 
+/** Reads the user's authored article, unused code, and invited role-row counts from one snapshot. */
 export async function getInviteStatsOfUser(db: AppDatabase, userId: string): Promise<InviteStats> {
   return wrap('getInviteStatsOfUser', () => statistics(db, userId));
 }
 
-// Pass the statistics used to approve issuance; a stale snapshot rejects the write.
+/**
+ * `expectedStats` is the `getInviteStatsOfUser` snapshot on which the use case approved issuance. It is a concurrency
+ * precondition, not a quota policy.
+ */
 export interface CreateInviteCodeParams {
   inviterId: string;
   roleKey: string;
   expectedStats: InviteStats;
 }
 
-// Serialization failures propagate without retry; a new attempt requires fresh statistics.
+/**
+ * Inserts an unused 16-character code after confirming, inside a serializable transaction, that the current statistics
+ * still equal `expectedStats`. A changed snapshot throws BAD_REQUEST with retry guidance and writes nothing.
+ * Serialization failures propagate as DATABASE_ERROR without retry; a new attempt requires fresh statistics.
+ */
 export async function createInviteCode(db: AppDatabase, params: CreateInviteCodeParams): Promise<InviteCode> {
   return wrap('createInviteCode', () =>
     db.transaction(
@@ -71,12 +81,13 @@ export async function createInviteCode(db: AppDatabase, params: CreateInviteCode
   );
 }
 
+/** Scopes deletion to `inviterId`; it does not authorize the actor. */
 export interface DeleteInviteCodeParams {
   inviterId: string;
   code: string;
 }
 
-// Used codes are eligible for deletion too.
+/** Deletes the inviter's code, used or not, without checking existence. */
 export async function deleteInviteCode(db: AppDatabase, params: DeleteInviteCodeParams): Promise<void> {
   return wrap('deleteInviteCode', async () => {
     await db

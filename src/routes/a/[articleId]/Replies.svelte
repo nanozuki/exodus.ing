@@ -1,3 +1,9 @@
+<!--
+  @component
+  The `#reply-section` list of direct responses in supplied order, with a prompt by viewer: users with `CreateArticle`
+  get a link to `/a/new/edit?replyTo=<id>`, other signed-in users a link to become a writer, and visitors a sign-in
+  link that returns to the reply editor.
+-->
 <script lang="ts">
   import Action from '#lib/component/Action.svelte';
   import MdiReplyOutline from '~icons/mdi/reply-outline';
