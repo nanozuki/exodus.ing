@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   cookies: { set: vi.fn() },
@@ -33,20 +33,22 @@ beforeEach(() => {
   });
 });
 
-it('sets the session token cookie and redirects to a same-origin next', async () => {
-  await expect(submit({ userId: 'user', next: '/console' })).rejects.toMatchObject({
-    status: 303,
-    location: 'https://exodus.test/console',
-  });
-  expect(mocks.cookies.set).toHaveBeenCalledWith(AUTH_COOKIE_NAME, 'session.secret', expect.anything());
-});
-
-it.each(['@evil.example', 'https://evil.example'])(
-  'redirects a non-path next %j to the app home page',
-  async (next) => {
-    await expect(submit({ userId: 'user', next })).rejects.toMatchObject({
+describe('simulateTestingLogin', () => {
+  it('sets the session token cookie and redirects to a same-origin next', async () => {
+    await expect(submit({ userId: 'user', next: '/console' })).rejects.toMatchObject({
       status: 303,
-      location: 'https://exodus.test/',
+      location: 'https://exodus.test/console',
     });
-  },
-);
+    expect(mocks.cookies.set).toHaveBeenCalledWith(AUTH_COOKIE_NAME, 'session.secret', expect.anything());
+  });
+
+  it.each(['@evil.example', 'https://evil.example'])(
+    'redirects a non-path next %j to the app home page',
+    async (next) => {
+      await expect(submit({ userId: 'user', next })).rejects.toMatchObject({
+        status: 303,
+        location: 'https://exodus.test/',
+      });
+    },
+  );
+});

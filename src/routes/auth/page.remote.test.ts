@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   cookies: { set: vi.fn() },
@@ -32,69 +32,87 @@ beforeEach(() => {
 });
 
 // The form mock exposes each server handler so the real cookie and redirect helpers run.
-const operations = [
-  { name: 'login', submit: loginByGithub, input: { next: '/console' } },
-  {
-    name: 'registration',
-    submit: registerByGithub,
-    input: { next: '/console', username: ' alice ', name: ' Alice ' },
-  },
-];
+type Handler = (input: object, issue?: object) => Promise<never>;
+const login = loginByGithub as unknown as Handler;
+const register = registerByGithub as unknown as Handler;
 
-it.each(operations)(
-  'redirects $name to GitHub while preserving OAuth callback state',
-  async ({ name, submit, input }) => {
-    const handler = submit as unknown as (values: typeof input) => Promise<never>;
-    await expect(handler(input)).rejects.toMatchObject({
-      status: 302,
-      location: expect.stringMatching(/^https:\/\/github\.com\/login\/oauth\/authorize\?state=/),
-    });
-    const data = JSON.parse(mocks.cookies.set.mock.calls[0][1]);
+const githubRedirect = {
+  status: 302,
+  location: expect.stringMatching(/^https:\/\/github\.com\/login\/oauth\/authorize\?state=/),
+};
+
+// The OAuth state cookie the handler wrote, parsed.
+function stateCookie(): Record<string, unknown> {
+  return JSON.parse(mocks.cookies.set.mock.calls[0][1]);
+}
+
+describe('loginByGithub', () => {
+  it('redirects to GitHub with the OAuth state that the state cookie keeps with next', async () => {
+    await expect(login({ next: '/console' })).rejects.toMatchObject(githubRedirect);
+    const data = stateCookie();
     expect(data).toMatchObject({ state: expect.any(String), next: '/console' });
     expect(mocks.createAuthUrl).toHaveBeenCalledWith(data.state);
-    if (name === 'registration') {
-      expect(data.signUp).toEqual({ username: 'alice', name: 'Alice' });
-      expect(mocks.validateSignUp).toHaveBeenCalledWith({ db: {} }, { username: 'alice', name: 'Alice' });
-    } else {
-      expect(data.signUp).toBeUndefined();
-    }
-  },
-);
-
-it.each(operations)('rejects an unexpected OAuth origin for $name', async ({ submit, input }) => {
-  mocks.createAuthUrl.mockReturnValue(new URL('https://unexpected.example/authorize'));
-  const handler = submit as unknown as (values: typeof input) => Promise<never>;
-  await expect(handler(input)).rejects.toThrow('redirect_external_not_in_allowlist');
-});
-
-it.each(['username', 'name'] as const)('maps a business %s error to the matching form field', async (field) => {
-  mocks.validateSignUp.mockImplementation(() => throwError('PARAMETER_INVALID', { [field]: '已被使用' }));
-  const issue = { username: vi.fn(), name: vi.fn() };
-  issue[field].mockReturnValue({ path: [field], message: '已被使用' });
-  const handler = registerByGithub as unknown as (input: object, issue: object) => Promise<never>;
-
-  await expect(handler({}, issue)).rejects.toMatchObject({
-    issues: [{ path: [field], message: '已被使用' }],
   });
-  expect(issue[field]).toHaveBeenCalledWith('已被使用');
-  expect(mocks.createAuthUrl).not.toHaveBeenCalled();
+
+  it('carries no signup values', async () => {
+    await expect(login({ next: '/console' })).rejects.toMatchObject(githubRedirect);
+    expect(stateCookie().signUp).toBeUndefined();
+  });
+
+  it('rejects an OAuth URL outside the redirect allowlist', async () => {
+    mocks.createAuthUrl.mockReturnValue(new URL('https://unexpected.example/authorize'));
+    await expect(login({ next: '/console' })).rejects.toThrow('redirect_external_not_in_allowlist');
+  });
 });
 
-it.each([
-  () => throwError('FORBIDDEN', { operation: '注册' }),
-  () => error(404, 'Not Found'),
-  () => redirect(303, '/auth'),
-  () => invalid('输入无效'),
-  () => {
-    throw new Error('offline');
-  },
-])('preserves errors and control flow that registration cannot map to a field', async (fail) => {
-  const failure = await Promise.resolve()
-    .then(fail)
-    .catch((caught: unknown) => caught);
-  mocks.validateSignUp.mockRejectedValue(failure);
-  const handler = registerByGithub as unknown as (input: object, issue: object) => Promise<never>;
+describe('registerByGithub', () => {
+  const input = { next: '/console', username: ' alice ', name: ' Alice ' };
 
-  await expect(handler({}, {})).rejects.toBe(failure);
-  expect(mocks.createAuthUrl).not.toHaveBeenCalled();
+  it('redirects to GitHub with the OAuth state that the state cookie keeps with next', async () => {
+    await expect(register(input)).rejects.toMatchObject(githubRedirect);
+    const data = stateCookie();
+    expect(data).toMatchObject({ state: expect.any(String), next: '/console' });
+    expect(mocks.createAuthUrl).toHaveBeenCalledWith(data.state);
+  });
+
+  it('checks the trimmed signup values and carries them in the state cookie', async () => {
+    await expect(register(input)).rejects.toMatchObject(githubRedirect);
+    expect(mocks.validateSignUp).toHaveBeenCalledWith({ db: {} }, { username: 'alice', name: 'Alice' });
+    expect(stateCookie().signUp).toEqual({ username: 'alice', name: 'Alice' });
+  });
+
+  it('rejects an OAuth URL outside the redirect allowlist', async () => {
+    mocks.createAuthUrl.mockReturnValue(new URL('https://unexpected.example/authorize'));
+    await expect(register(input)).rejects.toThrow('redirect_external_not_in_allowlist');
+  });
+
+  it.each(['username', 'name'] as const)('maps a business %s error to the matching form field', async (field) => {
+    mocks.validateSignUp.mockImplementation(() => throwError('PARAMETER_INVALID', { [field]: '已被使用' }));
+    const issue = { username: vi.fn(), name: vi.fn() };
+    issue[field].mockReturnValue({ path: [field], message: '已被使用' });
+
+    await expect(register({}, issue)).rejects.toMatchObject({
+      issues: [{ path: [field], message: '已被使用' }],
+    });
+    expect(issue[field]).toHaveBeenCalledWith('已被使用');
+    expect(mocks.createAuthUrl).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    () => throwError('FORBIDDEN', { operation: '注册' }),
+    () => error(404, 'Not Found'),
+    () => redirect(303, '/auth'),
+    () => invalid('输入无效'),
+    () => {
+      throw new Error('offline');
+    },
+  ])('preserves errors and control flow that registration cannot map to a field', async (fail) => {
+    const failure = await Promise.resolve()
+      .then(fail)
+      .catch((caught: unknown) => caught);
+    mocks.validateSignUp.mockRejectedValue(failure);
+
+    await expect(register({}, {})).rejects.toBe(failure);
+    expect(mocks.createAuthUrl).not.toHaveBeenCalled();
+  });
 });

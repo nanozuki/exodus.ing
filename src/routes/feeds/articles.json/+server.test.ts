@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
 import { articleSamples, getAuthor } from '#lib/testing/data.js';
 
@@ -27,26 +27,50 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('serves JSON Feed from the real database with public authors, Markdown and external URLs', async () => {
-  const fetch = vi.fn(() => {
-    throw new Error('The feed must not fetch linked pages');
+// Linked pages must never be fetched, so any fetch fails the request.
+async function serve(): Promise<Response> {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => {
+      throw new Error('The feed must not fetch linked pages');
+    }),
+  );
+  return GET({} as never);
+}
+
+async function itemOf(id: string) {
+  const feed = await (await serve()).json();
+  return feed.items.find((item: { id: string }) => item.id === id);
+}
+
+describe('GET', () => {
+  it('responds with the JSON Feed content type and a two-hour public cache', async () => {
+    const response = await serve();
+    expect(response.headers.get('content-type')).toBe('application/feed+json');
+    expect(response.headers.get('cache-control')).toBe('public, max-age=7200');
   });
-  vi.stubGlobal('fetch', fetch);
-  const response = await GET({} as never);
-  expect(response.headers.get('content-type')).toBe('application/feed+json');
-  expect(response.headers.get('cache-control')).toBe('public, max-age=7200');
-  const feed = await response.json();
-  expect(feed.version).toBe('https://jsonfeed.org/version/1.1');
-  expect(feed.items).toHaveLength(26);
-  const markdown = feed.items.find((item: { id: string }) => item.id === articleSamples.markdownSample.id);
-  expect(markdown.content_html).toContain('<h1>Markdown Showcase (English)</h1>');
-  const external = feed.items.find((item: { id: string }) => item.id === articleSamples.externalSample.id);
-  const author = getAuthor(articleSamples.externalSample);
-  expect(external).toMatchObject({
-    external_url: articleSamples.externalSample.content,
-    author: { name: author.name, url: `https://exodus.ing/u/@${author.username}` },
+
+  it('serves a JSON Feed 1.1 document with every article when there are fewer than 30', async () => {
+    const feed = await (await serve()).json();
+    expect(feed.version).toBe('https://jsonfeed.org/version/1.1');
+    expect(feed.items).toHaveLength(26);
   });
-  expect(external.authors).toEqual([external.author]);
-  expect(external.content_html).toContain('此文章发表于站外');
-  expect(fetch).not.toHaveBeenCalled();
+
+  it('compiles a Markdown article to HTML, H1 included', async () => {
+    const markdown = await itemOf(articleSamples.markdownSample.id);
+    expect(markdown.content_html).toContain('<h1>Markdown Showcase (English)</h1>');
+  });
+
+  it('turns an external article into a notice with external_url, without fetching the page', async () => {
+    const external = await itemOf(articleSamples.externalSample.id);
+    expect(external.external_url).toBe(articleSamples.externalSample.content);
+    expect(external.content_html).toContain('此文章发表于站外');
+  });
+
+  it("gives each item the author's public profile as both author and authors", async () => {
+    const external = await itemOf(articleSamples.externalSample.id);
+    const author = getAuthor(articleSamples.externalSample);
+    expect(external.author).toEqual({ name: author.name, url: `https://exodus.ing/u/@${author.username}` });
+    expect(external.authors).toEqual([external.author]);
+  });
 });
