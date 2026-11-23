@@ -27,7 +27,8 @@ export const loadPageData = query(z.object({}), async () => {
 
 /**
  * Requires `CreateArticle`, creates an invite code within the viewer's quota, and refreshes the page data. A used-up
- * quota or a concurrent change to the quota statistics throws BAD_REQUEST.
+ * quota throws BAD_REQUEST; a concurrent creation throws BAD_REQUEST or DATABASE_ERROR, as `createInviteCode` in
+ * the use cases describes.
  */
 export const createInviteCode = form(async () => {
   const { locals } = getRequestEvent();

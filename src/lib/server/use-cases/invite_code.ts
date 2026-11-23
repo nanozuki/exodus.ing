@@ -15,8 +15,12 @@ export async function getInviteQuota(deps: { db: AppDatabase }, params: { userId
 
 /**
  * Creates an `ArticleAuthor` invitation from the actor. Requires `CreateArticle` (FORBIDDEN otherwise); a used-up
- * quota throws BAD_REQUEST `邀请码配额已用完`. The quota statistics are rechecked atomically on insert, so a
- * concurrent change throws BAD_REQUEST `邀请状态已变化，请重试` instead of over-issuing; nothing retries it.
+ * quota throws BAD_REQUEST `邀请码配额已用完`. The quota statistics are rechecked in a serializable transaction on
+ * insert, so concurrent creations never over-issue: the losing request throws BAD_REQUEST `邀请状态已变化，请重试`
+ * when the change is detected, or DATABASE_ERROR when the database aborts the transaction. Nothing retries either.
+ *
+ * TODO: throw the same BAD_REQUEST `邀请状态已变化，请重试` when the database aborts the transaction, so a concurrent
+ * creation always ends in retry guidance rather than a server error.
  */
 export async function createInviteCode(
   deps: { db: AppDatabase },

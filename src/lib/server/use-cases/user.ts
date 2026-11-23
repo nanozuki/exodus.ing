@@ -45,9 +45,10 @@ export async function updateUsername(
 
 /**
  * Signs in a GitHub identity the OAuth adapter has verified and returns a new session from `createSession`. An
- * account with that GitHub ID is reused unchanged; otherwise one is created from `signUp`, with the GitHub username as
- * the fallback username and name and an empty bio. A new username starting with `@` throws PARAMETER_INVALID. Account
- * and session creation are separate writes. OAuth state, cookies, and redirects stay with the caller.
+ * account with that GitHub ID is reused unchanged; otherwise one is created from `signUp` with an empty bio. A missing
+ * username falls back to the GitHub username, and a missing name to the resulting username. A new username starting
+ * with `@` throws PARAMETER_INVALID. Account and session creation are separate writes. OAuth state, cookies, and
+ * redirects stay with the caller.
  */
 export async function loginWithGitHub(
   deps: { db: AppDatabase; now: () => Date; random: Random },
