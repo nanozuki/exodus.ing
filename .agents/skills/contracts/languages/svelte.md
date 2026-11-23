@@ -7,3 +7,6 @@
 - The `$props()` destructuring is implementation, invisible to importers. State
   a default the caller needs with `@default` on the prop, as
   [Comments](../../../../docs/code-style.md#comments) describes.
+- SvelteKit route files pair the same way: `+server.ts` ↔ `+server.test.ts`,
+  `page.remote.ts` ↔ `page.remote.test.ts`. SvelteKit accepts `+`-prefixed test
+  files in `src/routes`.

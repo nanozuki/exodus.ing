@@ -801,8 +801,9 @@ function takeSnapshot(source: string, layout: Layout, mode: CommentMode): Snapsh
           warnings.push({ kind: 'covers-unknown', file: path, test: raw.name, symbol: name });
           continue;
         }
-        // `Class.member` counts as referenced when the test names both parts.
-        if (!name.split('.').every((part) => raw.identifiers.has(part)))
+        // Only a `Covers:` line is checked against the body: under `describe` the call may go through an alias, such
+        // as a remote function cast to its handler type. `Class.member` counts when the test names both parts.
+        if (raw.coversNames && !name.split('.').every((part) => raw.identifiers.has(part)))
           warnings.push({ kind: 'covers-unreferenced', file: path, test: raw.name, key });
         covers.push(key);
       }
