@@ -5,16 +5,19 @@
 // extraction rules and page design.
 //
 // Usage: tsx .agents/skills/contracts/scripts/contract-diff.ts [--mode diff|snapshot] [--comments doc|loose]
-//          [--base git:main] [--head .] [--dir src,e2e] [--out .contracts] [--name contracts]
-// `--dir` takes one directory or a comma-separated list. `--name` sets the basename of the two output files, so
+//          [--base git:main] [--head .] [--dir <dir>[,<dir>]] [--out .contracts] [--name contracts]
+// ../config.json names the directories and their roles: `sourceDirs` hold declarations and their paired unit tests,
+// `testDirs` hold scenario tests; the deepest listed directory decides a path's role, `sourceDirs` winning a tie.
+// `--dir` narrows the report to the given directories without changing any role. `--name` sets the basename of the two output files, so
 // several reports can sit side by side. A snapshot is either `git:<ref>` or the path of a checkout root; a checkout
 // includes uncommitted and untracked files that git does not ignore. `--mode snapshot` reads only `--head` and lists
 // every contract in it instead of comparing two snapshots.
 //
 // With `--comments doc` (the default) only doc comments count as contracts: `/** */` in TS and `<!-- @component -->`
 // in Svelte. `--comments loose` also counts a run of `//` or `/* */` comments with no blank line between it and the
-// exported declaration. A test is linked to a declaration by a `// Covers: a, b` line above it, or by an enclosing
-// `describe('<declaration name>')`; a component's declaration name is its file name, such as `Dialog`.
+// exported declaration. A unit test is linked to a declaration by a `// Covers: a, b` line above it, or by an
+// enclosing `describe('<declaration name>')`; a component's declaration name is its file name, such as `Dialog`.
+// Scenario tests link to nothing.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -717,13 +720,44 @@ function extractTests(path: string, text: string): RawTest[] {
 
 const testFilePattern = /\.(type-)?test\.ts$/;
 
-function takeSnapshot(source: string, dirs: string[], mode: CommentMode): Snapshot {
-  const { files, paths } = readFiles(source, dirs);
+// Which directories a report reads and what each path in them is: `roots` are the top-level directories to list, and
+// `roleOf` names a path's role, or undefined outside every configured directory.
+type Layout = { roots: string[]; roleOf: (path: string) => 'source' | 'test' | undefined };
+
+const within = (path: string, dir: string) => path === dir || path.startsWith(`${dir}/`);
+
+function readLayout(scope: string[]): Layout {
+  const config = JSON.parse(readFileSync(new URL('../config.json', import.meta.url), 'utf8')) as {
+    sourceDirs: string[];
+    testDirs: string[];
+  };
+  const roles = [
+    ...config.sourceDirs.map((dir) => ({ dir, role: 'source' as const })),
+    ...config.testDirs.map((dir) => ({ dir, role: 'test' as const })),
+  ];
+  // A scope directory inside a configured one is read on its own; a configured one inside the scope is read whole.
+  const candidates = roles.flatMap(({ dir }) =>
+    scope.length ? scope.flatMap((part) => (within(part, dir) ? [part] : within(dir, part) ? [dir] : [])) : [dir],
+  );
+  const roots = [...new Set(candidates)].filter(
+    (dir, _, all) => !all.some((other) => other !== dir && within(dir, other)),
+  );
+  const roleOf = (path: string) => {
+    const matches = roles.filter(({ dir }) => within(path, dir));
+    // Deepest directory first; at equal depth a source directory wins.
+    matches.sort((a, b) => b.dir.length - a.dir.length || (a.role === 'source' ? -1 : 1));
+    return matches[0]?.role;
+  };
+  return { roots: roots.sort(), roleOf };
+}
+
+function takeSnapshot(source: string, layout: Layout, mode: CommentMode): Snapshot {
+  const { files, paths } = readFiles(source, layout.roots);
   const isTestFile = (path: string) => testFilePattern.test(path);
   const declarations = new Map<string, Declaration>();
   const overviews: FileDoc[] = [];
   for (const [path, text] of files) {
-    if (isTestFile(path)) continue;
+    if (isTestFile(path) || layout.roleOf(path) !== 'source') continue;
     const extracted = path.endsWith('.svelte')
       ? extractComponent(path, text, mode)
       : path.endsWith('.css')
@@ -742,8 +776,16 @@ function takeSnapshot(source: string, dirs: string[], mode: CommentMode): Snapsh
     // `Foo.svelte.test.ts` belongs to `Foo.svelte`, so only a leftover `.svelte`/`.svelte.ts` suffix decides.
     const stem = path.replace(testFilePattern, '');
     const sourcePath = stem.endsWith('.svelte') ? stem : `${stem}.ts`;
-    const hasSource = paths.has(sourcePath);
-    if (!hasSource) warnings.push({ kind: 'test-file-without-source', file: path, source: sourcePath });
+    // Scenario tests state their purpose and script and link to no declaration. They are still recorded so removing
+    // one is reported.
+    // A unit test file without its source is reported once as a whole rather than test by test.
+    const scenario = layout.roleOf(path) === 'test';
+    if (scenario || !paths.has(sourcePath)) {
+      if (!scenario) warnings.push({ kind: 'test-file-without-source', file: path, source: sourcePath });
+      for (const raw of extractTests(path, text))
+        tests.push({ file: path, name: raw.name, covers: [], bodyKey: raw.bodyKey });
+      continue;
+    }
 
     const resolve = (name: string): string | undefined =>
       declarations.has(`${sourcePath}#${name}`) ? `${sourcePath}#${name}` : undefined;
@@ -1542,7 +1584,7 @@ function main(): void {
     comments: 'doc',
     base: 'git:main',
     head: '.',
-    dir: 'src,e2e',
+    dir: '',
     out: '.contracts',
     name: 'contracts',
   };
@@ -1558,10 +1600,16 @@ function main(): void {
   if (comments !== 'doc' && comments !== 'loose') throw new Error(`--comments must be doc or loose, got ${comments}`);
 
   // A snapshot is compared with itself, so every entry and test comes out unchanged and no removals are reported.
-  const dirs = dir.split(',').map((path) => path.replace(/\/$/, ''));
-  const headSnapshot = takeSnapshot(head, dirs, comments);
+  const layout = readLayout(
+    dir
+      .split(',')
+      .filter(Boolean)
+      .map((path) => path.replace(/\/$/, '')),
+  );
+  const dirs = layout.roots;
+  const headSnapshot = takeSnapshot(head, layout, comments);
   const directories = readDirDocs(head, dirs, headSnapshot.paths);
-  const baseSnapshot = mode === 'diff' ? takeSnapshot(base, dirs, comments) : headSnapshot;
+  const baseSnapshot = mode === 'diff' ? takeSnapshot(base, layout, comments) : headSnapshot;
   if (mode === 'diff') {
     const changedFrom = (before: string, after: string) =>
       normalizeProse(before) === normalizeProse(after) ? undefined : before;

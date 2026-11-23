@@ -1,0 +1,4 @@
+{
+  "sourceDirs": ["src", "e2e/support"],
+  "testDirs": ["e2e"]
+}

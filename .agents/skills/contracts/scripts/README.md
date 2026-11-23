@@ -27,8 +27,11 @@ of its own.
 
 ## Extraction rules
 
-- **Scope.** `src` and `e2e` by default. A working tree is listed through git,
-  so ignored and generated files stay out.
+- **Scope.** The directories in `../config.json`: declarations come from
+  `sourceDirs` only, and `testDirs` contribute scenario tests and directory
+  descriptions. The deepest listed directory decides a path's role, so
+  `e2e/support` is source inside the `e2e` test directory. A working tree is
+  listed through git, so ignored and generated files stay out.
 - **Signatures exclude implementation.** A function's signature drops its body.
   In an exported object literal a function body becomes `{ … }`, or `…` for an
   expression-bodied arrow. The removed parts only decide the `impl` category.
@@ -82,11 +85,16 @@ of its own.
 
 ### Tests
 
-- A test file `foo.test.ts` belongs to `foo.ts`; `Foo.svelte.test.ts` belongs to
-  `Foo.svelte`.
-- A test links to the declaration named by its enclosing `describe`, or to the
-  names on a `Covers:` line in its leading comment.
-- Checks: a test file without a source file, a test linked to nothing, a
+- In a source directory, a test file `foo.test.ts` belongs to `foo.ts` and
+  `Foo.svelte.test.ts` to `Foo.svelte`. Its tests are unit tests. A unit test
+  file without its source is reported once, as a file, never inferred to be
+  something else.
+- A unit test links to the declaration named by its enclosing `describe`, or to
+  the names on a `Covers:` line in its leading comment.
+- Test files in a test directory hold scenario tests. They link to no
+  declaration and no linking check applies to them; they are recorded only so a
+  removed one is reported.
+- Checks: a unit test file without its source, a unit test linked to nothing, a
   `Covers:` name that matches no declaration or that the test body never
   references, an executable declaration with no test, and a test removed since
   the base.

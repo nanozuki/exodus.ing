@@ -47,23 +47,25 @@ options are in the script's header comment. Output goes to the ignored
 Each test checks one behaviour, and its name is one sentence from the caller's
 point of view.
 
-- **Unit tests** live in the test file paired with the source by the language's
-  naming convention.
+- **Unit tests** live beside their source, in the test file paired with it by
+  the language's naming convention, inside a `sourceDirs` directory of
+  [config.json](config.json).
 - **One declaration under test**: group its tests under the test framework's
   native structure named after the declaration, one level deep, so each full
   test name stays a sentence.
 - **Several declarations under test**: put a `Covers: a, b` line in the test's
   leading comment. List only the declarations the test is about, never ones it
   calls as setup; that intent is yours to state, since the tool cannot infer it.
-- **Scenario and e2e tests** span declarations. The test name is a sentence and
-  its doc comment is the script: who acts under what preconditions, what they
-  want done, and the observable outcome. Write intent; the test code already
-  spells out each step.
+- **Scenario tests** (e2e, smoke, and the like) live in a `testDirs` directory
+  of [config.json](config.json) and belong to no declaration or file. The test
+  name states its purpose as a sentence and its doc comment is the script: who
+  acts under what preconditions, what they want done, and the observable
+  outcome. Write intent; the test code already spells out each step.
 
 The tool's checks appear under the page's warnings and in the JSON's `warnings`.
-Before finishing, clear each one your change introduced: an unlinked test, a
-`Covers:` name that is unknown or unreferenced, an untested executable
-declaration, a removed test.
+Before finishing, clear each one your change introduced: a unit test file
+without its source, an unlinked unit test, a `Covers:` name that is unknown or
+unreferenced, an untested executable declaration, a removed test.
 
 ## Languages
 
