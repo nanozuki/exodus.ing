@@ -1,9 +1,11 @@
 // schema.ts declares the Drizzle tables and their inferred row types; insert shapes come from each table's
 // $inferInsert. `createdAt` and `updatedAt` columns are required and default to now. Tables declare no foreign keys.
 
-import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
 import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ArticleContentType } from '#lib/models/article.js';
+import type { PreAuthPurpose } from '#lib/models/session.js';
+import type { IdentityProvider } from '#lib/models/user.js';
 
 const timestamps = {
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -29,6 +31,34 @@ export const tSession = pgTable(
     expiresAt: timestamp('expires_at').notNull(),
   },
   (table) => [index('session_user_id_idx').on(table.userId), index('expires_at_idx').on(table.expiresAt)],
+);
+
+/**
+ * Short-lived, single-use state for flows that run before an auth session exists, such as sign-up. Its token scheme
+ * matches `tSession`; the `payload` shape depends on `purpose` and is not validated by the database.
+ */
+export const tPreAuthSession = pgTable('pre_auth_session', {
+  id: text('id').notNull().primaryKey(),
+  secretHash: text('secret_hash').notNull(),
+  purpose: text('purpose').$type<PreAuthPurpose>().notNull(),
+  payload: jsonb('payload').notNull(),
+  createdAt: timestamps.createdAt,
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
+/** A user's sign-in method. `subject` is the provider's user ID as text, unique within its provider. */
+export const tUserIdentity = pgTable(
+  'user_identity',
+  {
+    provider: text('provider').$type<IdentityProvider>().notNull(),
+    subject: text('subject').notNull(),
+    userId: text('user_id').notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (table) => [
+    primaryKey({ columns: [table.subject, table.provider] }),
+    index('user_identity_user_id_idx').on(table.userId),
+  ],
 );
 
 export const tInviteCode = pgTable(
@@ -113,8 +143,10 @@ export const schema = {
   tBookmark,
   tComment,
   tInviteCode,
+  tPreAuthSession,
   tSession,
   tUser,
+  tUserIdentity,
 };
 
 /** Transaction contexts stay inside repository operations. */
@@ -128,8 +160,12 @@ export type CommentRow = typeof tComment.$inferSelect;
 
 export type InviteCodeRow = typeof tInviteCode.$inferSelect;
 
+export type PreAuthSessionRow = typeof tPreAuthSession.$inferSelect;
+
 export type SessionRow = typeof tSession.$inferSelect;
 
 export type UserRow = typeof tUser.$inferSelect;
+
+export type UserIdentityRow = typeof tUserIdentity.$inferSelect;
 
 export type UserRoleRow = typeof tUserRole.$inferSelect;

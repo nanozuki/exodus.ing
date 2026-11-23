@@ -6,6 +6,9 @@ export interface User extends UserSummary {
   verifyCode: string;
 }
 
+/** A sign-in provider, stored with each of a user's identities. */
+export type IdentityProvider = 'github';
+
 export interface LoggedInUser extends User {
   roles: Role[];
 }

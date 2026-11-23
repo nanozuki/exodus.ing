@@ -12,6 +12,9 @@ export type Session = {
   expiresAt: Date;
 };
 
+/** The flow a pre-auth session belongs to; it determines the session's payload shape. */
+export type PreAuthPurpose = 'sign_up';
+
 /**
  * Returns the lowercase hexadecimal SHA-256 digest of the secret's UTF-8 bytes, the value stored as
  * `Session.secretHash`. Session creation and verification both use it.

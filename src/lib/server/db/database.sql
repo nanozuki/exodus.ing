@@ -37,6 +37,15 @@ CREATE TABLE "invite_code" (
 	CONSTRAINT "invite_code_code_unique" UNIQUE("code")
 );
 
+CREATE TABLE "pre_auth_session" (
+	"id" text PRIMARY KEY NOT NULL,
+	"secret_hash" text NOT NULL,
+	"purpose" text NOT NULL,
+	"payload" jsonb NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"expires_at" timestamp NOT NULL
+);
+
 CREATE TABLE "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
@@ -58,6 +67,14 @@ CREATE TABLE "user" (
 	CONSTRAINT "user_name_unique" UNIQUE("name")
 );
 
+CREATE TABLE "user_identity" (
+	"provider" text NOT NULL,
+	"subject" text NOT NULL,
+	"user_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "user_identity_subject_provider_pk" PRIMARY KEY("subject","provider")
+);
+
 CREATE TABLE "user_role" (
 	"user_id" text NOT NULL,
 	"role_key" text NOT NULL,
@@ -77,4 +94,5 @@ CREATE INDEX "comment_path_idx" ON "comment" USING btree ("path");
 CREATE INDEX "invite_code_inviter_id_idx" ON "invite_code" USING btree ("inviter_id");
 CREATE INDEX "session_user_id_idx" ON "session" USING btree ("user_id");
 CREATE INDEX "expires_at_idx" ON "session" USING btree ("expires_at");
+CREATE INDEX "user_identity_user_id_idx" ON "user_identity" USING btree ("user_id");
 CREATE INDEX "user_role_inviter_id_idx" ON "user_role" USING btree ("inviter_id");
