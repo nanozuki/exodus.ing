@@ -1,5 +1,5 @@
-# .prettierignore excludes package-manager lockfiles, migrations, and the generated contract view examples from
-# formatting. Prettier also skips everything .gitignore excludes.
+# .prettierignore excludes package-manager lockfiles and migrations from formatting. Prettier also skips everything
+# .gitignore excludes.
 
 # Package Managers
 package-lock.json
@@ -9,8 +9,3 @@ bun.lock
 bun.lockb
 migrations/
 
-# Generated contract view examples
-contracts.html
-contracts.json
-contracts-*.html
-contracts-*.json

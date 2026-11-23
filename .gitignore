@@ -1,5 +1,5 @@
-# .gitignore excludes dependencies, generated output, local environment and state, editor files, test results, and
-# SQLite files; `.env.example` and `.env.test` stay tracked.
+# .gitignore excludes dependencies, generated output (including contract views), local environment and state, editor
+# files, test results, and SQLite files; `.env.example` and `.env.test` stay tracked.
 
 test-results
 node_modules
@@ -11,6 +11,7 @@ node_modules
 .wrangler/
 /.svelte-kit
 /build
+/.contracts
 
 # OS
 .DS_Store

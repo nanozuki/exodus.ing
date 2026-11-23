@@ -7,6 +7,10 @@ reviewing application code, read
 Before writing, editing, or reviewing code, read
 [Code Style](docs/code-style.md).
 
+Before changing an exported declaration's signature or doc comment, writing
+tests for one, or reviewing an implementation against its contract, use the
+`contracts` skill in `.agents/skills/contracts/`.
+
 Before adding E2E coverage or changing its fixtures or execution environment,
 read [E2E Testing](docs/e2e-testing.md).
 

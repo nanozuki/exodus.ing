@@ -1,13 +1,14 @@
-// Demo of the contract-diff workflow proposed in draft.md. It extracts every exported declaration (signature and
-// doc comment) of TS modules and Svelte components, and the tests linked to it, from two snapshots of one directory,
-// compares them by `path#symbol`,
-// and writes contracts.json (the source of truth, also the review agent's input) and contracts.html (the human
-// review page) to the output directory.
+// contract-diff.ts extracts every exported declaration (signature and doc comment) of TS modules and Svelte
+// components, and the tests linked to it, from one or two snapshots of the repository, compares them by
+// `path#symbol`, and writes `<name>.json` (the source of truth, also the review agent's input) and `<name>.html` (the
+// human review page) to the output directory. Run it from the repository root; README.md beside it records the
+// extraction rules and page design.
 //
-// Usage: tsx demo/contract-diff.ts [--mode diff|snapshot] [--comments doc|loose] [--base git:main] [--head .]
-//          [--dir src,e2e] [--out .] [--name contracts]
-// `--dir` takes one directory or a comma-separated list. `--name` sets the basename of the two output files, so several reports can sit side by side.
-// A snapshot is either `git:<ref>` or the path of a checkout root. `--mode snapshot` reads only `--head` and lists
+// Usage: tsx .agents/skills/contracts/scripts/contract-diff.ts [--mode diff|snapshot] [--comments doc|loose]
+//          [--base git:main] [--head .] [--dir src,e2e] [--out .contracts] [--name contracts]
+// `--dir` takes one directory or a comma-separated list. `--name` sets the basename of the two output files, so
+// several reports can sit side by side. A snapshot is either `git:<ref>` or the path of a checkout root; a checkout
+// includes uncommitted and untracked files that git does not ignore. `--mode snapshot` reads only `--head` and lists
 // every contract in it instead of comparing two snapshots.
 //
 // With `--comments doc` (the default) only doc comments count as contracts: `/** */` in TS and `<!-- @component -->`
@@ -165,7 +166,7 @@ function readText(source: string, path: string): string | undefined {
   }
 }
 
-// A directory's description is its README.md, the place TS has for directory documentation (draft.md). The leading
+// A directory's description is its README.md, the place TS has for directory documentation. The leading
 // `# title` line is dropped because the page already shows the directory path.
 function readDirDocs(source: string, roots: string[], paths: Set<string>): DirDoc[] {
   const dirs = new Set<string>(roots);
@@ -746,7 +747,7 @@ function takeSnapshot(source: string, dirs: string[], mode: CommentMode): Snapsh
     const hasSource = paths.has(sourcePath);
     if (!hasSource) warnings.push({ kind: 'test-file-without-source', file: path, source: sourcePath });
 
-    // Demo concession: a test file without its own source file resolves names within its own directory, so the
+    // Transitional: a test file without its own source file resolves names within its own directory, so the
     // not-yet-split contracts.test.ts files can still be linked.
     const testDir = path.slice(0, path.lastIndexOf('/') + 1);
     const resolve = (name: string): string | undefined => {
@@ -1552,7 +1553,7 @@ function main(): void {
     base: 'git:main',
     head: '.',
     dir: 'src,e2e',
-    out: '.',
+    out: '.contracts',
     name: 'contracts',
   };
   const args = process.argv.slice(2);
