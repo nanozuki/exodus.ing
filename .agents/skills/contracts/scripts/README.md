@@ -90,8 +90,6 @@ of its own.
   `Covers:` name that matches no declaration or that the test body never
   references, an executable declaration with no test, and a test removed since
   the base.
-- Transitional rule: a test file without its own source file resolves names
-  within its own directory, so the unsplit `contracts.test.ts` files still link.
 
 ## Page design
 

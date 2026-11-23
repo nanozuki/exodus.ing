@@ -721,7 +721,6 @@ function takeSnapshot(source: string, dirs: string[], mode: CommentMode): Snapsh
   const { files, paths } = readFiles(source, dirs);
   const isTestFile = (path: string) => testFilePattern.test(path);
   const declarations = new Map<string, Declaration>();
-  const keysBySymbol = new Map<string, string[]>();
   const overviews: FileDoc[] = [];
   for (const [path, text] of files) {
     if (isTestFile(path)) continue;
@@ -733,7 +732,6 @@ function takeSnapshot(source: string, dirs: string[], mode: CommentMode): Snapsh
     overviews.push(extracted.overview);
     for (const declaration of extracted.declarations) {
       declarations.set(declaration.key, declaration);
-      keysBySymbol.set(declaration.symbol, [...(keysBySymbol.get(declaration.symbol) ?? []), declaration.key]);
     }
   }
 
@@ -747,16 +745,8 @@ function takeSnapshot(source: string, dirs: string[], mode: CommentMode): Snapsh
     const hasSource = paths.has(sourcePath);
     if (!hasSource) warnings.push({ kind: 'test-file-without-source', file: path, source: sourcePath });
 
-    // Transitional: a test file without its own source file resolves names within its own directory, so the
-    // not-yet-split contracts.test.ts files can still be linked.
-    const testDir = path.slice(0, path.lastIndexOf('/') + 1);
-    const resolve = (name: string): string | undefined => {
-      if (hasSource) return declarations.has(`${sourcePath}#${name}`) ? `${sourcePath}#${name}` : undefined;
-      const keys = (keysBySymbol.get(name) ?? []).filter(
-        (key) => key.startsWith(testDir) && !key.slice(testDir.length).includes('/'),
-      );
-      return keys.length === 1 ? keys[0] : undefined;
-    };
+    const resolve = (name: string): string | undefined =>
+      declarations.has(`${sourcePath}#${name}`) ? `${sourcePath}#${name}` : undefined;
 
     for (const raw of extractTests(path, text)) {
       const names = raw.coversNames ?? (raw.describe && resolve(raw.describe) ? [raw.describe] : []);
