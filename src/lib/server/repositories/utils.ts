@@ -1,3 +1,6 @@
+// utils.ts holds the operation wrapping and storage identifier generation shared by the repositories in this
+// directory. These helpers are not database operations themselves.
+
 import { throwError } from '#lib/errors.js';
 import { isHttpError } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid';
@@ -11,8 +14,13 @@ const fieldConflicts: Record<string, Record<string, Record<string, string>>> = {
   updateArticle: { article_title_idx: { title: '你已经发布过同名文章' } },
 };
 
-// Use the exported operation name. Known write conflicts become field errors;
-// HTTP errors survive and unexpected failures become DATABASE_ERROR.
+/**
+ * Runs a repository operation, logging its duration on success. Pass the exported operation's name, which keys the
+ * conflict mapping: a PostgreSQL unique violation on a known constraint becomes PARAMETER_INVALID on the field
+ * (`updateUser`: `username`, `name`; `createArticle` and `updateArticle`: `title`). HTTP errors propagate unchanged;
+ * other errors become DATABASE_ERROR with the operation name and the error message, or the JSON-serialized value for
+ * non-Error throws. A value that cannot be serialized propagates the serialization failure.
+ */
 export async function wrap<T>(operation: string, fn: () => Promise<T>): Promise<T> {
   try {
     const start = Date.now();
@@ -45,15 +53,20 @@ const nanoid = customAlphabet(alphabet, 6);
 const code = customAlphabet(alphabet, 16);
 const verifyCode = customAlphabet(alphabet, 32);
 
-// Six-character IDs preserve compatibility with legacy ID lookups.
+/**
+ * Generates six lowercase alphanumeric characters, the length legacy ID lookups depend on. The inserting operation
+ * checks uniqueness.
+ */
 export function newNanoId(): string {
   return nanoid();
 }
 
+/** Generates 16 lowercase alphanumeric characters for an invitation code. */
 export function newCode(): string {
   return code();
 }
 
+/** Generates 32 lowercase alphanumeric characters for a user's verification code. */
 export function newVerifyCode(): string {
   return verifyCode();
 }

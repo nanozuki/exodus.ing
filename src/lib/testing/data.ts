@@ -1,3 +1,6 @@
+// data.ts builds the shared dataset in memory once, on import, with deterministic minute-spaced timestamps starting at
+// 2026-01-01 UTC. Importing it does no database or network work.
+
 import { Role } from '#lib/models/role.js';
 import { encodeIdPath, type IdPath } from '#lib/models/id_path.js';
 import type { tArticle, tBookmark, tComment, tInviteCode, tUser, tUserRole } from '#lib/server/db/schema.js';
@@ -757,8 +760,14 @@ function buildTestDataset(): TestDataset {
   return { users, articles, comments, bookmarks, userRoles, inviteCodes };
 }
 
+/**
+ * Six users (alice, bob, carol, dave, frank, erin), 26 articles, 28 comments, bookmarks, three author role records, and
+ * four invitation codes. Encoded paths and interaction counts derive from the same relationship fixtures. The objects
+ * and arrays are shared and mutable; callers isolate their own mutations.
+ */
 export const testDataset = buildTestDataset();
 
+/** Returns the dataset user who wrote `article`; throws when there is none. */
 export function getAuthor(article: ArticleSeed): UserSeed {
   const author = testDataset.users.find((user) => user.id === article.userId);
   if (!author) {
@@ -767,6 +776,10 @@ export function getAuthor(article: ArticleSeed): UserSeed {
   return author;
 }
 
+/**
+ * Named articles for tests: `markdownSample` and `commentSample` are A25, `interactiveSample` is A21, and
+ * `externalSample` is A01. They are references into `testDataset`, not copies.
+ */
 export const articleSamples = {
   markdownSample: testDataset.articles[24],
   commentSample: testDataset.articles[24],

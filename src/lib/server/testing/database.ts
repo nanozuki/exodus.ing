@@ -4,13 +4,22 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { schema, type AppDatabase } from '#lib/server/db/schema.js';
 import { ensureDatabase, resetDatabase } from '../../../scripts/lib/database';
 
-// Call close in teardown, including after failures. Repeated cleanup is harmless.
+/**
+ * One test-owned database clone. `close` ends the pool and then drops the clone; call it in teardown, including after
+ * failures. Repeated calls are harmless. Cleanup never stops the shared PostgreSQL service or removes other databases.
+ */
 export interface TestDatabase {
   db: AppDatabase;
   close(): Promise<void>;
 }
 
-// The clone is independent of development data. An outdated template requires an explicit reset.
+/**
+ * Clones the seeded fixture template into a new database named from `suite` (normalized into a valid name) and a
+ * unique run ID, so concurrent callers never share one, and connects to it through a dedicated pool without changing
+ * connection environment variables. Tests may change their clone freely. An outdated template is never reset
+ * silently: provisioning fails with explicit reset guidance, and provisioning failures propagate. Connections acquired
+ * by a failed setup are closed. The development database is never accessed.
+ */
 export async function createTestDatabase(suite: string): Promise<TestDatabase> {
   const slug =
     suite

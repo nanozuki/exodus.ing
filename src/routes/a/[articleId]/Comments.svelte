@@ -1,3 +1,11 @@
+<!--
+  @component
+  The `#comment-section` discussion, with a `#comment-<id>` anchor per comment. Each comment shows its author, created
+  time, the comment it replies to, and its text line by line as plain text. Signed-in viewers can post and reply, and
+  only a comment's author can edit it; visitors get a sign-in link that returns to the section. Replying or editing
+  focuses and scrolls to the input; cancel clears it. A successful submit resets the form; failed validation keeps the
+  text and shows content issues, and submission errors go to the error page. The remote authorizes writes.
+-->
 <script lang="ts">
   import Action from '#lib/component/Action.svelte';
   import Button from '#lib/component/Button.svelte';

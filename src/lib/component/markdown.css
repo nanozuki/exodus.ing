@@ -1,3 +1,10 @@
+/*
+ * markdown.css applies .markdown-scoped typography on import for headings, paragraphs, lists, quotes, code, images,
+ * and horizontally scrollable tables. Images fill the container width. Nested quote backgrounds alternate
+ * through the explicit nesting levels. Consumers can override --p-margin-top and --p-margin-bottom; colors/fonts use
+ * the application theme tokens.
+ */
+
 .markdown {
   --p-margin-top: 1.25em;
   --p-margin-bottom: 1rem;

@@ -1,4 +1,8 @@
-/** Derive a PostgreSQL suffix solely from the journey name (56-character provisioning limit). */
+/**
+ * Derives a journey's database suffix from its title alone: lowercase, with runs outside `a-z0-9` replaced by
+ * hyphens, edge hyphens stripped, truncated to 52 characters, and prefixed `e2e-`, so it fits the 56-character
+ * provisioning limit. Throws when no slug remains. Global setup detects collisions.
+ */
 export function databaseSuffix(title: string): string {
   const slug = title
     .toLowerCase()

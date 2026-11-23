@@ -1,3 +1,8 @@
+<!--
+  @component
+  A bookmark toggle showing the current state and a positive bookmark count. Submits `remove` when `status.bookmarked`
+  is true and `add` otherwise, including for anonymous viewers (null); the remote handles sign-in and permission.
+-->
 <script lang="ts">
   import Action from '#lib/component/Action.svelte';
   import MdiBookmarkOutline from '~icons/mdi/bookmark-outline';
@@ -7,7 +12,9 @@
 
   type BookmarkProps = {
     articleId: string;
+    /** Distinguishes form instances, so several badges on one page keep separate form state. */
     key: string;
+    /** Bookmark state of `articleId`. */
     status: BookmarkState;
   };
 

@@ -18,7 +18,12 @@ function redirectToCanonicalOrigin(request: Request) {
   redirect(308, url, { external: [canonicalUrl.origin] });
 }
 
-// Internal health probes bypass canonicalization and authentication.
+/**
+ * Redirects deployed page requests from any other origin to `APP_URL`'s origin with a 308, keeping path and query,
+ * then attaches authentication locals before route handling. Canonicalization is skipped in development and while
+ * building, and static assets never reach this hook. The exact path `/healthcheck` bypasses both canonicalization and
+ * authentication so internal probes reach its route.
+ */
 export const handle: Handle = async ({ event, resolve }) => {
   if (event.url.pathname === '/healthcheck') return resolve(event);
 
@@ -31,6 +36,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   return response;
 };
 
+/** Builds the shared services in the registry at server startup. */
 export const init: ServerInit = async () => {
   if (!db || !adapters) {
     await buildServices();

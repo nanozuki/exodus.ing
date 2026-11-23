@@ -6,7 +6,7 @@ import { db } from '#lib/server/registry.js';
 import { redirect } from '@sveltejs/kit';
 import z from 'zod';
 
-// A reply target is attached only when it occurs in the loaded discussion.
+/** A comment with its direct reply target, attached only when the target is among the article's loaded comments. */
 export type CommentView = Comment & { replyTo?: Comment };
 
 function commentViews(comments: Comment[]): CommentView[] {
@@ -26,6 +26,7 @@ function commentViews(comments: Comment[]): CommentView[] {
   return views;
 }
 
+/** Lists all comments of an article in creation order. */
 export const listCommentsOfArticle = query(z.string(), async (articleId) => {
   const comments = await getCommentsOfArticle(db, articleId);
   return commentViews(comments);
@@ -38,6 +39,11 @@ const postCommentSchema = z.object({
   replyToId: z.string().optional(),
 });
 
+/**
+ * Creates or edits a comment through `saveComment`, which owns ownership checks and persistence. Requires a signed-in
+ * viewer and nonempty content. On success, refreshes `listCommentsOfArticle` and redirects 303 to
+ * `/a/<articleId>#comment-<commentId>`.
+ */
 export const postComment = form(postCommentSchema, async ({ articleId, content, commentId, replyToId }) => {
   const { locals } = getRequestEvent();
   const user = locals.requireLoggedInUser('post comment');

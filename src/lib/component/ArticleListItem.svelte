@@ -1,3 +1,9 @@
+<!--
+  @component
+  Render an article link, author, created date, optional direct parent, and positive interaction counts. Pass
+  article.author and any direct parent’s author UserSummary to UserBadge. External records also show a separate
+  original-URL link opening with noopener/noreferrer.
+-->
 <script lang="ts">
   import MdiCalendar from '~icons/mdi/calendar';
   import MdiReply from '~icons/mdi/reply';

@@ -1,3 +1,7 @@
+// auth.ts adapts requests for hooks, remote functions, and route handlers: the session and OAuth state cookies,
+// post-sign-in redirect targets, and `App.Locals`. Models and use cases must not import it. Importing it performs no
+// database, network, or cookie operation.
+
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
 import { z } from 'zod';
@@ -26,11 +30,15 @@ const OAuthCookieDataSchema = z.object({
     .optional(),
 });
 
+/** The GitHub OAuth state cookie's contents, as validated by `readGitHubCallbackData`. */
 export type OAuthCookieData = z.infer<typeof OAuthCookieDataSchema>;
 
 export type OAuthCookieDataInput = Omit<OAuthCookieData, 'state'>;
 
-// Call only at request boundaries where cookie writes are permitted.
+/**
+ * Sets the `auth_session` cookie to the session token: path `/`, HTTP-only, SameSite lax, expiring at `expiresAt`, and
+ * secure in production. Call only at request boundaries where cookie writes are permitted.
+ */
 export function setAuthCookie(cookies: Cookies, session: { token: string; expiresAt: Date }): void {
   cookies.set(AUTH_COOKIE_NAME, session.token, {
     path: '/',
@@ -41,15 +49,25 @@ export function setAuthCookie(cookies: Cookies, session: { token: string; expire
   });
 }
 
-// Every redirect to a user-supplied `next` must go through this. Pass the configured app URL, not the request URL.
-// The result is always an absolute URL on the app's origin; a `next` that does not start with `/` becomes `/`.
+/**
+ * Returns the absolute redirect target for a post-sign-in `next`: the origin of `appUrl` followed by `next` when it
+ * starts with `/`, and by `/` otherwise, including when `next` is absent or empty. No `next` changes the host:
+ * `//evil.example` and `/a/..//evil.example` stay paths on the app origin, while `@evil.example` and
+ * `https://evil.example` become `/`. `next` is not otherwise normalized or validated. Pass the configured `APP_URL`,
+ * not the request URL, whose origin depends on the request's `Host`. Every redirect to a user-supplied `next` goes
+ * through this function.
+ */
 export function sanitizeNext(next: string | undefined, appUrl: string): string {
   // A leading `/` ends the authority, so nothing in `next` can change the host.
   const path = next?.startsWith('/') ? next : '/';
   return `${new URL(appUrl).origin}${path}`;
 }
 
-// Call before redirecting so the callback can match its state to the HTTP-only cookie.
+/**
+ * Generates an OAuth state, stores it with `input` as JSON in the `github_oauth_state` cookie (path `/`, HTTP-only,
+ * SameSite lax, secure in production, ten-minute max age), and returns GitHub's authorization URL for that state. Call
+ * before redirecting so the callback can match its state to the cookie.
+ */
 export function createGitHubAuthUrl(cookies: Cookies, githubOAuth: GitHubOAuth, input: OAuthCookieDataInput): URL {
   const data = { state: generateState(), ...input };
   cookies.set(GITHUB_OAUTH_COOKIE_NAME, JSON.stringify(data), {
@@ -62,9 +80,12 @@ export function createGitHubAuthUrl(cookies: Cookies, githubOAuth: GitHubOAuth, 
   return githubOAuth.createAuthUrl(data.state);
 }
 
-// Deletes the state cookie before validating, so it is removed on every callback outcome, including later
-// provider-exchange failures. Malformed cookie JSON propagates a parse error; the callback route owns error
-// normalization.
+/**
+ * Reads the callback's `code` and `state` and checks them against the `github_oauth_state` cookie. Deletes the cookie
+ * before validating, so it is removed on every callback outcome, including later provider-exchange failures. Missing
+ * `code` or `state`, a missing or schema-invalid cookie, or a state mismatch throws BAD_REQUEST; malformed cookie JSON
+ * propagates its parse error for the callback route to normalize. The caller exchanges the code and sanitizes `next`.
+ */
 export function readGitHubCallbackData(request: RequestEvent): { code: string; data: OAuthCookieData } {
   const { cookies, url } = request;
   const stateCookie = cookies.get(GITHUB_OAUTH_COOKIE_NAME);
@@ -107,7 +128,13 @@ async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
   return user ? { ...user, roles } : null;
 }
 
-// Populate existing locals; invalid or missing sessions are anonymous. Invalid cookies are left in place.
+/**
+ * Populates `event.locals` from the `auth_session` cookie: `loggedInUser`, `requireLoggedInUser`, `hasPermission`, and
+ * `requirePermission`. When session validation extends the session, rewrites the cookie with the same token and the
+ * new expiry. A missing or invalid session, or one whose user no longer exists, yields a null user; invalid cookies
+ * are left in place. `requireLoggedInUser` throws UNAUTHORIZED and `requirePermission` throws UNAUTHORIZED or
+ * FORBIDDEN, each labeled with the given operation. Database errors propagate.
+ */
 export async function attachLocals(event: RequestEvent): Promise<void> {
   const loggedInUser = await loadSession(event);
 

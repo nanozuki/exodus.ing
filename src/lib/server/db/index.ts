@@ -2,7 +2,11 @@ import { schema, type AppDatabase } from './schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import type { Config } from '#lib/server/config.js';
 
-// Construction does not issue a readiness query or confirm that PostgreSQL is reachable.
+/**
+ * Constructs the node-postgres Drizzle database from `config.database` with the app schema and SQL logging, and logs
+ * how long construction took. Issues no readiness query, so it does not confirm that PostgreSQL is reachable, and
+ * exposes no pool cleanup.
+ */
 export async function getDatabase(config: Config): Promise<AppDatabase> {
   const start = Date.now();
   const db = drizzle({ connection: config.database, schema, logger: true });

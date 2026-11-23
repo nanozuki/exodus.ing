@@ -1,3 +1,8 @@
+<!--
+  @component
+  Render an anchor or button according to the discriminant, forward remaining HTML attributes/events, merge classes,
+  and render the children snippet. processing changes colors only; it does not disable interaction.
+-->
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';

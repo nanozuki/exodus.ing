@@ -29,7 +29,17 @@ async function availablePort(): Promise<number> {
   return address.port;
 }
 
-/** Each journey owns its clone, real sessions, deployment process and extra actor contexts. */
+/**
+ * Playwright `test` whose journeys each own a database clone, real sessions, a deployment process, and actor contexts.
+ * Each test resets and clones the database that `databaseSuffix` derives from its title, runs `scenario.prepare` on it,
+ * stores a real session for every test-dataset user, and starts `build/index.js` in production mode on its own port
+ * with a matching `APP_URL`, waiting up to 20 seconds for readiness. The adapter derives the local HTTP origin from
+ * `PROTOCOL_HEADER`, so requests must send `x-forwarded-proto: http`: the `extraHTTPHeaders` fixture does, and custom
+ * browser contexts must inherit it. `actor(username)` opens a page in a separate browser context carrying that user's
+ * session cookie. Teardown follows dependency order: contexts close, the application stops (SIGTERM, then SIGKILL after
+ * five seconds), then the database connection closes and a passed test's database is deleted. A failed test keeps its
+ * database and attaches its name and the application log.
+ */
 export const test = base.extend<Fixtures>({
   scenario: [{ prepare: async () => {} }, { option: true }],
   db: async ({ scenario }, use, info) => {

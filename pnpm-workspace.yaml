@@ -1,3 +1,7 @@
+# pnpm-workspace.yaml sets pnpm policy for this single-package repository: only esbuild may run its build scripts,
+# engine constraints are enforced, dependencies are saved with exact versions, and releases younger than 4320 minutes
+# (three days) are refused.
+
 allowBuilds:
   esbuild: true
 engineStrict: true

@@ -1,3 +1,9 @@
+# flake.nix provides, for Linux and macOS on x86_64 and aarch64, the checkout-local PostgreSQL service run with
+# `nix run .#pg` and the default development shell. The service keeps its data in .direnv/pg and its manager socket
+# and logs in .direnv, listens on port 62545 with superuser `exodus` (local connections trusted, TCP connections by
+# password), and creates no application database. The shell sets the matching PG* variables and APP_URL and supplies
+# Node, pnpm, language servers, pgcli, and flyctl; entering it does not start PostgreSQL.
+
 {
   description = "Description for the project";
   inputs = {
@@ -28,7 +34,6 @@
           ...
         }:
         {
-          # Run the local PostgreSQL service with `nix run .#pg`.
           process-compose.pg = {
             imports = [ inputs.services-flake.processComposeModules.default ];
             cli = {

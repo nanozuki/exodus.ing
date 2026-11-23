@@ -1,3 +1,7 @@
+// tsconfig.json extends the SvelteKit-generated configuration, which owns path aliases and module settings, and adds
+// strict checking, source maps, the SvelteKit and Svelte icon ambient types, and the root tool configurations. Run
+// `svelte-kit sync` on a fresh checkout before the extended configuration resolves.
+
 {
   "extends": "$app/tsconfig",
   "compilerOptions": {

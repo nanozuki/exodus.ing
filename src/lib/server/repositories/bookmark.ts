@@ -1,3 +1,6 @@
+// bookmark.ts reads bookmark state and keeps relationship changes consistent with the article's persisted bookmark
+// count.
+
 import type { BookmarkState } from '#lib/models/bookmark.js';
 import { and, eq, sql } from 'drizzle-orm';
 import { tArticle, tBookmark, type AppDatabase } from '#lib/server/db/schema.js';
@@ -22,11 +25,16 @@ async function state(
   return { articleId, ...row };
 }
 
+/** Omit `userId` for an anonymous viewer. */
 export interface GetBookmarkStateOfArticleParams {
   articleId: string;
   userId?: string;
 }
 
+/**
+ * Reads, in one statement, the number of bookmark relationship rows for the article (0 when none) and whether the
+ * viewer has any of them: `bookmarked` is null for an anonymous viewer and a boolean otherwise.
+ */
 export async function getBookmarkStateOfArticle(
   db: AppDatabase,
   params: GetBookmarkStateOfArticleParams,
@@ -39,6 +47,11 @@ export interface CreateBookmarkParams {
   userId: string;
 }
 
+/**
+ * Inserts one relationship and increments the article's bookmark count in one transaction, then returns the state read
+ * in that transaction, with `bookmarked` true. It does not check for an existing relationship; the schema permits
+ * duplicates.
+ */
 export async function createBookmark(db: AppDatabase, params: CreateBookmarkParams): Promise<BookmarkState> {
   return wrap('createBookmark', () =>
     db.transaction(async (tx) => {
@@ -57,6 +70,10 @@ export interface DeleteBookmarkParams {
   userId: string;
 }
 
+/**
+ * Deletes every matching relationship and decrements the article's bookmark count by the number of rows deleted, in
+ * one transaction. Deleting nothing leaves the count unchanged.
+ */
 export async function deleteBookmark(db: AppDatabase, params: DeleteBookmarkParams): Promise<void> {
   return wrap('deleteBookmark', () =>
     db.transaction(async (tx) => {

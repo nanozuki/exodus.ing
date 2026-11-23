@@ -1,3 +1,9 @@
+<!--
+  @component
+  Reads the optional `next` search parameter and submits it with both forms. Signup field issues show beside their
+  inputs; other submission errors go to the error page. The simulated-login link appears only when `PROD` is false;
+  the testing remote enforces its own environment check.
+-->
 <script lang="ts">
   import { page } from '$app/state';
   import Button from '#lib/component/Button.svelte';

@@ -5,7 +5,11 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { testDataset } from '#lib/testing/data.js';
 import type { Client } from 'pg';
 
-// Replaces all application data in the supplied database; the caller retains ownership of the client.
+/**
+ * Replaces all application data in the connected `client`'s database with the shared test dataset, user roles
+ * included, in one transaction, and moves the invite-code sequence to the highest inserted ID. A failure rolls back and
+ * propagates. The caller keeps ownership of `client`. Logs the inserted counts.
+ */
 export async function seedE2EData(client: Client): Promise<void> {
   const { users, articles, comments, bookmarks, userRoles, inviteCodes } = testDataset;
   const db = drizzle(client, { schema });

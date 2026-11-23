@@ -1,3 +1,8 @@
+<!--
+  @component
+  Render links to the current author profile and article using the supplied ArticleSummary. Pass its nested author
+  UserSummary to UserBadge; perform no query.
+-->
 <script lang="ts">
   import UserBadge from './UserBadge.svelte';
   import type { ArticleSummary } from '#lib/models/article.js';

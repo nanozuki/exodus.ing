@@ -1,3 +1,8 @@
+<!--
+  @component
+  Bind value both ways, forward standard textarea attributes/events, and render label, optional description/error,
+  supplied issue messages, and an optional addition snippet.
+-->
 <script lang="ts">
   import type { RemoteFormIssue } from '$app/server';
   import type { Snippet } from 'svelte';

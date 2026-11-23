@@ -1,3 +1,7 @@
+<!--
+  @component
+  A response action linking to `#reply-section`; shows the direct-response `count` when it is positive.
+-->
 <script lang="ts">
   import MdiReplyOutline from '~icons/mdi/reply-outline';
   import Action from '#lib/component/Action.svelte';

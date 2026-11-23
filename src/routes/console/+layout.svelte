@@ -1,3 +1,8 @@
+<!--
+  @component
+  Awaits the console layout query for the current path before rendering the role-filtered navigation and the child
+  page; the link matching the exact current path is marked active.
+-->
 <script lang="ts">
   import { page } from '$app/state';
   import { loadLayoutData } from './layout.remote';

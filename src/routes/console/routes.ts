@@ -1,8 +1,10 @@
 import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
 import { Permission } from '#lib/models/role.js';
 
+/** A console page's path and navigation title. */
 export type ConsoleRoute = { route: string; title: string };
 
+/** Every console page, keyed by name. */
 export const consoleRoutes = {
   profile: { route: '/console/profile', title: '个人资料' },
   bookmarks: { route: '/console/bookmarks', title: '收藏' },
@@ -11,6 +13,10 @@ export const consoleRoutes = {
   beWriter: { route: '/console/be-writer', title: '成为作者' },
 };
 
+/**
+ * Returns the console pages `user` may visit, in navigation order: profile, bookmarks, and account, then invites for
+ * users with `CreateArticle` or be-writer for everyone else.
+ */
 export function getConsoleRoutes(user: LoggedInUser): ConsoleRoute[] {
   const routes = [consoleRoutes.profile, consoleRoutes.bookmarks, consoleRoutes.account];
   const isWriter = userHasPermission(user, Permission.CreateArticle);

@@ -2,7 +2,7 @@ import type { IdPath } from './id_path';
 import type { UserSummary } from './user';
 import type { ArticleSummary } from './article';
 
-// Content is plain text; render line breaks without interpreting HTML or Markdown.
+/** `content` is plain text; render its line breaks without interpreting HTML or Markdown. */
 export interface Comment {
   id: string;
   path: IdPath;
@@ -19,7 +19,10 @@ export interface CommentSummary {
   content: string;
 }
 
-// Pagination counts individual comments; the same article group may recur on another page.
+/**
+ * A page of a user's comments grouped by their article. Pagination counts individual comments, so the same article
+ * group may recur on another page.
+ */
 export interface CommentListItem {
   article: ArticleSummary;
   comments: CommentSummary[];

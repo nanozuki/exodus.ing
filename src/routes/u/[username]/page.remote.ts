@@ -34,6 +34,13 @@ async function getUser(param: string): Promise<User> {
   return user ? user : throwError('NOT_FOUND', { resource: '用户' });
 }
 
+/**
+ * Loads a profile page. `@<username>` finds a user by exact username and any other value by user ID, with the legacy
+ * 16-character ID rule; an unknown user throws NOT_FOUND. Writers have the `articles` and `comments` tabs and get
+ * `articles` unless `tab` is exactly `comments`; readers have only `comments`. `page` must be at least 1 and defaults
+ * to 1; pages hold 20 items. Returns the user, including `githubId` and `verifyCode`, with the biography compiled,
+ * plus whether the viewer is that user and whether the user is a writer.
+ */
 export const loadPageData = query(
   z.object({
     username: z.string(),
@@ -76,7 +83,10 @@ export const loadPageData = query(
   },
 );
 
-// Delete the stored session before the cookie, so the token cannot be replayed after sign-out.
+/**
+ * Signs out: deletes the stored session of the `auth_session` token, if any, then the cookie at `/`, and redirects 303
+ * to `/`. Replaying the token afterward yields an anonymous request.
+ */
 export const logout = form(async () => {
   const { cookies } = getRequestEvent();
   const token = cookies.get(AUTH_COOKIE_NAME);

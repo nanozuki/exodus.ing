@@ -1,3 +1,8 @@
+<!--
+  @component
+  Render items in supplied order. When count exceeds the returned pageSize, show Pager using the paginated result’s
+  count, pageSize, and pageNumber and the caller’s pageLink.
+-->
 <script lang="ts">
   import ArticleListItem from './ArticleListItem.svelte';
   import type { ArticleListItem as ArticleItem } from '#lib/models/article.js';

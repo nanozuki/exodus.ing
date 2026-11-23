@@ -6,8 +6,12 @@ interface Response {
   Answer?: { name: string; type: number; TTL: number; data: string }[];
 }
 
-// Nonexistent domains return no records; DNS service and transport failures propagate.
-// TXT answers retain Cloudflare’s raw quoting and chunking; callers receive no normalization.
+/**
+ * Looks up `domain`'s TXT records through Cloudflare DNS-over-HTTPS (`1.1.1.1`) and returns each answer's raw `data`,
+ * with Cloudflare's quoting and chunking and no answer-type filtering. A nonexistent domain (DNS status 3) or a
+ * response without answers returns `[]`; another nonzero DNS status or an unsuccessful HTTP response throws
+ * EXTERNAL_API_ERROR. Transport and JSON failures propagate.
+ */
 export async function resolveTxt(domain: string): Promise<string[]> {
   const url = `https://1.1.1.1/dns-query?name=${domain}&type=TXT`;
   const response = await fetch(url, {

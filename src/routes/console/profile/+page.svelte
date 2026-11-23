@@ -1,3 +1,8 @@
+<!--
+  @component
+  Edits the viewer's name and biography, starting from the values in the console layout query. The name is required;
+  field issues show beside their inputs and other submission errors go to the error page.
+-->
 <script lang="ts">
   import { page } from '$app/state';
   import { loadLayoutData } from '../layout.remote';

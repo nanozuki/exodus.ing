@@ -79,7 +79,16 @@ function checkVersion(name: string, fingerprint: string, versions: Record<string
   }
 }
 
-// Existing databases are preserved. Provisioning failures leave partial state for explicit reset.
+/**
+ * Ensures `exodus-<name>` exists as a clone of the seeded `exodus-template`, starting PostgreSQL when needed. `name` is
+ * 1–56 lowercase ASCII letters, digits, underscores, or hyphens, starting with a letter or digit; `template` and `all`
+ * are rejected. Runs under the checkout control lock and a PostgreSQL advisory lock, releasing clients and locks on
+ * every exit path. A missing template is created from `template0`, loaded with `src/lib/server/db/database.sql`, and
+ * seeded; its version, a SHA-256 of that schema and `src/lib/testing/data.ts`, is recorded only after both complete.
+ * Existing databases are never reset: an outdated version or a missing initialization record throws with the
+ * `pnpm pg:reset` command to run. Connection environment variables are unchanged. A failure leaves partial databases
+ * for explicit reset.
+ */
 export async function ensureDatabase(name: string): Promise<void> {
   const target = databaseName(name);
   return withControlLock(async () => {
@@ -114,7 +123,11 @@ export async function ensureDatabase(name: string): Promise<void> {
   });
 }
 
-// Delete exodus-{name}; resetting template deletes every exodus- database while keeping the cluster running.
+/**
+ * Force-drops `exodus-<name>` and removes its version record, under the same locks as `ensureDatabase`. `template`
+ * instead drops every database whose name starts with `exodus-` and removes the version files. Unrelated databases are
+ * kept, and the cluster keeps running.
+ */
 export async function resetDatabase(name: string): Promise<void> {
   const target = name === 'template' ? template : databaseName(name);
   await withControlLock(async () => {

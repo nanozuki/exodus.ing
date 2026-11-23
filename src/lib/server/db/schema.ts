@@ -1,3 +1,6 @@
+// schema.ts declares the Drizzle tables and their inferred row types; insert shapes come from each table's
+// $inferInsert. `createdAt` and `updatedAt` columns are required and default to now. Tables declare no foreign keys.
+
 import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
 import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ArticleContentType } from '#lib/models/article.js';
@@ -40,6 +43,7 @@ export const tInviteCode = pgTable(
   (table) => [index('invite_code_inviter_id_idx').on(table.inviterId)],
 );
 
+/** `path` holds trailing-slash strings; the database validates neither ancestry nor `contentType`. */
 export const tArticle = pgTable(
   'article',
   {
@@ -78,7 +82,7 @@ export const tComment = pgTable(
   ],
 );
 
-// Duplicate user/article pairs are permitted; count relationships rather than distinct users.
+/** Duplicate user/article pairs are permitted; counts are of relationships, not distinct users. */
 export const tBookmark = pgTable(
   'bookmark',
   {
@@ -103,7 +107,7 @@ export const tUserRole = pgTable(
   ],
 );
 
-// tUserRole is intentionally omitted; repositories import that table directly.
+/** Omits `tUserRole`; repositories import that table directly. */
 export const schema = {
   tArticle,
   tBookmark,
@@ -113,6 +117,7 @@ export const schema = {
   tUser,
 };
 
+/** Transaction contexts stay inside repository operations. */
 export type AppDatabase = NodePgDatabase<typeof schema>;
 
 export type ArticleRow = typeof tArticle.$inferSelect;

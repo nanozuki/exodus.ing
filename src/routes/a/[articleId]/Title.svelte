@@ -1,3 +1,8 @@
+<!--
+  @component
+  The article header: title, author badge, created date, direct-parent attribution when the article is a response,
+  and the optional `children` snippet for caller-supplied actions.
+-->
 <script lang="ts">
   import type { ArticleDetail } from './page.remote';
   import MdiCalendar from '~icons/mdi/calendar';
@@ -8,6 +13,7 @@
 
   type Props = {
     article: ArticleDetail;
+    /** Actions rendered at the end of the header. */
     children?: Snippet;
   };
 

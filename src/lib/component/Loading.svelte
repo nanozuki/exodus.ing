@@ -1,3 +1,8 @@
+<!--
+  @component
+  Render a CSS-animated spinner without component props or application I/O. The --size custom property controls
+  width/height and defaults to --spacing-l.
+-->
 <div></div>
 
 <style>

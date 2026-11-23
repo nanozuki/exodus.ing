@@ -1,3 +1,9 @@
+<!--
+  @component
+  Forward standard input attributes and events, bind value both ways, and render label, optional description/error,
+  and supplied issue messages. A supplied name is used for the label’s for attribute; an ID is not synthesized.
+  Omitted `issues` behavior has not been verified.
+-->
 <script lang="ts">
   import type { RemoteFormIssue } from '$app/server';
   import type { HTMLInputAttributes } from 'svelte/elements';

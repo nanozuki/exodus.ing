@@ -1,3 +1,13 @@
+<!--
+  @component
+  A user profile for `params.username` (`@<username>` or a user ID), with the `tab` and `page` search parameters
+  selecting the list; pages below 1 become 1. Shows the rendered biography and the selected list with its empty state.
+  Pager links keep `tab` and `page`; tab links carry only `tab`, so switching tabs returns to page 1. Both jump to
+  `#list-top`. Writers can switch between articles and comments; readers have only comments. The profile owner also
+  gets console and sign-out actions, and a new-article link when they are a writer.
+
+  TODO: keep a separate page for each tab, so switching tabs and back returns to the page each list was on.
+-->
 <script lang="ts">
   import { page } from '$app/state';
   import AddIcon from '~icons/mdi/add';

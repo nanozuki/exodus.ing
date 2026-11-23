@@ -1,3 +1,9 @@
+<!--
+  @component
+  The external-article form: URL and title fields, with field issues shown, plus the TXT record the current user must
+  add to the URL's host, shown once the URL parses. Submits `createOrUpdateExternalArticle` without enhancement, so
+  submission errors go to the error page; publication verifies DNS on the server.
+-->
 <script lang="ts">
   import Button from '#lib/component/Button.svelte';
   import Input from '#lib/component/Input.svelte';
@@ -7,9 +13,16 @@
   import { untrack } from 'svelte';
 
   type Props = {
+    /** The article being edited; absent when creating. */
     articleId?: string;
+    /** The article this one responds to. */
     replyToId?: string;
+    /**
+     * The stored article, read once on mount as the initial URL and title, so later query refreshes do not overwrite
+     * unsaved input.
+     */
     article?: ArticleContent;
+    /** The author, whose verification code the TXT-record instructions show. */
     user: LoggedInUser;
   };
 
@@ -17,7 +30,6 @@
 
   const fields = createOrUpdateExternalArticle.fields;
 
-  // Capture defaults once so query refreshes cannot overwrite unsaved edits.
   const article = untrack(() => articleProp);
 
   let hostname = $derived.by(() => {

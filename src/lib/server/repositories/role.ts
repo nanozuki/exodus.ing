@@ -1,3 +1,5 @@
+// role.ts reads assigned roles and invitation relationships, and persists invitation redemption atomically.
+
 import type { Relation, Role, UserRole } from '#lib/models/role.js';
 import { throwError } from '#lib/errors.js';
 import { and, desc, eq } from 'drizzle-orm';
@@ -6,13 +8,17 @@ import { wrap } from './utils';
 
 const user = { id: tUser.id, username: tUser.username, name: tUser.name };
 
+/** Returns all assigned role keys, unvalidated and in unspecified order. */
 export async function getRolesOfUser(db: AppDatabase, userId: string): Promise<Role[]> {
   return wrap('getRolesOfUser', async () =>
     (await db.select().from(tUserRole).where(eq(tUserRole.userId, userId))).map((row) => row.roleKey as Role),
   );
 }
 
-// When several role rows have inviters, no selection order is guaranteed.
+/**
+ * Returns who invited the user and when, or null. When several role rows have inviters, which one is returned is
+ * unspecified.
+ */
 export async function findInviterOfUser(db: AppDatabase, userId: string): Promise<Relation | null> {
   return wrap(
     'findInviterOfUser',
@@ -27,7 +33,10 @@ export async function findInviterOfUser(db: AppDatabase, userId: string): Promis
   );
 }
 
-// A user assigned several roles can appear more than once.
+/**
+ * Returns the users this user invited, most recently invited first; a user granted several roles appears once per
+ * role.
+ */
 export async function getInviteesOfUser(db: AppDatabase, userId: string): Promise<Relation[]> {
   return wrap('getInviteesOfUser', () =>
     db
@@ -39,13 +48,19 @@ export async function getInviteesOfUser(db: AppDatabase, userId: string): Promis
   );
 }
 
+/** `usedAt` is the single instant recorded for both code consumption and any newly assigned role. */
 export interface CreateRoleOfUserByInviteCodeParams {
   code: string;
   userId: string;
   usedAt: Date;
 }
 
-// Codes are consumed even when the user already has the role; the original relationship is retained.
+/**
+ * Redeems the code in one transaction that locks it: grants the user the code's role from the code's inviter, then
+ * marks the code used. A missing or already used code, including one a concurrent redemption consumed first, throws
+ * PARAMETER_INVALID on `inviteCode`. When the user already has the role, the existing relationship is kept and
+ * returned, and the code is still consumed. A failed role write leaves the code unused.
+ */
 export async function createRoleOfUserByInviteCode(
   db: AppDatabase,
   params: CreateRoleOfUserByInviteCodeParams,

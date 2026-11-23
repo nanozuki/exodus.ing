@@ -17,6 +17,7 @@ function ensureNotProd(): void {
   }
 }
 
+/** Lists every stored user with their roles. */
 export const loadPageData = query(async () => {
   ensureNotProd();
   const users = await getUsers(db);
@@ -35,6 +36,10 @@ const simulateTestingLoginSchema = z.object({
   next: z.string().optional(),
 });
 
+/**
+ * Signs in as `userId` without GitHub: creates a session, sets its cookie, and redirects 303 to the sanitized `next`.
+ * An unknown user throws NOT_FOUND.
+ */
 export const simulateTestingLogin = form(simulateTestingLoginSchema, async ({ userId, next }) => {
   ensureNotProd();
   const user = await findUserById(db, userId);

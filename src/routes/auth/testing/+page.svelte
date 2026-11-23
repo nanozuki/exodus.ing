@@ -1,3 +1,8 @@
+<!--
+  @component
+  Lists every stored user with their roles as a submit button that signs in as that user. `next` is passed through
+  when it starts with `/`, otherwise `/`. Submission errors go to the error page.
+-->
 <script lang="ts">
   import { page } from '$app/state';
   import Button from '#lib/component/Button.svelte';

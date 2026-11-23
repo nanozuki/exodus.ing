@@ -1,3 +1,9 @@
+<!--
+  @component
+  The application shell. Imports the application stylesheet and Google Fonts, renders the shared header and the page,
+  and shows a spinner while navigating. The viewer comes from `loadLayoutData()`: a signed-in viewer gets a UserBadge
+  linking to their profile; a visitor gets a sign-in link whose `next` is the encoded current path, query, and hash.
+-->
 <script lang="ts">
   import '../app.css';
   import { loadLayoutData } from './layout.remote';

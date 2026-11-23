@@ -1,3 +1,7 @@
+<!--
+  @component
+  Submits a required invite code and shows its field issues; other submission errors go to the error page.
+-->
 <script lang="ts">
   import Input from '#lib/component/Input.svelte';
   import Button from '#lib/component/Button.svelte';

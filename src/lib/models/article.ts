@@ -1,7 +1,10 @@
 import type { IdPath } from './id_path';
 import type { UserSummary } from './user';
 
-// Content stores Markdown source or the original external URL, according to contentType.
+/**
+ * `content` holds the Markdown source or the original external URL, according to `contentType`. `replyTo` is the
+ * direct parent article, when there is one. `author` reflects the author's current user record.
+ */
 export interface Article {
   id: string;
   path: IdPath;
@@ -22,7 +25,10 @@ export interface ArticleSummary {
   author: UserSummary;
 }
 
-// replyCount counts direct responses, excluding deeper descendants.
+/**
+ * The interaction counts are persisted projections. `replyCount` counts direct reply articles, excluding deeper
+ * descendants.
+ */
 export interface ArticleListItem {
   id: string;
   path: IdPath;

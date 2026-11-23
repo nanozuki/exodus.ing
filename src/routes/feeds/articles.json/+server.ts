@@ -15,6 +15,10 @@ const feed = {
   items: [] as FeedItem[],
 };
 
+/**
+ * A JSON Feed 1.1 document. Site URLs are fixed to https://exodus.ing, independent of APP_URL, and the language is
+ * zh-CN.
+ */
 export type Feed = typeof feed;
 
 interface Author {
@@ -37,6 +41,8 @@ interface FeedItem {
   authors?: Author[];
 }
 
+// TODO: quote and HTML-escape the external URL in `href`. It is the submitted string stored verbatim, so `"`, `>`, or
+// a space in it can break out of the attribute or inject markup into `content_html`.
 async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
   const content_html =
     article.contentType === 'markdown'
@@ -67,6 +73,12 @@ async function convertToFeedItem(article: ArticleFeedsItem): Promise<FeedItem> {
 
 const FEED_ARTICLE_LIMIT = 30;
 
+/**
+ * Serves the 30 most recently updated articles as `application/feed+json` with `Cache-Control: public, max-age=7200`.
+ * Markdown articles become compiled HTML, H1 included; external articles become a notice linking to the original,
+ * which is never fetched, and set `external_url`. Each item carries both `author` and `authors` and RFC 3339 dates.
+ * Read and compilation errors propagate.
+ */
 export const GET: RequestHandler = async () => {
   const { items: articles } = await listArticleFeeds(db, { pageNumber: 1, pageSize: FEED_ARTICLE_LIMIT });
   const items: FeedItem[] = await Promise.all(articles.map((article) => convertToFeedItem(article)));

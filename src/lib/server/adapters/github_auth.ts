@@ -2,8 +2,13 @@ import { throwError } from '#lib/errors.js';
 import type { Config } from '#lib/server/config.js';
 import { GitHub, OAuth2RequestError } from 'arctic';
 
+/** `username` is the GitHub login. */
 export type GitHubUser = { id: number; username: string };
 
+/**
+ * GitHub OAuth client redirecting to `${appUrl}/auth/github/callback`. Its methods are independent of requests and
+ * cookies.
+ */
 export class GitHubOAuth {
   private github: GitHub;
 
@@ -11,12 +16,16 @@ export class GitHubOAuth {
     this.github = new GitHub(config.githubClientId, config.githubClientSecret, `${config.appUrl}/auth/github/callback`);
   }
 
+  /** Builds the authorization URL for `state`, requesting no scopes. */
   createAuthUrl(state: string): URL {
     return this.github.createAuthorizationURL(state, []);
   }
 
-  // Validate callback state before calling. Provider rejection is BAD_REQUEST; other exchange failures, including
-  // a non-2xx user response, are INTERNAL_SERVER_ERROR.
+  /**
+   * Exchanges `code` for an access token and fetches the GitHub user. Validate callback state before calling. Provider
+   * rejection throws BAD_REQUEST; any other exchange or fetch failure, including a non-2xx user response, throws
+   * INTERNAL_SERVER_ERROR. A successful response's JSON shape is not validated.
+   */
   async getUser(code: string): Promise<GitHubUser> {
     try {
       const tokens = await this.github.validateAuthorizationCode(code);

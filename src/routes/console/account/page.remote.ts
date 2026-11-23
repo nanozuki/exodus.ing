@@ -8,6 +8,11 @@ const updateUsernameSchema = z.object({
   username: z.string().min(1, '用户名不能为空'),
 });
 
+/**
+ * Requires login and renames the viewer to the submitted username exactly as given, then redirects 301 to
+ * `/u/@<username>`. The use case rejects a leading `@`, treats the current name as a no-op, and leaves duplicates to
+ * database uniqueness. Its PARAMETER_INVALID `username` becomes a field issue; other errors propagate.
+ */
 export const updateUsername = form(updateUsernameSchema, async ({ username }, issue) => {
   const { locals } = getRequestEvent();
   const user = locals.requireLoggedInUser('update username');

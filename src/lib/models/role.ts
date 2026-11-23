@@ -12,6 +12,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
   [Role.ArticleAuthor]: [Permission.CreateArticle],
 };
 
+/**
+ * Reports whether any of `roles` grants `permission`. Every role must be a key of `rolePermissions`; an unknown runtime
+ * value throws.
+ */
 export function hasPermission(roles: Role[], permission: Permission): boolean {
   return roles.some((role) => rolePermissions[role].includes(permission));
 }
@@ -26,7 +30,10 @@ export interface UserRelations {
   invitees: Relation[];
 }
 
-// A null inviter denotes a direct role assignment.
+/**
+ * One assignment of a role to a user, identified by `(userId, roleKey)`. A null `inviterId` marks a direct assignment
+ * without an inviter.
+ */
 export interface UserRole {
   userId: string;
   roleKey: Role;

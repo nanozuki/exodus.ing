@@ -1,5 +1,22 @@
 import { error } from '@sveltejs/kit';
 
+/**
+ * Maps each business error tag to its parameters. `throwError` raises each tag with this HTTP status:
+ *
+ * | Tag                     | Status |
+ * | ----------------------- | ------ |
+ * | `BAD_REQUEST`           | 400    |
+ * | `PARAMETER_INVALID`     | 400    |
+ * | `UNAUTHORIZED`          | 401    |
+ * | `FORBIDDEN`             | 403    |
+ * | `NOT_FOUND`             | 404    |
+ * | `INTERNAL_SERVER_ERROR` | 500    |
+ * | `DATABASE_ERROR`        | 500    |
+ * | `MISSING_CONFIG`        | 500    |
+ * | `EXTERNAL_API_ERROR`    | 502    |
+ *
+ * `PARAMETER_INVALID` maps field names to their messages.
+ */
 export type ErrorValue = {
   BAD_REQUEST: string;
   PARAMETER_INVALID: Record<string, string>;
@@ -14,6 +31,7 @@ export type ErrorValue = {
 
 export type ErrorTag = keyof ErrorValue;
 
+/** The Chinese UI title of each error tag. */
 export const errorTagTitle: { [Tag in ErrorTag]: string } = {
   BAD_REQUEST: '请求错误',
   PARAMETER_INVALID: '参数错误',
@@ -26,7 +44,7 @@ export const errorTagTitle: { [Tag in ErrorTag]: string } = {
   EXTERNAL_API_ERROR: '外部API错误',
 };
 
-// Each union member keeps an error tag paired with its own parameters.
+/** Pairs each error tag with its own parameters: checking `tag` narrows `value`; mismatched pairs do not type-check. */
 export type ErrorDetail = {
   [Tag in ErrorTag]: {
     tag: Tag;
@@ -38,8 +56,11 @@ type ErrorArgs = {
   [Tag in ErrorTag]: [tag: Tag, value: ErrorValue[Tag]];
 }[ErrorTag];
 
-// Interrupt request handling with a business error. Catch with Kit's isHttpError;
-// body.detail carries the parameters and body.status carries the HTTP status.
+/**
+ * Interrupts request handling with a business error: throws SvelteKit's `error(status, message, { detail })` with the
+ * tag's status from `ErrorValue`, a tag-specific Chinese message, and `detail` holding `{ tag, value }`. Recognize it
+ * with Kit's `isHttpError`; the HTTP status is the error's `status`, with no separate `code` property.
+ */
 export function throwError(...[tag, value]: ErrorArgs): never {
   // Switching on the tuple discriminant narrows value without type assertions.
   switch (tag) {

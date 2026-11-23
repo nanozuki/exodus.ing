@@ -24,6 +24,12 @@ const normalizeOptional = (value: string | undefined) => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
+/**
+ * Starts GitHub OAuth for a new account. Trims `username` and `name`, treating blank values as absent, and checks them
+ * with `validateSignUp`; its PARAMETER_INVALID `username` and `name` become field issues, and other errors propagate.
+ * The check does not reserve the names. A nonempty `next` and the signup values travel in the OAuth state cookie, then
+ * the form redirects 302 to GitHub.
+ */
 export const registerByGithub = form(registerByGithubSchema, async ({ next, username, name }, issue) => {
   const { cookies } = getRequestEvent();
   const normalizedUsername = normalizeOptional(username);
@@ -57,6 +63,10 @@ export const registerByGithub = form(registerByGithubSchema, async ({ next, user
   redirect(302, authUrl.toString(), { external: ['https://github.com'] });
 });
 
+/**
+ * Starts GitHub OAuth for sign-in, keeping a nonempty `next` in the OAuth state cookie, and redirects 302 to GitHub.
+ * It creates no local user.
+ */
 export const loginByGithub = form(loginByGithubSchema, async ({ next }) => {
   const { cookies } = getRequestEvent();
   const input: OAuthCookieDataInput = {};

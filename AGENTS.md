@@ -7,6 +7,10 @@ reviewing application code, read
 Before writing, editing, or reviewing code, read
 [Code Style](docs/code-style.md).
 
+Before changing an exported declaration's signature or doc comment, writing
+tests for one, or reviewing an implementation against its contract, use the
+`contracts` skill in `.agents/skills/contracts/`.
+
 Before adding E2E coverage or changing its fixtures or execution environment,
 read [E2E Testing](docs/e2e-testing.md).
 
@@ -21,10 +25,9 @@ document until a complete review pass finds no remaining actionable issues.
 
 ## Approval boundary
 
-Change shape contracts in `docs/shapes/` and the database schema in
-`src/lib/server/db/schema.ts` only when the user initiates or approves the
-change. When another task needs either change, present the proposed diff and
-apply it after the user approves.
+Change the database schema in `src/lib/server/db/schema.ts` only when the user
+initiates or approves the change. When another task needs it, present the
+proposed diff and apply it after the user approves.
 
 ## Ownership and Git workflow
 

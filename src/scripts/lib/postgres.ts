@@ -1,4 +1,5 @@
-// Lifecycle commands target this checkout's cluster, independently of the caller's working directory.
+// postgres.ts controls this checkout's PostgreSQL cluster in .direnv/pg, independently of the caller's working
+// directory.
 
 import { execFile } from 'node:child_process';
 import { mkdir, readFile, realpath, rm } from 'node:fs/promises';
@@ -13,7 +14,10 @@ const projectRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const stateDir = new URL('../../../.direnv/', import.meta.url);
 const lockDir = new URL('pg-control.lock/', stateDir);
 
-// Not reentrant. Investigate and remove a stale lock manually before retrying.
+/**
+ * Runs `fn` while holding the checkout's `.direnv/pg-control.lock`, polling every 100ms for up to 120 seconds before
+ * throwing; the lock is released when `fn` settles. Not reentrant. A stale lock needs manual investigation and removal.
+ */
 export async function withControlLock<T>(fn: () => Promise<T>): Promise<T> {
   await mkdir(stateDir, { recursive: true });
   const deadline = Date.now() + 120_000;
@@ -46,7 +50,10 @@ async function processCompose(...args: string[]): Promise<string> {
   return stdout;
 }
 
-// Only an absent or refused manager socket returns null; other failures reject.
+/**
+ * Lists the process states from `nix run .#pg -- process list -o json`, bounded at 120 seconds. Returns null only when
+ * the manager's Unix socket is missing or refuses connections; other failures reject.
+ */
 export async function postgresStatus(): Promise<{ name: string; is_running: boolean; exit_code: number }[] | null> {
   try {
     return JSON.parse(await processCompose('process', 'list', '-o', 'json'));
@@ -57,7 +64,12 @@ export async function postgresStatus(): Promise<{ name: string; is_running: bool
   }
 }
 
-// Call while holding the control lock; SQL readiness must belong to this checkout’s cluster.
+/**
+ * Starts this checkout's PostgreSQL if needed and waits until it accepts SQL. Call while holding the control lock.
+ * Starts the process manager when absent, or the stopped pg process; throws instead when a process reports a nonzero
+ * exit. Waits up to 30 seconds, retrying only refused or reset connections and startup in progress, and throws when the
+ * connected server's data directory is not this checkout's `.direnv/pg`.
+ */
 export async function ensurePostgres(): Promise<void> {
   const status = await postgresStatus();
   if (status === null) {
@@ -90,7 +102,11 @@ export async function ensurePostgres(): Promise<void> {
   }
 }
 
-// Call under the control lock; return only after the local postmaster has exited.
+/**
+ * Stops this checkout's PostgreSQL and returns only after its postmaster has exited. Call under the control lock.
+ * Shuts down a running manager, then waits up to 30 seconds for the PID in `postmaster.pid`; a missing PID file or
+ * process means stopped, while an invalid PID file or a surviving process throws. Data is kept.
+ */
 export async function stopPostgres(): Promise<void> {
   if (await postgresStatus()) await processCompose('down');
   const deadline = Date.now() + 30_000;

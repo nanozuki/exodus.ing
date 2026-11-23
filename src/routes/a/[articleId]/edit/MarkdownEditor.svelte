@@ -1,11 +1,23 @@
+<!--
+  @component
+  A Markdown source editor with an edit/preview toggle. Compiles the source 500 ms after the last change; the preview
+  shows the extracted title and sanitized markup, and compilation issues are listed below. Before the first
+  compilation finishes, the source counts as an untitled document with no issues.
+-->
 <script lang="ts">
   import { articleIssueMessages, compileArticle, type CompiledArticle } from '#lib/markdown.js';
   import { resource } from 'runed';
   import Markdown from '#lib/component/Markdown.svelte';
 
   interface Props {
+    /**
+     * The Markdown source, bindable.
+     * @default ''
+     */
     content?: ReturnType<typeof $bindable<string>>;
+    /** Called on mount and after each compilation with whether the source has no issues. */
     onValidateChange?: (valid: boolean) => void;
+    /** Called on mount and after each compilation with the extracted title. */
     onTitleChange?: (title: string) => void;
   }
 

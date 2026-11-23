@@ -3,7 +3,12 @@ import { throwError } from '#lib/errors.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
 import { getCommentById, createComment, updateComment } from '#lib/server/repositories/comment.js';
 
-// On edits, the stored article and ancestry win over submitted replacements.
+/**
+ * With `commentId`, updates the content of the actor's own comment; another author's comment throws BAD_REQUEST, and
+ * the stored article and parent win over submitted `articleId` and `replyToId`. Without it, creates the actor's
+ * comment on `articleId` (BAD_REQUEST when absent), replying to `replyToId` when given. Returns the identifiers the
+ * caller refreshes and redirects with. `content` is stored as given; the caller rejects empty input.
+ */
 export async function saveComment(
   deps: { db: AppDatabase },
   params: { actor: LoggedInUser; articleId?: string; content: string; commentId?: string; replyToId?: string },

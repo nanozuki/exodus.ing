@@ -17,7 +17,11 @@ function checkNames(suites: ListedSuite[], names = new Map<string, string>()): v
   }
 }
 
-/** Check database-name uniqueness and build the deployment entry point once under the configuration's lock. */
+/**
+ * Lists the tests in a subprocess, without running their setup, and rejects two titles that map to the same database,
+ * naming both. Then runs `pnpm build` once with inherited output, rejecting a nonzero or signaled exit. The suite
+ * lock is already held: `playwright.config.ts` acquires it when evaluated.
+ */
 export default async function globalSetup(config: FullConfig): Promise<void> {
   // List mode discovers names without running global setup or touching any databases.
   const { stdout } = await promisify(execFile)('pnpm', [
