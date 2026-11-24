@@ -4,6 +4,7 @@ import { userHasPermission } from '#lib/models/user.js';
 import { Permission, Role } from '#lib/models/role.js';
 import { throwError } from '#lib/errors.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
+import type { Clock } from '#lib/server/adapters/clock.js';
 import * as invites from '#lib/server/repositories/invite_code.js';
 import { createRoleOfUserByInviteCode } from '#lib/server/repositories/role.js';
 
@@ -41,7 +42,7 @@ export async function createInviteCode(
  * `inviteCode`. The code is consumed even when the actor already has its role; self-invitation is allowed.
  */
 export async function acceptInviteCode(
-  deps: { db: AppDatabase; now: () => Date },
+  deps: { db: AppDatabase; now: Clock },
   params: { actor: LoggedInUser; code: string },
 ): Promise<void> {
   const code = await invites.findInviteCodeByCode(deps.db, params.code);

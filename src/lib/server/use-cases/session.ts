@@ -4,6 +4,7 @@
 import { constantTimeEqual } from '@oslojs/crypto/subtle';
 import { hashSessionSecret, type Session } from '#lib/models/session.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
+import type { Clock } from '#lib/server/adapters/clock.js';
 import type { Random } from '#lib/server/adapters/random.js';
 import * as sessions from '#lib/server/repositories/session.js';
 
@@ -31,7 +32,7 @@ async function findVerifiedSession(deps: { db: AppDatabase }, params: { token: s
  * place the token is available.
  */
 export async function createSession(
-  deps: { db: AppDatabase; now: () => Date; random: Random },
+  deps: { db: AppDatabase; now: Clock; random: Random },
   params: { userId: string },
 ): Promise<{ session: Session; token: string }> {
   const currentTime = deps.now();
@@ -53,7 +54,7 @@ export async function createSession(
  * true. The token itself never changes.
  */
 export async function validateSession(
-  deps: { db: AppDatabase; now: () => Date },
+  deps: { db: AppDatabase; now: Clock },
   params: { token: string },
 ): Promise<ValidateSessionResult | null> {
   const currentTime = deps.now();

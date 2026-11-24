@@ -2,6 +2,7 @@ import type { LoggedInUser } from '#lib/models/user.js';
 import type { Session } from '#lib/models/session.js';
 import { throwError } from '#lib/errors.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
+import type { Clock } from '#lib/server/adapters/clock.js';
 import type { Random } from '#lib/server/adapters/random.js';
 import {
   findUserByUsername,
@@ -51,7 +52,7 @@ export async function updateUsername(
  * redirects stay with the caller.
  */
 export async function loginWithGitHub(
-  deps: { db: AppDatabase; now: () => Date; random: Random },
+  deps: { db: AppDatabase; now: Clock; random: Random },
   params: { githubUser: { id: number; username: string }; signUp?: { username?: string; name?: string } },
 ): Promise<{ session: Session; token: string }> {
   let user = await findUserByGitHubId(deps.db, params.githubUser.id);

@@ -109,10 +109,10 @@ operation's successful return type.
 - `params` contains the data for this invocation, including an authenticated
   actor when needed.
 
-When an operation needs the current time, accept a clock such as
-`deps.now: () => Date`. Request entry points supply the clock adapter's `now`;
-tests can supply a fixed clock. Read it once when related decisions need the
-same instant, and use that value throughout the operation. Persistence
+When an operation needs the current time, accept `deps.now: Clock` from
+`src/lib/server/adapters/clock.ts`. Request entry points supply the adapter's
+`now`; tests can supply a fixed clock. Read it once when related decisions need
+the same instant, and use that value throughout the operation. Persistence
 timestamps managed by database defaults or repository writes remain persistence
 concerns.
 
