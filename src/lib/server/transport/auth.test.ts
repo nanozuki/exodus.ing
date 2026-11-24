@@ -3,7 +3,7 @@ import type { Cookies, RequestEvent } from '@sveltejs/kit';
 
 const mocks = vi.hoisted(() => ({ validateSession: vi.fn(), findUser: vi.fn(), roles: vi.fn() }));
 
-vi.mock('./registry', () => ({ db: {} }));
+vi.mock('#lib/server/registry.js', () => ({ db: {} }));
 
 vi.mock('#lib/server/use-cases/session.js', () => ({ validateSession: mocks.validateSession }));
 

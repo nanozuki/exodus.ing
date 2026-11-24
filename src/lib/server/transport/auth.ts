@@ -1,6 +1,5 @@
-// auth.ts adapts requests for hooks, remote functions, and route handlers: the session and OAuth state cookies,
-// post-sign-in redirect targets, and `App.Locals`. Models and use cases must not import it. Importing it performs no
-// database, network, or cookie operation.
+// auth.ts handles authentication at the request boundary: the session and OAuth state cookies, post-sign-in redirect
+// targets, and `App.Locals`.
 
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
@@ -9,7 +8,7 @@ import type { Permission } from '#lib/models/role.js';
 import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';
 import type { GitHubOAuth } from '#lib/server/adapters/github_auth.js';
-import { db } from './registry';
+import { db } from '#lib/server/registry.js';
 import { now } from '#lib/server/adapters/clock.js';
 import { validateSession } from '#lib/server/use-cases/session.js';
 import { findUserById } from '#lib/server/repositories/user.js';

@@ -1,4 +1,4 @@
-import { setAuthCookie, readGitHubCallbackData, sanitizeNext } from '#lib/server/auth.js';
+import { setAuthCookie, readGitHubCallbackData, sanitizeNext } from '#lib/server/transport/auth.js';
 import { getConfig } from '#lib/server/config.js';
 import { adapters, db } from '#lib/server/registry.js';
 import { now } from '#lib/server/adapters/clock.js';

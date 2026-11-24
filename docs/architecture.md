@@ -14,6 +14,7 @@ exported declarations, as described under [Comments](code-style.md#comments).
 | Repositories     | Database reads, writes, result mapping, and internal transactions.                                  | `src/lib/server/repositories/`                    |
 | Use cases        | Business functions that require external capabilities and run on the server.                        | `src/lib/server/use-cases/`                       |
 | Adapters         | Request-independent implementations of external capabilities.                                       | `src/lib/server/adapters/`                        |
+| Transport        | Request handling shared by several entry points: cookies, request data, redirect targets, locals.   | `src/lib/server/transport/`                       |
 | Remote functions | Adapt frontend component inputs and outputs, and organize component-specific data and interactions. | Beside the page, layout, or component they serve. |
 
 ### Business Function Boundaries
@@ -123,6 +124,12 @@ functions for component calls, and hooks or route handlers for other entry
 points. This includes `getRequestEvent()`, cookies, redirects, input parsing,
 serialization, and remote-query refreshes. Entry points supply explicit
 dependencies and parameters to use cases.
+
+Request handling that several entry points share lives in transport modules,
+which translate between requests and use-case inputs and outputs. Use cases make
+the business decisions, such as lifetimes, sign-in outcomes, and input rules;
+transport applies their results to the request and response. Handling used by
+one entry point stays beside it.
 
 Preserve the framework query refresh, form fields, enhancement, and pending APIs
 for remote interactions.

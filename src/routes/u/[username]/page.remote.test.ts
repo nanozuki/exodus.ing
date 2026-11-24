@@ -17,7 +17,7 @@ vi.mock('#lib/server/registry.js', () => ({ db: { name: 'registry' } }));
 vi.mock('#lib/server/use-cases/session.js', () => ({ invalidateSession: mocks.invalidateSession }));
 
 import { logout } from './page.remote';
-import { AUTH_COOKIE_NAME } from '#lib/server/auth.js';
+import { AUTH_COOKIE_NAME } from '#lib/server/transport/auth.js';
 
 const submitLogout = logout as unknown as () => Promise<never>;
 

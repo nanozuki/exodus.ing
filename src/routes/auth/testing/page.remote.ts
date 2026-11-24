@@ -1,5 +1,5 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { sanitizeNext, setAuthCookie } from '#lib/server/auth.js';
+import { sanitizeNext, setAuthCookie } from '#lib/server/transport/auth.js';
 import { createSession } from '#lib/server/use-cases/session.js';
 import { now } from '#lib/server/adapters/clock.js';
 import { random } from '#lib/server/adapters/random.js';

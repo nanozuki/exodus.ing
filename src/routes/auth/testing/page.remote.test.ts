@@ -20,7 +20,7 @@ vi.mock('#lib/server/repositories/user.js', () => ({ findUserById: mocks.findUse
 vi.mock('#lib/server/use-cases/session.js', () => ({ createSession: mocks.createSession }));
 
 import { simulateTestingLogin } from './page.remote';
-import { AUTH_COOKIE_NAME } from '#lib/server/auth.js';
+import { AUTH_COOKIE_NAME } from '#lib/server/transport/auth.js';
 
 const submit = simulateTestingLogin as unknown as (input: { userId: string; next?: string }) => Promise<never>;
 

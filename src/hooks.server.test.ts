@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('$app/env', () => mocks.environment);
-vi.mock('#lib/server/auth.js', () => ({ attachLocals: mocks.attachLocals }));
+vi.mock('#lib/server/transport/auth.js', () => ({ attachLocals: mocks.attachLocals }));
 vi.mock('#lib/server/config.js', () => ({ getConfig: mocks.getConfig }));
 vi.mock('#lib/server/registry.js', () => ({ db: {}, adapters: {}, buildServices: vi.fn() }));
 

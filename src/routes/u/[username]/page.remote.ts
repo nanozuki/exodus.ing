@@ -3,7 +3,7 @@ import { listArticlesOfUser } from '#lib/server/repositories/article.js';
 import { listCommentsOfUser } from '#lib/server/repositories/comment.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { findUserByUsername, findUserById } from '#lib/server/repositories/user.js';
-import { AUTH_COOKIE_NAME } from '#lib/server/auth.js';
+import { AUTH_COOKIE_NAME } from '#lib/server/transport/auth.js';
 import { Permission, hasPermission } from '#lib/models/role.js';
 import type { User } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';

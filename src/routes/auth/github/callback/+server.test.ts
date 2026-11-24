@@ -10,8 +10,8 @@ const state = vi.hoisted(() => ({
   setCookie: vi.fn(),
 }));
 
-vi.mock('#lib/server/auth.js', async (importOriginal) => ({
-  sanitizeNext: (await importOriginal<typeof import('#lib/server/auth.js')>()).sanitizeNext,
+vi.mock('#lib/server/transport/auth.js', async (importOriginal) => ({
+  sanitizeNext: (await importOriginal<typeof import('#lib/server/transport/auth.js')>()).sanitizeNext,
   readGitHubCallbackData: state.readCallback,
   setAuthCookie: state.setCookie,
 }));
