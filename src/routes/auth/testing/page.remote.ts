@@ -1,5 +1,5 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { sanitizeNext, setAuthCookie } from '#lib/server/transport/auth.js';
+import { sanitizeNext, setSessionCookie } from '#lib/server/transport/auth.js';
 import { createSession } from '#lib/server/use-cases/session.js';
 import { now } from '#lib/server/adapters/clock.js';
 import { random } from '#lib/server/adapters/random.js';
@@ -48,7 +48,7 @@ export const simulateTestingLogin = form(simulateTestingLoginSchema, async ({ us
   }
   const { session, token } = await createSession({ db, now, random }, { userId: user.id });
   const { cookies } = getRequestEvent();
-  setAuthCookie(cookies, { token, expiresAt: session.expiresAt });
+  setSessionCookie(cookies, 'auth', { token, expiresAt: session.expiresAt });
 
   // SvelteKit treats an absolute URL as external unless it matches the request origin, so allow the app's own origin.
   const { appUrl } = getConfig();

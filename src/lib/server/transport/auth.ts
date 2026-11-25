@@ -1,5 +1,5 @@
-// auth.ts handles authentication at the request boundary: the session, sign-up, and OAuth state cookies, post-sign-in
-// redirect targets, and `App.Locals`.
+// auth.ts handles authentication at the request boundary: the auth session, pre-auth session, and OAuth state cookies,
+// post-sign-in redirect targets, and `App.Locals`.
 
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
@@ -16,9 +16,6 @@ import { getRolesOfUser } from '#lib/server/repositories/role.js';
 
 const GITHUB_OAUTH_COOKIE_NAME = 'github_oauth_state';
 
-const AUTH_COOKIE_NAME = 'auth_session';
-const SIGN_UP_COOKIE_NAME = 'sign_up_session';
-
 const OAuthCookieDataSchema = z.object({
   state: z.string(),
   next: z.string().optional(),
@@ -29,12 +26,19 @@ export type OAuthCookieData = z.infer<typeof OAuthCookieDataSchema>;
 
 export type OAuthCookieDataInput = Omit<OAuthCookieData, 'state'>;
 
+/** Which session a session cookie carries; the cookie is named `<kind>_session`. */
+export type SessionCookieKind = 'auth' | 'pre_auth';
+
 /**
- * Sets the `auth_session` cookie to the session token: path `/`, HTTP-only, SameSite lax, expiring at `expiresAt`, and
+ * Sets the `kind` session cookie to the session token: path `/`, HTTP-only, SameSite lax, expiring at `expiresAt`, and
  * secure in production. Call only at request boundaries where cookie writes are permitted.
  */
-export function setAuthCookie(cookies: Cookies, session: { token: string; expiresAt: Date }): void {
-  cookies.set(AUTH_COOKIE_NAME, session.token, {
+export function setSessionCookie(
+  cookies: Cookies,
+  kind: SessionCookieKind,
+  session: { token: string; expiresAt: Date },
+): void {
+  cookies.set(`${kind}_session`, session.token, {
     path: '/',
     secure: import.meta.env.PROD,
     httpOnly: true,
@@ -43,39 +47,14 @@ export function setAuthCookie(cookies: Cookies, session: { token: string; expire
   });
 }
 
-/** Returns the `auth_session` cookie's token, unvalidated, or undefined when the request has none. */
-export function readAuthCookie(cookies: Cookies): string | undefined {
-  return cookies.get(AUTH_COOKIE_NAME);
+/** Returns the `kind` session cookie's token, unvalidated, or undefined when the request has none. */
+export function readSessionCookie(cookies: Cookies, kind: SessionCookieKind): string | undefined {
+  return cookies.get(`${kind}_session`);
 }
 
-/** Deletes the `auth_session` cookie set by `setAuthCookie`; the stored session is the caller's to invalidate. */
-export function deleteAuthCookie(cookies: Cookies): void {
-  cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
-}
-
-/**
- * Sets the `sign_up_session` cookie, which carries the pending sign-up token from the OAuth callback to the sign-up
- * page: path `/`, HTTP-only, SameSite lax, expiring at `expiresAt`, and secure in production. Call only at request
- * boundaries where cookie writes are permitted.
- */
-export function setSignUpCookie(cookies: Cookies, session: { token: string; expiresAt: Date }): void {
-  cookies.set(SIGN_UP_COOKIE_NAME, session.token, {
-    path: '/',
-    secure: import.meta.env.PROD,
-    httpOnly: true,
-    sameSite: 'lax',
-    expires: session.expiresAt,
-  });
-}
-
-/** Returns the `sign_up_session` cookie's token, unvalidated, or undefined when the request has none. */
-export function readSignUpCookie(cookies: Cookies): string | undefined {
-  return cookies.get(SIGN_UP_COOKIE_NAME);
-}
-
-/** Deletes the `sign_up_session` cookie set by `setSignUpCookie`; the stored session is the caller's to delete. */
-export function deleteSignUpCookie(cookies: Cookies): void {
-  cookies.delete(SIGN_UP_COOKIE_NAME, { path: '/' });
+/** Deletes the `kind` session cookie set by `setSessionCookie`; the stored session is the caller's to delete. */
+export function deleteSessionCookie(cookies: Cookies, kind: SessionCookieKind): void {
+  cookies.delete(`${kind}_session`, { path: '/' });
 }
 
 /**
@@ -145,7 +124,7 @@ export function readGitHubCallbackData(request: RequestEvent): { code: string; d
 }
 
 async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
-  const token = readAuthCookie(event.cookies);
+  const token = readSessionCookie(event.cookies, 'auth');
   if (!token) {
     return null;
   }
@@ -154,7 +133,7 @@ async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
     return null;
   }
   if (result.refresh) {
-    setAuthCookie(event.cookies, { token, expiresAt: result.session.expiresAt });
+    setSessionCookie(event.cookies, 'auth', { token, expiresAt: result.session.expiresAt });
   }
   const [user, roles] = await Promise.all([
     findUserById(db, result.session.userId),

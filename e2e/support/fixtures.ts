@@ -39,7 +39,7 @@ async function availablePort(): Promise<number> {
  * `PROTOCOL_HEADER`, so requests must send `x-forwarded-proto: http`: the `extraHTTPHeaders` fixture does, and custom
  * browser contexts must inherit it. `actor(username)` opens a page in a separate browser context carrying that user's
  * session cookie. `pendingSignUp` stores a pending sign-up for the GitHub identity `subject`, with the given hints and
- * `next`, expiring in ten minutes, and opens a page in a separate context carrying its `sign_up_session` cookie, as the
+ * `next`, expiring in ten minutes, and opens a page in a separate context carrying its `pre_auth_session` cookie, as the
  * OAuth callback leaves a new identity. Teardown follows dependency order: contexts close, the application stops
  * (SIGTERM, then SIGKILL after five seconds), then the database connection closes and a passed test's database is
  * deleted. A failed test keeps its database and attaches its name and the application log.
@@ -176,7 +176,7 @@ export const test = base.extend<Fixtures>({
         const context = await browser.newContext({ baseURL: app, extraHTTPHeaders: { 'x-forwarded-proto': 'http' } });
         contexts.push(context);
         await context.addCookies([
-          { name: 'sign_up_session', value: `${id}.${secret}`, url: app, httpOnly: true, sameSite: 'Lax' },
+          { name: 'pre_auth_session', value: `${id}.${secret}`, url: app, httpOnly: true, sameSite: 'Lax' },
         ]);
         return context.newPage();
       });

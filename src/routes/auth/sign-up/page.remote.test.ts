@@ -56,7 +56,7 @@ async function pendingSignUp(subject: string, next?: string) {
     { identity: { provider: 'github', subject }, hints: { username: `login-${subject}`, name: 'GitHub Name' }, next },
   );
   if (result.status !== 'sign_up_required') throw new Error('expected a pending sign-up');
-  values.set('sign_up_session', result.token);
+  values.set('pre_auth_session', result.token);
   return result.token;
 }
 
@@ -77,7 +77,7 @@ describe('loadPageData', () => {
   });
 
   it.each([undefined, 'absent.secret'])('redirects the cookie %j to /auth without writing cookies', async (token) => {
-    if (token) values.set('sign_up_session', token);
+    if (token) values.set('pre_auth_session', token);
     const cookies = state.cookies as { set: unknown; delete: unknown };
     cookies.set = cookies.delete = () => {
       throw new Error('a query cannot write cookies');
@@ -100,7 +100,7 @@ describe('submitSignUp', () => {
       { token: values.get('auth_session')! },
     );
     expect(session?.session.userId).toBe(user!.id);
-    expect(values.has('sign_up_session')).toBe(false);
+    expect(values.has('pre_auth_session')).toBe(false);
   });
 
   it('redirects a non-path next to the app home page', async () => {
@@ -116,7 +116,7 @@ describe('submitSignUp', () => {
     await expect(submit({ username: 'alice', name: 'Not Alice' }, issues)).rejects.toMatchObject({
       issues: [{ path: ['username'], message: '用户名已存在' }],
     });
-    expect(values.has('sign_up_session')).toBe(true);
+    expect(values.has('pre_auth_session')).toBe(true);
     expect(await load()).toEqual({ username: 'login-602', name: 'GitHub Name' });
   });
 
@@ -133,17 +133,17 @@ describe('submitSignUp', () => {
     await expect(submit({ username: 'page-raced', name: 'Page Raced' }, issue())).rejects.toMatchObject({
       body: { detail: { tag: 'DATABASE_ERROR' } },
     });
-    expect(values.has('sign_up_session')).toBe(true);
+    expect(values.has('pre_auth_session')).toBe(true);
     expect(values.has('auth_session')).toBe(false);
   });
 
   it('creates nothing for a used pending sign-up and returns to /auth', async () => {
     const token = await pendingSignUp('603');
     await expect(submit({ username: 'used-once', name: 'Used Once' }, issue())).rejects.toMatchObject({ status: 303 });
-    values.set('sign_up_session', token);
+    values.set('pre_auth_session', token);
     await expect(submit({ username: 'used-twice', name: 'Used Twice' }, issue())).rejects.toMatchObject(toAuth);
     expect(await findUserByUsername(database.db, 'used-twice')).toBeNull();
-    expect(values.has('sign_up_session')).toBe(false);
+    expect(values.has('pre_auth_session')).toBe(false);
   });
 
   it('creates nothing without a sign-up cookie and returns to /auth', async () => {
@@ -156,8 +156,8 @@ describe('cancelSignUp', () => {
   it('ends the pending sign-up and its cookie, so the token can no longer sign up', async () => {
     const token = await pendingSignUp('700');
     await expect(cancel()).rejects.toMatchObject(toAuth);
-    expect(values.has('sign_up_session')).toBe(false);
-    values.set('sign_up_session', token);
+    expect(values.has('pre_auth_session')).toBe(false);
+    values.set('pre_auth_session', token);
     await expect(submit({ username: 'after-cancel', name: 'After Cancel' }, issue())).rejects.toMatchObject(toAuth);
     expect(await findUserByIdentity(database.db, { provider: 'github', subject: '700' })).toBeNull();
   });

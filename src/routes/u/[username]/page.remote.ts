@@ -3,7 +3,7 @@ import { listArticlesOfUser } from '#lib/server/repositories/article.js';
 import { listCommentsOfUser } from '#lib/server/repositories/comment.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { findUserByUsername, findUserById } from '#lib/server/repositories/user.js';
-import { deleteAuthCookie, readAuthCookie } from '#lib/server/transport/auth.js';
+import { deleteSessionCookie, readSessionCookie } from '#lib/server/transport/auth.js';
 import { Permission, hasPermission } from '#lib/models/role.js';
 import type { User } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';
@@ -89,10 +89,10 @@ export const loadPageData = query(
  */
 export const logout = form(async () => {
   const { cookies } = getRequestEvent();
-  const token = readAuthCookie(cookies);
+  const token = readSessionCookie(cookies, 'auth');
   if (token) {
     await invalidateSession({ db }, { token });
   }
-  deleteAuthCookie(cookies);
+  deleteSessionCookie(cookies, 'auth');
   redirect(303, '/');
 });

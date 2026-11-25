@@ -46,7 +46,7 @@ enabled; the suite does not depend on the development-only simulated login page.
 
 Sign-up journeys start where the OAuth callback hands over: store a pending
 sign-up session for a new identity in the test's database and install its
-`sign_up_session` cookie in the browser context.
+`pre_auth_session` cookie in the browser context.
 
 ## Database lifecycle
 
