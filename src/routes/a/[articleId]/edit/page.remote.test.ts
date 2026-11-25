@@ -32,7 +32,6 @@ const actor = {
   id: 'trusted',
   username: 'trusted',
   name: 'Trusted',
-  githubId: null,
   aboutMe: '',
   verifyCode: '',
   roles: [Role.ArticleAuthor],

@@ -44,6 +44,10 @@ validation and authorization. Multiple actors use separate browser contexts
 sharing the test's application and database. Production behavior remains
 enabled; the suite does not depend on the development-only simulated login page.
 
+Sign-up journeys start where the OAuth callback hands over: store a pending
+sign-up session for a new identity in the test's database and install its
+`sign_up_session` cookie in the browser context.
+
 ## Database lifecycle
 
 Use the existing PostgreSQL provisioning tools to clone the seeded template for
@@ -324,8 +328,30 @@ assertions on the behavior they change.
 - operation: Directly visit account settings and article creation.
 - assertion: Access is restricted and protected content remains unavailable.
 - operation: View the authentication page.
-- assertion: Registration, sign-in, and GitHub authorization entry points are
-  available.
+- assertion: One GitHub sign-in entry point is available.
+
+### Visitor with a new identity corrects a taken username and signs up
+
+- operation: With a pending sign-up that requested a return destination, open
+  the sign-up page.
+- assertion: The username and display name start from the provider's
+  suggestions.
+- operation: Submit a username another user holds.
+- assertion: The username field reports the conflict, the entered values remain,
+  and no account exists for the identity.
+- operation: Submit an available username.
+- assertion: The browser arrives at the requested destination signed in as the
+  new account, which holds the identity.
+- operation: Open the sign-up page again.
+- assertion: The authentication page appears; the pending sign-up is spent.
+
+### Visitor cancels a pending sign-up
+
+- operation: With a pending sign-up, open the sign-up page and cancel.
+- assertion: The authentication page appears and no account exists for the
+  identity.
+- operation: Open the sign-up page again.
+- assertion: The authentication page appears; the pending sign-up is spent.
 
 ### Reader and author cannot edit another author's article
 

@@ -1,9 +1,14 @@
 <!--
   @component
-  Shows the viewer from the console layout query and edits the username in a dialog. The dialog form starts from the
-  current username and shows field issues; Cancel closes it without submitting. Reopening the dialog resets the form,
-  discarding the closed dialog's edits and issues, while the first mount keeps native-submission feedback. A
-  successful submission navigates to the renamed profile; other submission errors go to the error page.
+  Shows the viewer from the console layout query, with the GitHub ID from `loadPageData`, and edits the username in a
+  dialog. The dialog form starts from the current username and shows field issues; Cancel closes it without
+  submitting. Reopening the dialog resets the form, discarding the closed dialog's edits and issues, while the first
+  mount keeps native-submission feedback. A successful submission navigates to the renamed profile; other submission
+  errors go to the error page.
+
+  - username row: the username, edit `Dialog`
+    - `updateUsername` form: `Input` username, cancel `Button`, submit `Button`
+  - GitHub ID row: the GitHub ID
 -->
 <script lang="ts">
   import { page } from '$app/state';
@@ -11,9 +16,10 @@
   import Button from '#lib/component/Button.svelte';
   import Input from '#lib/component/Input.svelte';
   import Dialog from '#lib/component/Dialog.svelte';
-  import { updateUsername } from './page.remote';
+  import { loadPageData, updateUsername } from './page.remote';
 
   const { user } = $derived(await loadLayoutData({ pathname: page.url.pathname }));
+  const { githubId } = $derived(await loadPageData());
   let hasMountedUsernameForm = false;
 
   function resetUsernameOnRemount(form: HTMLFormElement) {
@@ -59,7 +65,7 @@
     {/snippet}
   </Dialog>
   <p class="font-serif font-bold">GitHub ID:</p>
-  <p>{user.githubId}</p>
+  <p>{githubId}</p>
 </div>
 
 <style>

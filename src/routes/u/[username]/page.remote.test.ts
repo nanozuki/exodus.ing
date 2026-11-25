@@ -17,7 +17,6 @@ vi.mock('#lib/server/registry.js', () => ({ db: { name: 'registry' } }));
 vi.mock('#lib/server/use-cases/session.js', () => ({ invalidateSession: mocks.invalidateSession }));
 
 import { logout } from './page.remote';
-import { AUTH_COOKIE_NAME } from '#lib/server/transport/auth.js';
 
 const submitLogout = logout as unknown as () => Promise<never>;
 
@@ -33,9 +32,9 @@ describe('logout', () => {
     mocks.cookies.get.mockReturnValue('session.secret');
 
     await expect(submitLogout()).rejects.toMatchObject({ status: 303, location: '/' });
-    expect(mocks.cookies.get).toHaveBeenCalledWith(AUTH_COOKIE_NAME);
+    expect(mocks.cookies.get).toHaveBeenCalledWith('auth_session');
     expect(mocks.invalidateSession).toHaveBeenCalledWith({ db: { name: 'registry' } }, { token: 'session.secret' });
-    expect(mocks.cookies.delete).toHaveBeenCalledWith(AUTH_COOKIE_NAME, { path: '/' });
+    expect(mocks.cookies.delete).toHaveBeenCalledWith('auth_session', { path: '/' });
     expect(mocks.calls).toEqual(['invalidate', 'delete-cookie']);
   });
 
@@ -44,6 +43,6 @@ describe('logout', () => {
 
     await expect(submitLogout()).rejects.toMatchObject({ status: 303, location: '/' });
     expect(mocks.invalidateSession).not.toHaveBeenCalled();
-    expect(mocks.cookies.delete).toHaveBeenCalledWith(AUTH_COOKIE_NAME, { path: '/' });
+    expect(mocks.cookies.delete).toHaveBeenCalledWith('auth_session', { path: '/' });
   });
 });

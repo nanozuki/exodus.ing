@@ -20,7 +20,6 @@ vi.mock('#lib/server/repositories/user.js', () => ({ findUserById: mocks.findUse
 vi.mock('#lib/server/use-cases/session.js', () => ({ createSession: mocks.createSession }));
 
 import { simulateTestingLogin } from './page.remote';
-import { AUTH_COOKIE_NAME } from '#lib/server/transport/auth.js';
 
 const submit = simulateTestingLogin as unknown as (input: { userId: string; next?: string }) => Promise<never>;
 
@@ -39,7 +38,7 @@ describe('simulateTestingLogin', () => {
       status: 303,
       location: 'https://exodus.test/console',
     });
-    expect(mocks.cookies.set).toHaveBeenCalledWith(AUTH_COOKIE_NAME, 'session.secret', expect.anything());
+    expect(mocks.cookies.set).toHaveBeenCalledWith('auth_session', 'session.secret', expect.anything());
   });
 
   it.each(['@evil.example', 'https://evil.example'])(

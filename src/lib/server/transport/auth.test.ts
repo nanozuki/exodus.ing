@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 
 const mocks = vi.hoisted(() => ({ validateSession: vi.fn(), findUser: vi.fn(), roles: vi.fn() }));
@@ -12,12 +12,16 @@ vi.mock('#lib/server/repositories/user.js', () => ({ findUserById: mocks.findUse
 vi.mock('#lib/server/repositories/role.js', () => ({ getRolesOfUser: mocks.roles }));
 
 import {
-  AUTH_COOKIE_NAME,
   attachLocals,
   createGitHubAuthUrl,
+  deleteAuthCookie,
+  deleteSignUpCookie,
+  readAuthCookie,
   readGitHubCallbackData,
+  readSignUpCookie,
   sanitizeNext,
   setAuthCookie,
+  setSignUpCookie,
 } from './auth';
 import type { GitHubOAuth } from '#lib/server/adapters/github_auth.js';
 
@@ -31,7 +35,7 @@ it('writes the session token with the supplied expiry and lax same-site', () => 
   const expiresAt = new Date('2026-05-01');
   setAuthCookie(cookies as unknown as Cookies, { token: 'id.secret', expiresAt });
   expect(cookies.set).toHaveBeenCalledWith(
-    AUTH_COOKIE_NAME,
+    'auth_session',
     'id.secret',
     expect.objectContaining({ path: '/', httpOnly: true, sameSite: 'lax', expires: expiresAt }),
   );
@@ -64,10 +68,9 @@ it('owns OAuth state cookies while passing only a state string to the provider',
   const createAuthUrl = vi.fn(() => new URL('https://provider.test'));
   createGitHubAuthUrl(cookies as unknown as Cookies, { createAuthUrl } as unknown as GitHubOAuth, {
     next: '/console',
-    signUp: { name: 'Test' },
   });
   const data = JSON.parse(cookies.set.mock.calls[0][1]);
-  expect(data).toMatchObject({ state: expect.any(String), next: '/console', signUp: { name: 'Test' } });
+  expect(data).toEqual({ state: expect.any(String), next: '/console' });
   expect(createAuthUrl).toHaveBeenCalledWith(data.state);
   expect(cookies.set.mock.calls[0][2]).toMatchObject({ maxAge: 600, sameSite: 'lax', httpOnly: true });
 });
@@ -88,17 +91,22 @@ it.each([
   expect(cookies.delete).toHaveBeenCalledWith('github_oauth_state', { path: '/' });
 });
 
-it('validates callback state and retains malformed JSON error behavior', () => {
+it('validates callback state and rejects a malformed cookie as BAD_REQUEST', () => {
   const event = {
     cookies,
     url: new URL('https://app.test/auth/github/callback?code=code&state=state'),
   } as unknown as RequestEvent;
   cookies.get.mockReturnValue(JSON.stringify({ state: 'state', next: '/console' }));
   expect(readGitHubCallbackData(event)).toEqual({ code: 'code', data: { state: 'state', next: '/console' } });
-  cookies.get.mockReturnValue(JSON.stringify({ state: 'different' }));
-  expect(() => readGitHubCallbackData(event)).toThrow();
-  cookies.get.mockReturnValue('{');
-  expect(() => readGitHubCallbackData(event)).toThrow(SyntaxError);
+  for (const cookie of [JSON.stringify({ state: 'different' }), '{', JSON.stringify({ next: '/' }), undefined]) {
+    cookies.get.mockReturnValue(cookie);
+    expect(() => readGitHubCallbackData(event)).toThrow(
+      expect.objectContaining({
+        status: 400,
+        body: expect.objectContaining({ detail: expect.objectContaining({ tag: 'BAD_REQUEST' }) }),
+      }),
+    );
+  }
 });
 
 it('attaches anonymous locals and enforces authentication for missing sessions', async () => {
@@ -123,8 +131,54 @@ it('refreshes the cookie with the same token on renewal and loads current identi
   expect(mocks.validateSession).toHaveBeenCalledWith(expect.anything(), { token: 'session.secret' });
   expect(cookies.set).toHaveBeenCalledTimes(1);
   expect(cookies.set).toHaveBeenCalledWith(
-    AUTH_COOKIE_NAME,
+    'auth_session',
     'session.secret',
     expect.objectContaining({ expires: session.expiresAt }),
   );
+});
+
+// A cookie jar that keeps values by name, so reads observe earlier writes and deletions.
+function jar() {
+  const values = new Map<string, string>();
+  return {
+    get: vi.fn((name: string) => values.get(name)),
+    set: vi.fn((name: string, value: string) => void values.set(name, value)),
+    delete: vi.fn((name: string) => void values.delete(name)),
+  } as unknown as Cookies & { set: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
+}
+
+// Covers: setAuthCookie, readAuthCookie, deleteAuthCookie
+it('reads back the session token it wrote until the cookie is deleted', () => {
+  const cookieJar = jar();
+  expect(readAuthCookie(cookieJar)).toBeUndefined();
+  setAuthCookie(cookieJar, { token: 'id.secret', expiresAt: new Date('2026-05-01') });
+  expect(readAuthCookie(cookieJar)).toBe('id.secret');
+  deleteAuthCookie(cookieJar);
+  expect(readAuthCookie(cookieJar)).toBeUndefined();
+  expect(cookieJar.delete).toHaveBeenCalledWith('auth_session', { path: '/' });
+});
+
+describe('setSignUpCookie', () => {
+  it('writes an HTTP-only, lax cookie at / expiring with the pending sign-up', () => {
+    const cookieJar = jar();
+    const expiresAt = new Date('2026-05-01T00:10:00Z');
+    setSignUpCookie(cookieJar, { token: 'pending.secret', expiresAt });
+    expect(cookieJar.set).toHaveBeenCalledWith(
+      'sign_up_session',
+      'pending.secret',
+      expect.objectContaining({ path: '/', httpOnly: true, sameSite: 'lax', expires: expiresAt }),
+    );
+  });
+});
+
+// Covers: readSignUpCookie, deleteSignUpCookie
+it('reads back the pending sign-up token until the cookie is deleted, apart from the auth cookie', () => {
+  const cookieJar = jar();
+  setSignUpCookie(cookieJar, { token: 'pending.secret', expiresAt: new Date('2026-05-01') });
+  setAuthCookie(cookieJar, { token: 'auth.secret', expiresAt: new Date('2026-05-01') });
+  expect(readSignUpCookie(cookieJar)).toBe('pending.secret');
+  deleteSignUpCookie(cookieJar);
+  expect(readSignUpCookie(cookieJar)).toBeUndefined();
+  expect(readAuthCookie(cookieJar)).toBe('auth.secret');
+  expect(cookieJar.delete).toHaveBeenCalledWith('sign_up_session', { path: '/' });
 });

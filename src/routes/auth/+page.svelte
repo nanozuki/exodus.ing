@@ -1,15 +1,15 @@
 <!--
   @component
-  Reads the optional `next` search parameter and submits it with both forms. Signup field issues show beside their
-  inputs; other submission errors go to the error page. The simulated-login link appears only when `PROD` is false;
-  the testing remote enforces its own environment check.
+  Starts GitHub sign-in, submitting the optional `next` search parameter. Submission errors go to the error page. The
+  simulated-login link appears only when `PROD` is false; the testing remote enforces its own environment check.
+
+  - `loginByGithub` form: "sign in with GitHub" `Button`, simulated-login `ButtonLink`
 -->
 <script lang="ts">
   import { page } from '$app/state';
   import Button from '#lib/component/Button.svelte';
   import ButtonLink from '#lib/component/ButtonLink.svelte';
-  import Input from '#lib/component/Input.svelte';
-  import { loginByGithub, registerByGithub } from './page.remote';
+  import { loginByGithub } from './page.remote';
 
   let next = $derived(page.url.searchParams.get('next') || undefined);
 </script>
@@ -18,28 +18,6 @@
   <title>EXODUS</title>
   <meta property="og:title" content="EXODUS" />
 </svelte:head>
-
-<p class="font-serif text-2xl font-bold">注册</p>
-<form {...registerByGithub} class="gap-y-m flex flex-col sm:max-w-[60%]">
-  <input {...registerByGithub.fields.next.as('hidden', next || '')} />
-  <Input
-    {...registerByGithub.fields.username.as('text')}
-    label="用户名（可选）"
-    description="账户唯一 ID，默认使用 GitHub 用户名"
-    issues={registerByGithub.fields.username.issues()}
-  />
-  <Input
-    {...registerByGithub.fields.name.as('text')}
-    label="昵称（可选）"
-    description="默认使用用户名"
-    issues={registerByGithub.fields.name.issues()}
-  />
-  <div class="gap-y-2xs flex flex-col">
-    <Button variant="primary" pending={registerByGithub.pending} id="register" type="submit">使用 GitHub 注册</Button>
-  </div>
-</form>
-
-<div class="border-border border-t"></div>
 
 <p class="font-serif text-2xl font-bold">登录</p>
 <form {...loginByGithub} class="gap-y-m flex flex-col sm:max-w-[60%]">

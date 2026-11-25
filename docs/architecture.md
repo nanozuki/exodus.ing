@@ -49,6 +49,15 @@ an asynchronous signature alone does not establish an external dependency.
 - Calling a DNS resolver uses an external dependency. Checking supplied TXT
   records for a verification code is pure.
 
+### External Data
+
+Parse every value that enters from outside the program with zod in the module
+where it enters, so code past that point works with checked types. Outside data
+includes request inputs, cookies, environment variables, provider and DNS
+responses, and stored JSON whose shape the database does not enforce. Derive the
+TypeScript type from the schema with `z.infer` so the two stay in step. A value
+that fails parsing throws, and the entering module's contract names the error.
+
 ### Business Rules and Data Access
 
 - Place a business function in models when it needs no external capabilities and
@@ -70,8 +79,9 @@ For example:
   calculates the quota directly in the same function.
 - **Session validation:** `validateSession({ db, now }, { sessionId })` belongs
   in use cases. It loads the session, compares its expiration with the injected
-  clock's current time, and decides whether to delete or renew it through
-  repository operations. The expiration comparison stays in this operation.
+  clock's current time, and decides whether to renew it through a repository
+  operation. The expiration comparison stays in this operation; expired rows are
+  deleted by the repository's create, at the time the use case passes in.
 
 ### Data and Type Placement
 

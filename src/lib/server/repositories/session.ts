@@ -1,8 +1,8 @@
-// session.ts persists supplied session data. Use cases own ID generation, current-time reads, expiration decisions,
-// and renewal policy.
+// session.ts persists supplied session data. Use cases own ID generation, current-time reads, lifetimes, and renewal
+// policy; this file reads no clock.
 
 import type { Session } from '#lib/models/session.js';
-import { eq } from 'drizzle-orm';
+import { eq, lte } from 'drizzle-orm';
 import { tSession, type AppDatabase } from '#lib/server/db/schema.js';
 import { wrap } from './utils';
 
@@ -14,9 +14,18 @@ export async function findSessionById(db: AppDatabase, sessionId: string): Promi
   );
 }
 
-/** Stores the session as given, applying no lifetime policy, and returns it. */
-export async function createSession(db: AppDatabase, session: Session): Promise<Session> {
-  return wrap('createSession', async () => (await db.insert(tSession).values(session).returning())[0]);
+/**
+ * Stores the session as given, applying no lifetime policy, and returns it. In the same transaction it first deletes
+ * every session, of any user, whose `expiresAt` is at or before `now`, so expired sessions are cleared as new ones
+ * start.
+ */
+export async function createSession(db: AppDatabase, session: Session, now: Date): Promise<Session> {
+  return wrap('createSession', () =>
+    db.transaction(async (tx) => {
+      await tx.delete(tSession).where(lte(tSession.expiresAt, now));
+      return (await tx.insert(tSession).values(session).returning())[0];
+    }),
+  );
 }
 
 export interface UpdateSessionParams {
@@ -31,7 +40,7 @@ export async function updateSession(db: AppDatabase, { id, expiresAt }: UpdateSe
   });
 }
 
-/** Deletes the session without checking existence; use cases also call it to discard an expired session. */
+/** Deletes the session without checking existence. */
 export async function deleteSession(db: AppDatabase, sessionId: string): Promise<void> {
   return wrap('deleteSession', async () => {
     await db.delete(tSession).where(eq(tSession.id, sessionId));

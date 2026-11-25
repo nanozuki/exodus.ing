@@ -5,11 +5,14 @@ import { throwError } from '#lib/errors.js';
 import { isHttpError } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid';
 
+const userConflicts = {
+  user_username_unique: { username: '用户名已存在' },
+  user_name_unique: { name: '昵称已存在' },
+};
+
 const fieldConflicts: Record<string, Record<string, Record<string, string>>> = {
-  updateUser: {
-    user_username_unique: { username: '用户名已存在' },
-    user_name_unique: { name: '昵称已存在' },
-  },
+  createUser: userConflicts,
+  updateUser: userConflicts,
   createArticle: { article_title_idx: { title: '你已经发布过同名文章' } },
   updateArticle: { article_title_idx: { title: '你已经发布过同名文章' } },
 };
@@ -17,9 +20,9 @@ const fieldConflicts: Record<string, Record<string, Record<string, string>>> = {
 /**
  * Runs a repository operation, logging its duration on success. Pass the exported operation's name, which keys the
  * conflict mapping: a PostgreSQL unique violation on a known constraint becomes PARAMETER_INVALID on the field
- * (`updateUser`: `username`, `name`; `createArticle` and `updateArticle`: `title`). HTTP errors propagate unchanged;
- * other errors become DATABASE_ERROR with the operation name and the error message, or the JSON-serialized value for
- * non-Error throws. A value that cannot be serialized propagates the serialization failure.
+ * (`createUser` and `updateUser`: `username`, `name`; `createArticle` and `updateArticle`: `title`). HTTP errors
+ * propagate unchanged; other errors become DATABASE_ERROR with the operation name and the error message, or the
+ * JSON-serialized value for non-Error throws. A value that cannot be serialized propagates the serialization failure.
  */
 export async function wrap<T>(operation: string, fn: () => Promise<T>): Promise<T> {
   try {

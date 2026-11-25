@@ -15,10 +15,8 @@ test('Visitor receives authentication guidance for protected actions', async ({ 
     await restricted(page);
   }
   await page.goto('/auth');
-  await expect(page.getByText('注册', { exact: true })).toBeVisible();
-  await expect(page.getByText('登录', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: '使用 GitHub 注册', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '使用 GitHub 登录', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /注册/ })).toHaveCount(0);
 });
 
 test("Reader and author cannot edit another author's article", async ({ actor, db }) => {

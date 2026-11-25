@@ -2,6 +2,8 @@
 
 Request handling shared by hooks, remote functions, and route handlers: cookies,
 request data, redirect targets, and `App.Locals`, translated to and from
-use-case inputs and outputs. Transport may call use cases and repositories;
-models, use cases, repositories, and adapters never import it. Importing a
-module performs no database, network, or cookie operation.
+use-case inputs and outputs. Each module owns its cookies end to end: names,
+attributes, reads, writes, and deletion, so callers handle a cookie only through
+its module's functions. Transport may call use cases and repositories; models,
+use cases, repositories, and adapters never import it. Importing a module
+performs no database, network, or cookie operation.

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OAuth2RequestError } from 'arctic';
 import { GitHubOAuth } from './github_auth';
 import type { Config } from '#lib/server/config.js';
@@ -31,9 +31,14 @@ it('passes state only and requests no additional scopes', () => {
 
 it('maps a trusted provider identity with the existing request headers', async () => {
   provider.exchange.mockResolvedValue({ accessToken: () => 'token' });
-  const fetch = vi.fn(async () => ({ ok: true, json: async () => ({ id: 123, login: 'provider-name' }) }));
+  const body = { id: 123, login: 'provider-name', name: 'Provider Name', email: null };
+  const fetch = vi.fn(async () => ({ ok: true, json: async () => body }));
   vi.stubGlobal('fetch', fetch);
-  expect(await new GitHubOAuth(config).getUser('code')).toEqual({ id: 123, username: 'provider-name' });
+  expect(await new GitHubOAuth(config).getUser('code')).toEqual({
+    id: 123,
+    username: 'provider-name',
+    name: 'Provider Name',
+  });
   expect(provider.exchange).toHaveBeenCalledWith('code');
   expect(fetch).toHaveBeenCalledWith('https://api.github.com/user', {
     headers: { Authorization: 'Bearer token', Accept: 'application/json', 'User-Agent': 'exodus.ing' },
@@ -63,4 +68,32 @@ it('treats a non-2xx user response as an exchange failure without reading it as 
     body: { detail: { tag: 'INTERNAL_SERVER_ERROR' } },
   });
   expect(json).not.toHaveBeenCalled();
+});
+
+describe('GitHubOAuth.getUser', () => {
+  it('returns a null name for a profile without one', async () => {
+    provider.exchange.mockResolvedValue({ accessToken: () => 'token' });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => ({ id: 7, login: 'octo', name: null }) })),
+    );
+    expect(await new GitHubOAuth(config).getUser('code')).toEqual({ id: 7, username: 'octo', name: null });
+  });
+
+  it.each([
+    { login: 'octo', name: null },
+    { id: '7', login: 'octo', name: null },
+    { id: 7, name: null },
+    { id: 7, login: 'octo' },
+  ])('throws INTERNAL_SERVER_ERROR for the user body %j', async (body) => {
+    provider.exchange.mockResolvedValue({ accessToken: () => 'token' });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => body })),
+    );
+    await expect(new GitHubOAuth(config).getUser('code')).rejects.toMatchObject({
+      status: 500,
+      body: { detail: { tag: 'INTERNAL_SERVER_ERROR' } },
+    });
+  });
 });

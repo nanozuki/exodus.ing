@@ -1,5 +1,5 @@
-// auth.ts handles authentication at the request boundary: the session and OAuth state cookies, post-sign-in redirect
-// targets, and `App.Locals`.
+// auth.ts handles authentication at the request boundary: the session, sign-up, and OAuth state cookies, post-sign-in
+// redirect targets, and `App.Locals`.
 
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
@@ -16,17 +16,12 @@ import { getRolesOfUser } from '#lib/server/repositories/role.js';
 
 const GITHUB_OAUTH_COOKIE_NAME = 'github_oauth_state';
 
-export const AUTH_COOKIE_NAME = 'auth_session';
+const AUTH_COOKIE_NAME = 'auth_session';
+const SIGN_UP_COOKIE_NAME = 'sign_up_session';
 
 const OAuthCookieDataSchema = z.object({
   state: z.string(),
   next: z.string().optional(),
-  signUp: z
-    .object({
-      username: z.string().optional(),
-      name: z.string().optional(),
-    })
-    .optional(),
 });
 
 /** The GitHub OAuth state cookie's contents, as validated by `readGitHubCallbackData`. */
@@ -46,6 +41,41 @@ export function setAuthCookie(cookies: Cookies, session: { token: string; expire
     sameSite: 'lax',
     expires: session.expiresAt,
   });
+}
+
+/** Returns the `auth_session` cookie's token, unvalidated, or undefined when the request has none. */
+export function readAuthCookie(cookies: Cookies): string | undefined {
+  return cookies.get(AUTH_COOKIE_NAME);
+}
+
+/** Deletes the `auth_session` cookie set by `setAuthCookie`; the stored session is the caller's to invalidate. */
+export function deleteAuthCookie(cookies: Cookies): void {
+  cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+}
+
+/**
+ * Sets the `sign_up_session` cookie, which carries the pending sign-up token from the OAuth callback to the sign-up
+ * page: path `/`, HTTP-only, SameSite lax, expiring at `expiresAt`, and secure in production. Call only at request
+ * boundaries where cookie writes are permitted.
+ */
+export function setSignUpCookie(cookies: Cookies, session: { token: string; expiresAt: Date }): void {
+  cookies.set(SIGN_UP_COOKIE_NAME, session.token, {
+    path: '/',
+    secure: import.meta.env.PROD,
+    httpOnly: true,
+    sameSite: 'lax',
+    expires: session.expiresAt,
+  });
+}
+
+/** Returns the `sign_up_session` cookie's token, unvalidated, or undefined when the request has none. */
+export function readSignUpCookie(cookies: Cookies): string | undefined {
+  return cookies.get(SIGN_UP_COOKIE_NAME);
+}
+
+/** Deletes the `sign_up_session` cookie set by `setSignUpCookie`; the stored session is the caller's to delete. */
+export function deleteSignUpCookie(cookies: Cookies): void {
+  cookies.delete(SIGN_UP_COOKIE_NAME, { path: '/' });
 }
 
 /**
@@ -82,8 +112,8 @@ export function createGitHubAuthUrl(cookies: Cookies, githubOAuth: GitHubOAuth, 
 /**
  * Reads the callback's `code` and `state` and checks them against the `github_oauth_state` cookie. Deletes the cookie
  * before validating, so it is removed on every callback outcome, including later provider-exchange failures. Missing
- * `code` or `state`, a missing or schema-invalid cookie, or a state mismatch throws BAD_REQUEST; malformed cookie JSON
- * propagates its parse error for the callback route to normalize. The caller exchanges the code and sanitizes `next`.
+ * `code` or `state`, a missing, malformed, or schema-invalid cookie, or a state mismatch throws BAD_REQUEST. The caller
+ * exchanges the code and sanitizes `next`.
  */
 export function readGitHubCallbackData(request: RequestEvent): { code: string; data: OAuthCookieData } {
   const { cookies, url } = request;
@@ -97,7 +127,13 @@ export function readGitHubCallbackData(request: RequestEvent): { code: string; d
   if (!stateCookie) {
     return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie not found');
   }
-  const stateResult = OAuthCookieDataSchema.safeParse(JSON.parse(stateCookie));
+  let cookieJson: unknown;
+  try {
+    cookieJson = JSON.parse(stateCookie);
+  } catch {
+    return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie parse error');
+  }
+  const stateResult = OAuthCookieDataSchema.safeParse(cookieJson);
   if (!stateResult.success) {
     return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie parse error');
   }
@@ -109,7 +145,7 @@ export function readGitHubCallbackData(request: RequestEvent): { code: string; d
 }
 
 async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
-  const token = event.cookies.get(AUTH_COOKIE_NAME);
+  const token = readAuthCookie(event.cookies);
   if (!token) {
     return null;
   }
