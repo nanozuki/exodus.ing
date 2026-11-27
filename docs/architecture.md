@@ -77,11 +77,11 @@ For example:
 - **Invite quota query:** `getInviteQuota({ db }, { userId })` belongs in use
   cases. It reads the required statistics consistently through a repository and
   calculates the quota directly in the same function.
-- **Session validation:** `validateSession({ db, now }, { sessionId })` belongs
-  in use cases. It loads the session, compares its expiration with the injected
+- **Session validation:** `validateSession({ db, now }, { token })` belongs in
+  use cases. It loads the session, compares its expiration with the injected
   clock's current time, and decides whether to renew it through a repository
-  operation. The expiration comparison stays in this operation; expired rows are
-  deleted by the repository's create, at the time the use case passes in.
+  operation. The expiration comparison stays in this operation. The repository's
+  create deletes expired rows, taking the current time from the use case.
 
 ### Data and Type Placement
 
@@ -135,11 +135,10 @@ points. This includes `getRequestEvent()`, cookies, redirects, input parsing,
 serialization, and remote-query refreshes. Entry points supply explicit
 dependencies and parameters to use cases.
 
-Request handling that several entry points share lives in transport modules,
-which translate between requests and use-case inputs and outputs. Use cases make
-the business decisions, such as lifetimes, sign-in outcomes, and input rules;
-transport applies their results to the request and response. Handling used by
-one entry point stays beside it.
+Transport modules translate between requests and use-case inputs and outputs.
+Use cases make the business decisions, such as lifetimes, sign-in outcomes, and
+input rules; transport applies their results to the request and response.
+Request handling used by one entry point stays beside it.
 
 Preserve the framework query refresh, form fields, enhancement, and pending APIs
 for remote interactions.

@@ -12,15 +12,15 @@
   submits to, and the components it renders. The view shows no markup, so the
   outline is how a reviewer sees the page's structure.
 
-```svelte
-<!--
-  @component
-  Completes or cancels a pending sign-up, with the form prefilled from `loadPageData`.
-
-  - `submitSignUp` form: `Input` username, `Input` display name, submit `Button`
-  - `cancelSignUp` form: cancel `Button`
--->
-```
+  ```svelte
+  <!--
+    @component
+    Completes or cancels a pending sign-up, with the form prefilled from `loadPageData`.
+  
+    - `submitSignUp` form: `Input` username, `Input` display name, submit `Button`
+    - `cancelSignUp` form: cancel `Button`
+  -->
+  ```
 
 - SvelteKit route files pair the same way: `+server.ts` ↔ `+server.test.ts`,
   `page.remote.ts` ↔ `page.remote.test.ts`. SvelteKit accepts `+`-prefixed test

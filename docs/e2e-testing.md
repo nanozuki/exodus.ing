@@ -44,8 +44,8 @@ validation and authorization. Multiple actors use separate browser contexts
 sharing the test's application and database. Production behavior remains
 enabled; the suite does not depend on the development-only simulated login page.
 
-Sign-up journeys start where the OAuth callback hands over: store a pending
-sign-up session for a new identity in the test's database and install its
+Sign-up journeys start where the OAuth callback hands over: store a sign-up
+pre-auth session for a new identity in the test's database and install its
 `pre_auth_session` cookie in the browser context.
 
 ## Database lifecycle
