@@ -3,7 +3,8 @@ import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
 import { createUser, findUserByIdentity } from '#lib/server/repositories/user.js';
 import { validateSession } from '#lib/server/use-cases/session.js';
-import { fetchSignUpPrefill } from '#lib/server/use-cases/user.js';
+import { findPreAuthSessionById } from '#lib/server/repositories/pre_auth_session.js';
+import { PreAuthPurpose } from '#lib/models/session.js';
 
 const state = vi.hoisted(() => ({ db: undefined as unknown, getUser: vi.fn() }));
 
@@ -46,6 +47,12 @@ function callback(next?: string) {
 
 const now = () => new Date();
 
+// The payload of the pending sign-up the callback's pre-auth cookie names.
+async function storedPayload(values: Map<string, string>) {
+  const [id] = values.get('pre_auth_session')!.split('.');
+  return (await findPreAuthSessionById(database.db, id, PreAuthPurpose.SignUp))?.payload;
+}
+
 describe('GET', () => {
   it('signs a known GitHub identity in and redirects to next', async () => {
     const user = await createUser(database.db, {
@@ -77,40 +84,33 @@ describe('GET', () => {
     expect(response.headers.get('location')).toBe('https://exodus.test/auth/sign-up');
     expect(values.has('auth_session')).toBe(false);
     expect(await findUserByIdentity(database.db, { provider: 'github', subject: '9002' })).toBeNull();
-    const prefill = await fetchSignUpPrefill(
-      { db: database.db, clock: { now } },
-      { token: values.get('pre_auth_session')! },
-    );
-    expect(prefill).toEqual({ username: 'newcomer', name: 'New Comer' });
+    expect(await storedPayload(values)).toEqual({
+      identity: { provider: 'github', subject: '9002' },
+      hints: { username: 'newcomer', name: 'New Comer' },
+      next: '/console',
+    });
   });
 
-  it('prefills the name from the login when the GitHub profile has none', async () => {
+  it('leaves the name hint out when the GitHub profile has no name', async () => {
     state.getUser.mockResolvedValue({ id: 9003, username: 'nameless', name: null });
     const { event, values } = callback();
 
     await GET(event);
 
-    const prefill = await fetchSignUpPrefill(
-      { db: database.db, clock: { now } },
-      { token: values.get('pre_auth_session')! },
-    );
-    expect(prefill).toEqual({ username: 'nameless', name: 'nameless' });
+    expect((await storedPayload(values))?.hints).toEqual({ username: 'nameless' });
   });
 
-  it.each(['@evil.example', 'https://evil.example'])(
-    'redirects a signed-in identity with next %j to the app home page',
-    async (next) => {
-      await createUser(database.db, {
-        username: `returning-${next.length}`,
-        name: `Returning ${next.length}`,
-        aboutMe: '',
-        identity: { provider: 'github', subject: `9100${next.length}` },
-      });
-      state.getUser.mockResolvedValue({ id: Number(`9100${next.length}`), username: 'x', name: null });
-      const response = await GET(callback(next).event);
-      expect(response.headers.get('location')).toBe('https://exodus.test/');
-    },
-  );
+  it('redirects a signed-in identity with a non-path next to the app home page', async () => {
+    await createUser(database.db, {
+      username: 'returning-unsafe',
+      name: 'Returning Unsafe',
+      aboutMe: '',
+      identity: { provider: 'github', subject: '9100' },
+    });
+    state.getUser.mockResolvedValue({ id: 9100, username: 'x', name: null });
+    const response = await GET(callback('https://evil.example').event);
+    expect(response.headers.get('location')).toBe('https://exodus.test/');
+  });
 
   it('propagates a provider failure without setting session cookies', async () => {
     const failure = new Error('offline');

@@ -1,4 +1,4 @@
-import { expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 
 const state = vi.hoisted(() => ({ page: { status: 500, error: null as App.Error | null } }));
@@ -21,12 +21,14 @@ const cases: { error: App.Error; title: string }[] = [
   { error: { status: 405, message: 'Method Not Allowed' }, title: '请求错误' },
 ];
 
-it.each(cases)('renders a readable title for $error.status ($title)', async ({ error, title }) => {
-  state.page.status = error.status;
-  state.page.error = error;
-  const screen = await render(ErrorPage);
+describe('+error', () => {
+  it.each(cases)('renders a readable title for $error.status ($title)', async ({ error, title }) => {
+    state.page.status = error.status;
+    state.page.error = error;
+    const screen = await render(ErrorPage);
 
-  await expect.element(screen.getByRole('heading', { name: `Error: ${error.status}` })).toBeVisible();
-  await expect.element(screen.getByText(title, { exact: true })).toBeVisible();
-  await expect.element(screen.getByText(error.message, { exact: true })).toBeVisible();
+    await expect.element(screen.getByRole('heading', { name: `Error: ${error.status}` })).toBeVisible();
+    await expect.element(screen.getByText(title, { exact: true })).toBeVisible();
+    await expect.element(screen.getByText(error.message, { exact: true })).toBeVisible();
+  });
 });

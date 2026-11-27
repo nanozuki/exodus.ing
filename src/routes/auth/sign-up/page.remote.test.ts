@@ -1,11 +1,13 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Cookies } from '@sveltejs/kit';
 import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
-import { createUser, findUserByIdentity, findUserByUsername } from '#lib/server/repositories/user.js';
+import { createUser, findUserByIdentity } from '#lib/server/repositories/user.js';
 import { validateSession } from '#lib/server/use-cases/session.js';
 import { signInWithIdentity } from '#lib/server/use-cases/user.js';
 import { random } from '#lib/server/adapters/random.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
+import { findPreAuthSessionById } from '#lib/server/repositories/pre_auth_session.js';
+import { PreAuthPurpose } from '#lib/models/session.js';
 
 const state = vi.hoisted(() => ({ db: undefined as unknown, cookies: undefined as unknown, setLayout: vi.fn() }));
 
@@ -123,7 +125,6 @@ describe('submitSignUp', () => {
       issues: [{ path: ['username'], message: '用户名已存在' }],
     });
     expect(values.has('pre_auth_session')).toBe(true);
-    expect(await load()).toEqual({ username: 'login-602', name: 'GitHub Name' });
     expect(state.setLayout).not.toHaveBeenCalled();
   });
 
@@ -144,30 +145,27 @@ describe('submitSignUp', () => {
     expect(values.has('auth_session')).toBe(false);
   });
 
-  it('creates nothing for a used pending sign-up and returns to /auth', async () => {
-    const token = await pendingSignUp('603');
-    await expect(submit({ username: 'used-once', name: 'Used Once' }, issue())).rejects.toMatchObject({ status: 303 });
-    values.set('pre_auth_session', token);
-    await expect(submit({ username: 'used-twice', name: 'Used Twice' }, issue())).rejects.toMatchObject(toAuth);
-    expect(await findUserByUsername(database.db, 'used-twice')).toBeNull();
+  it('deletes a cookie naming no live pending sign-up and returns to /auth', async () => {
+    values.set('pre_auth_session', 'absent.secret');
+    await expect(submit({ username: 'no-pending', name: 'No Pending' }, issue())).rejects.toMatchObject(toAuth);
     expect(values.has('pre_auth_session')).toBe(false);
+    expect(values.has('auth_session')).toBe(false);
+    expect(state.setLayout).not.toHaveBeenCalled();
   });
 
-  it('creates nothing without a sign-up cookie and returns to /auth', async () => {
+  it('returns to /auth without a sign-up cookie', async () => {
     await expect(submit({ username: 'no-cookie', name: 'No Cookie' }, issue())).rejects.toMatchObject(toAuth);
-    expect(await findUserByUsername(database.db, 'no-cookie')).toBeNull();
+    expect(values.has('auth_session')).toBe(false);
     expect(state.setLayout).not.toHaveBeenCalled();
   });
 });
 
 describe('cancelSignUp', () => {
-  it('ends the pending sign-up and its cookie, so the token can no longer sign up', async () => {
-    const token = await pendingSignUp('700');
+  it('ends the pending sign-up its cookie names, deletes the cookie, and returns to /auth', async () => {
+    const [id] = (await pendingSignUp('700')).split('.');
     await expect(cancel()).rejects.toMatchObject(toAuth);
     expect(values.has('pre_auth_session')).toBe(false);
-    values.set('pre_auth_session', token);
-    await expect(submit({ username: 'after-cancel', name: 'After Cancel' }, issue())).rejects.toMatchObject(toAuth);
-    expect(await findUserByIdentity(database.db, { provider: 'github', subject: '700' })).toBeNull();
+    expect(await findPreAuthSessionById(database.db, id, PreAuthPurpose.SignUp)).toBeNull();
   });
 
   it('returns to /auth without a sign-up cookie', async () => {

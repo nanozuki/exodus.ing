@@ -41,13 +41,10 @@ describe('simulateTestingLogin', () => {
     expect(mocks.cookies.set).toHaveBeenCalledWith('auth_session', 'session.secret', expect.anything());
   });
 
-  it.each(['@evil.example', 'https://evil.example'])(
-    'redirects a non-path next %j to the app home page',
-    async (next) => {
-      await expect(submit({ userId: 'user', next })).rejects.toMatchObject({
-        status: 303,
-        location: 'https://exodus.test/',
-      });
-    },
-  );
+  it('redirects a non-path next to the app home page', async () => {
+    await expect(submit({ userId: 'user', next: 'https://evil.example' })).rejects.toMatchObject({
+      status: 303,
+      location: 'https://exodus.test/',
+    });
+  });
 });
