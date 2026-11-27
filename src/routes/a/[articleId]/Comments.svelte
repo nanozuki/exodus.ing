@@ -101,9 +101,9 @@
         {#if content.length > 0}
           <Button variant="normal" type="button" onclick={reset}>取消</Button>
         {/if}
-        <Button variant="primary" pending={postComment.pending} type="submit"
-          >{editCommentId ? '更新评论' : '发表评论'}</Button
-        >
+        <Button variant="primary" pending={postComment.pending} type="submit">
+          {editCommentId ? '更新评论' : '发表评论'}
+        </Button>
       </div>
     </form>
   {:else}

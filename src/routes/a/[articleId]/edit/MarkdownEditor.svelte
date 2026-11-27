@@ -56,14 +56,18 @@
     class={mode === 'editor' ? buttonClass.activated : buttonClass.deactivated}
     onclick={() => {
       mode = 'editor';
-    }}>编辑</button
+    }}
   >
+    编辑
+  </button>
   <button
     class={mode === 'previewer' ? buttonClass.activated : buttonClass.deactivated}
     onclick={() => {
       mode = 'previewer';
-    }}>预览</button
+    }}
   >
+    预览
+  </button>
 </div>
 
 {#if mode === 'editor'}

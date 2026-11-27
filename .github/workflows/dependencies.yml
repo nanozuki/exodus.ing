@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  RENOVATE_VERSION: '44.237.3'
+  RENOVATE_VERSION: '44.257.5'
 
 jobs:
   update:
@@ -38,7 +38,7 @@ jobs:
             exit 1
           fi
 
-      - uses: cachix/install-nix-action@v31.11.5
+      - uses: cachix/install-nix-action@v32.1.0
       - uses: nix-community/cache-nix-action@v7.0.2
         with:
           primary-key: nix-dependencies-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock') }}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Create installation token
         id: app-token
-        uses: actions/create-github-app-token@v3.3.0
+        uses: actions/create-github-app-token@v3.4.0
         with:
           app-id: ${{ vars.DEPENDENCY_APP_ID }}
           private-key: ${{ secrets.DEPENDENCY_APP_PRIVATE_KEY }}
