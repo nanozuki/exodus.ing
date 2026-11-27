@@ -273,5 +273,20 @@ and normalize unexpected failures.
 
 ## Testing
 
-Repository and use-case tests verify the observable behavior promised by the doc
-comments of the declarations they test.
+Each layer's tests cover the decisions that layer makes, with one representative
+case per branch. A rule decided in a lower layer is tested there and not
+enumerated again above it.
+
+- **Models, repositories, use cases, and transport** verify the observable
+  behavior their doc comments promise, covering every case of the rules they
+  decide.
+- **Remote functions and route handlers** verify their translation: the request
+  values they read and pass on, how errors become field issues, and the cookies,
+  redirects, and query updates they apply. A rule a callee decides, such as how
+  `sanitizeNext` treats each `next`, needs only the one case that shows the
+  caller applies it.
+- **Pages and layouts** are covered by E2E scenarios. Give one a component test
+  only for display logic of its own, such as `+error.svelte` choosing a title
+  for each status.
+- **E2E scenarios** cover journeys across the layers, as
+  [E2E Testing](e2e-testing.md) describes.
