@@ -2,7 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '#lib/server/testing/database.js';
 import { Role } from '#lib/models/role.js';
 import type { LoggedInUser } from '#lib/models/user.js';
-import { PreAuthPurpose } from '#lib/models/session.js';
+import { hashSessionSecret, PreAuthPurpose } from '#lib/models/session.js';
+import { tPreAuthSession } from '#lib/server/db/schema.js';
 import { createUser, findUserByIdentity, findUserByUsername } from '#lib/server/repositories/user.js';
 import { findPreAuthSessionById } from '#lib/server/repositories/pre_auth_session.js';
 import { findSessionById } from '#lib/server/repositories/session.js';
@@ -103,8 +104,28 @@ describe('fetchSignUpPrefill', () => {
     expect(await prefill(await startSignUp('202'))).toEqual({ username: '', name: '' });
   });
 
-  it('returns null for an unknown token', async () => {
-    expect(await prefill('absent.secret')).toBeNull();
+  it.each(['', 'no-separator', '.secret', 'id.', 'a.b.c', 'absent.secret'])(
+    'returns null for the malformed or unknown token %j',
+    async (token) => {
+      expect(await prefill(token)).toBeNull();
+    },
+  );
+
+  it('returns null for a wrong secret and keeps the pending sign-up', async () => {
+    const token = await startSignUp('204', { username: 'wrong-secret' });
+    expect(await prefill(`${token.split('.')[0]}.other-secret`)).toBeNull();
+    expect(await prefill(token)).toEqual({ username: 'wrong-secret', name: 'wrong-secret' });
+  });
+
+  it('returns null for a pre-auth session of another flow', async () => {
+    await database.db.insert(tPreAuthSession).values({
+      id: 'prefill-other',
+      purpose: 'link' as PreAuthPurpose,
+      secretHash: hashSessionSecret('prefill-other-secret'),
+      payload: {},
+      expiresAt: new Date(+instant + 60000),
+    });
+    expect(await prefill('prefill-other.prefill-other-secret')).toBeNull();
   });
 
   it('returns null for an expired pending sign-up', async () => {
