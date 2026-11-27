@@ -44,7 +44,10 @@ function injectedRandom(id: string) {
 describe('createSession', () => {
   it('returns a token of the session ID and secret and stores only the secret hash', async () => {
     const random = injectedRandom('created');
-    const { session, token } = await createSession({ db: database.db, now: () => instant, random }, { userId });
+    const { session, token } = await createSession(
+      { db: database.db, clock: { now: () => instant }, random },
+      { userId },
+    );
     expect(token).toBe('created.created-secret');
     expect(session).toEqual({
       id: 'created',
@@ -58,14 +61,14 @@ describe('createSession', () => {
   it('reads the clock and each generator once', async () => {
     const now = vi.fn(() => instant);
     const random = injectedRandom('read-once');
-    await createSession({ db: database.db, now, random }, { userId });
+    await createSession({ db: database.db, clock: { now }, random }, { userId });
     expect(now).toHaveBeenCalledTimes(1);
     expect(random.sessionId).toHaveBeenCalledTimes(1);
     expect(random.sessionSecret).toHaveBeenCalledTimes(1);
   });
 
   it('returns a token that validates', async () => {
-    const deps = { db: database.db, now: () => instant, random: injectedRandom('validates') };
+    const deps = { db: database.db, clock: { now: () => instant }, random: injectedRandom('validates') };
     const { token } = await createSession(deps, { userId });
     expect(await validateSession(deps, { token })).not.toBeNull();
   });
@@ -74,7 +77,7 @@ describe('createSession', () => {
     const at = new Date(+instant + 1000 * day);
     await persistKnownSession('swept', at);
     await persistKnownSession('kept', new Date(+at + 1));
-    await createSession({ db: database.db, now: () => at, random: injectedRandom('sweeper') }, { userId });
+    await createSession({ db: database.db, clock: { now: () => at }, random: injectedRandom('sweeper') }, { userId });
     expect(await findSessionById(database.db, 'swept')).toBeNull();
     expect(await findSessionById(database.db, 'kept')).not.toBeNull();
   });
@@ -85,7 +88,7 @@ describe('validateSession', () => {
     const id = 'stored-columns';
     await persistKnownSession(id, new Date(+instant + 30 * day));
     const stored = (await findSessionById(database.db, id))!;
-    const deps = { db: database.db, now: () => instant };
+    const deps = { db: database.db, clock: { now: () => instant } };
     for (const token of [stored.id, `${stored.id}.${stored.secretHash}`, `${stored.id}.${stored.userId}`]) {
       expect(await validateSession(deps, { token })).toBeNull();
     }
@@ -101,7 +104,7 @@ describe('validateSession', () => {
     const id = `boundary-${remaining}`;
     const token = await persistKnownSession(id, new Date(+instant + remaining));
     const now = vi.fn(() => instant);
-    const result = await validateSession({ db: database.db, now }, { token });
+    const result = await validateSession({ db: database.db, clock: { now } }, { token });
     expect(now).toHaveBeenCalledTimes(1);
     if (refresh === null) {
       expect(result).toBeNull();
@@ -116,14 +119,14 @@ describe('validateSession', () => {
   it.each(['', 'missing.secret', 'no-separator', '.secret', 'id.', 'a.b.c'])(
     'returns null for the malformed or unknown token %j',
     async (token) => {
-      expect(await validateSession({ db: database.db, now: () => instant }, { token })).toBeNull();
+      expect(await validateSession({ db: database.db, clock: { now: () => instant } }, { token })).toBeNull();
     },
   );
 
   it('returns null for a wrong secret and leaves the expired session stored', async () => {
     const expiresAt = new Date(+instant - 1);
     await persistKnownSession('validate-mismatch', expiresAt);
-    const deps = { db: database.db, now: () => instant };
+    const deps = { db: database.db, clock: { now: () => instant } };
     expect(await validateSession(deps, { token: 'validate-mismatch.wrong-secret' })).toBeNull();
     expect(await findSessionById(database.db, 'validate-mismatch')).toMatchObject({ expiresAt });
   });
@@ -134,14 +137,16 @@ describe('validateSession', () => {
       { id: 'corrupted', userId, secretHash: 'not-hex', expiresAt: new Date(+instant + 30 * day) },
       early,
     );
-    expect(await validateSession({ db: database.db, now: () => instant }, { token: 'corrupted.secret' })).toBeNull();
+    expect(
+      await validateSession({ db: database.db, clock: { now: () => instant } }, { token: 'corrupted.secret' }),
+    ).toBeNull();
   });
 });
 
 describe('invalidateSession', () => {
   it('deletes the session so its token validates as null', async () => {
     const token = await persistKnownSession('signed-out', new Date(+instant + 30 * day));
-    const deps = { db: database.db, now: () => instant };
+    const deps = { db: database.db, clock: { now: () => instant } };
     await invalidateSession(deps, { token });
     expect(await findSessionById(database.db, 'signed-out')).toBeNull();
     expect(await validateSession(deps, { token })).toBeNull();
@@ -168,7 +173,7 @@ describe('invalidateSession', () => {
 const signUpPayload = { identity: { provider: 'github' as const, subject: '42' }, hints: { username: 'octo' } };
 
 async function createSignUp(id: string, at = instant) {
-  const deps = { db: database.db, now: () => at, random: injectedRandom(id) };
+  const deps = { db: database.db, clock: { now: () => at }, random: injectedRandom(id) };
   return createPreAuthSession(deps, { purpose: PreAuthPurpose.SignUp, payload: signUpPayload });
 }
 
@@ -205,7 +210,7 @@ describe('createPreAuthSession', () => {
 
 describe('validatePreAuthSession', () => {
   const validate = (token: string, at = instant) =>
-    validatePreAuthSession({ db: database.db, now: () => at }, { token, purpose: PreAuthPurpose.SignUp });
+    validatePreAuthSession({ db: database.db, clock: { now: () => at } }, { token, purpose: PreAuthPurpose.SignUp });
 
   it('returns the session repeatedly without consuming or extending it', async () => {
     const { session, token } = await createSignUp('pre-valid');

@@ -1,6 +1,6 @@
 import type { Config } from '#lib/server/config.js';
 import { GitHubOAuth } from './github_auth';
-import { resolveTxt } from './name_resolver';
+import { nameResolver } from './name_resolver';
 
 /**
  * Constructs a fresh `GitHubOAuth` and exposes the shared DNS lookup. Construction makes no network request; adapters
@@ -9,7 +9,7 @@ import { resolveTxt } from './name_resolver';
 export function createAdapterSet(config: Config) {
   return {
     githubOAuth: new GitHubOAuth(config),
-    name_resolver: { resolveTxt },
+    name_resolver: nameResolver,
   };
 }
 

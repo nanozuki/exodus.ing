@@ -61,7 +61,7 @@ describe('GET', () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.get('location')).toBe('https://exodus.test/console');
-    const session = await validateSession({ db: database.db, now }, { token: values.get('auth_session')! });
+    const session = await validateSession({ db: database.db, clock: { now } }, { token: values.get('auth_session')! });
     expect(session?.session.userId).toBe(user.id);
     expect(values.has('pre_auth_session')).toBe(false);
     expect(values.has('github_oauth_state')).toBe(false);
@@ -77,7 +77,10 @@ describe('GET', () => {
     expect(response.headers.get('location')).toBe('https://exodus.test/auth/sign-up');
     expect(values.has('auth_session')).toBe(false);
     expect(await findUserByIdentity(database.db, { provider: 'github', subject: '9002' })).toBeNull();
-    const prefill = await fetchSignUpPrefill({ db: database.db, now }, { token: values.get('pre_auth_session')! });
+    const prefill = await fetchSignUpPrefill(
+      { db: database.db, clock: { now } },
+      { token: values.get('pre_auth_session')! },
+    );
     expect(prefill).toEqual({ username: 'newcomer', name: 'New Comer' });
   });
 
@@ -87,7 +90,10 @@ describe('GET', () => {
 
     await GET(event);
 
-    const prefill = await fetchSignUpPrefill({ db: database.db, now }, { token: values.get('pre_auth_session')! });
+    const prefill = await fetchSignUpPrefill(
+      { db: database.db, clock: { now } },
+      { token: values.get('pre_auth_session')! },
+    );
     expect(prefill).toEqual({ username: 'nameless', name: 'nameless' });
   });
 

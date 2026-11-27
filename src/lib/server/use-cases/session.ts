@@ -45,14 +45,14 @@ function findVerifiedSession(deps: { db: AppDatabase }, params: { token: string 
 }
 
 /**
- * Creates a session for `userId` that expires 30 days after `now()`, and returns it with its token. This is the only
- * place the token is available. It also deletes every session already expired at `now()`.
+ * Creates a session for `userId` that expires 30 days after `clock.now()`, and returns it with its token. This is the
+ * only place the token is available. It also deletes every session already expired at `clock.now()`.
  */
 export async function createSession(
-  deps: { db: AppDatabase; now: Clock; random: Random },
+  deps: { db: AppDatabase; clock: Clock; random: Random },
   params: { userId: string },
 ): Promise<{ session: Session; token: string }> {
-  const currentTime = deps.now();
+  const currentTime = deps.clock.now();
   const id = deps.random.sessionId();
   const secret = deps.random.sessionSecret();
   const session = await sessions.createSession(
@@ -72,13 +72,13 @@ export async function createSession(
  * Returns the session `token` names, or null when the token is malformed (not two non-empty parts), names no session,
  * or carries the wrong secret. A session at or past `expiresAt` yields null and stays stored until `createSession`
  * clears it. Validation writes only the renewal: with 20 days or less remaining, the expiry moves to 30 days after
- * `now()` and `refresh` is true. The token itself never changes.
+ * `clock.now()` and `refresh` is true. The token itself never changes.
  */
 export async function validateSession(
-  deps: { db: AppDatabase; now: Clock },
+  deps: { db: AppDatabase; clock: Clock },
   params: { token: string },
 ): Promise<ValidateSessionResult | null> {
-  const currentTime = deps.now();
+  const currentTime = deps.clock.now();
   const session = await findVerifiedSession(deps, params);
   if (!session) return null;
   if (+currentTime >= +session.expiresAt) return null;
@@ -102,14 +102,15 @@ export async function invalidateSession(deps: { db: AppDatabase }, params: { tok
 }
 
 /**
- * Creates a pre-auth session for `purpose` holding `payload`, expiring 10 minutes after `now()`, and returns it with
- * its token, which is available only here. It also deletes every pre-auth session already expired at `now()`.
+ * Creates a pre-auth session for `purpose` holding `payload`, expiring 10 minutes after `clock.now()`, and returns it
+ * with its token, which is available only here. It also deletes every pre-auth session already expired at
+ * `clock.now()`.
  */
 export async function createPreAuthSession<P extends PreAuthPurpose>(
-  deps: { db: AppDatabase; now: Clock; random: Random },
+  deps: { db: AppDatabase; clock: Clock; random: Random },
   params: { purpose: P; payload: PreAuthPayload<P> },
 ): Promise<{ session: PreAuthSession<P>; token: string }> {
-  const currentTime = deps.now();
+  const currentTime = deps.clock.now();
   const id = deps.random.sessionId();
   const secret = deps.random.sessionSecret();
   const session = await preAuthSessions.createPreAuthSession<P>(
@@ -127,16 +128,16 @@ export async function createPreAuthSession<P extends PreAuthPurpose>(
 }
 
 /**
- * Returns the pre-auth session `token` names when its secret matches, it belongs to `purpose`, and `now()` is before
- * its `expiresAt`; otherwise null. Validation writes nothing: it never extends the expiry, leaves an expired session
- * for `createPreAuthSession` to clear, and does not consume the session: the flow deletes it when it completes or is
- * cancelled. A stored payload that fails its purpose's schema throws DATABASE_ERROR.
+ * Returns the pre-auth session `token` names when its secret matches, it belongs to `purpose`, and `clock.now()` is
+ * before its `expiresAt`; otherwise null. Validation writes nothing: it never extends the expiry, leaves an expired
+ * session for `createPreAuthSession` to clear, and does not consume the session: the flow deletes it when it completes
+ * or is cancelled. A stored payload that fails its purpose's schema throws DATABASE_ERROR.
  */
 export async function validatePreAuthSession<P extends PreAuthPurpose>(
-  deps: { db: AppDatabase; now: Clock },
+  deps: { db: AppDatabase; clock: Clock },
   params: { token: string; purpose: P },
 ): Promise<PreAuthSession<P> | null> {
-  const currentTime = deps.now();
+  const currentTime = deps.clock.now();
   const session = await findVerifiedToken(params.token, (id) =>
     preAuthSessions.findPreAuthSessionById(deps.db, id, params.purpose),
   );

@@ -1,8 +1,14 @@
-/**
- * Reads the current time. Use cases declare `now: Clock` in their `deps`; request entry points supply `now` below, and
- * tests supply a fixed clock.
- */
-export type Clock = () => Date;
+/** Use cases declare `clock: Clock` in their `deps`; tests supply a fixed clock. */
+export interface Clock {
+  /** Returns the current time; a use case reads it once when related decisions need the same instant. */
+  now(): Date;
+}
 
-/** Returns the current time as a new `Date`; a use case reads it once when related decisions need the same instant. */
-export const now: Clock = () => new Date();
+/**
+ * The production implementation, returning a new `Date` on each call; request entry points supply it as `deps.clock`.
+ */
+export const clock: Clock = {
+  now() {
+    return new Date();
+  },
+};

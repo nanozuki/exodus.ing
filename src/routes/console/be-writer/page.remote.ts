@@ -2,7 +2,7 @@ import { form, getRequestEvent } from '$app/server';
 import z from 'zod';
 import { invalid, isHttpError, redirect } from '@sveltejs/kit';
 import { db } from '#lib/server/registry.js';
-import { now } from '#lib/server/adapters/clock.js';
+import { clock } from '#lib/server/adapters/clock.js';
 import { acceptInviteCode as acceptInviteCodeUseCase } from '#lib/server/use-cases/invite_code.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { loadLayoutData } from '../../layout.remote';
@@ -19,7 +19,7 @@ export const acceptInviteCode = form(
     const actor = getRequestEvent().locals.requireLoggedInUser('accept invite code');
 
     try {
-      await acceptInviteCodeUseCase({ db, now }, { actor, code: inviteCode });
+      await acceptInviteCodeUseCase({ db, clock }, { actor, code: inviteCode });
     } catch (error) {
       if (isHttpError(error) && error.body.detail?.tag === 'PARAMETER_INVALID') {
         const fields = error.body.detail.value;

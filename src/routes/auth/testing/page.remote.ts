@@ -1,7 +1,7 @@
 import { form, getRequestEvent, query } from '$app/server';
 import { sanitizeNext, setSessionCookie } from '#lib/server/transport/auth.js';
 import { createSession } from '#lib/server/use-cases/session.js';
-import { now } from '#lib/server/adapters/clock.js';
+import { clock } from '#lib/server/adapters/clock.js';
 import { random } from '#lib/server/adapters/random.js';
 import { getUsers, findUserById } from '#lib/server/repositories/user.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
@@ -46,7 +46,7 @@ export const simulateTestingLogin = form(simulateTestingLoginSchema, async ({ us
   if (!user) {
     throwError('NOT_FOUND', { resource: '用户' });
   }
-  const { session, token } = await createSession({ db, now, random }, { userId: user.id });
+  const { session, token } = await createSession({ db, clock, random }, { userId: user.id });
   const { cookies } = getRequestEvent();
   setSessionCookie(cookies, 'auth', { token, expiresAt: session.expiresAt });
 

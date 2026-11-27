@@ -5,6 +5,7 @@ import { Permission } from '#lib/models/role.js';
 import { throwError } from '#lib/errors.js';
 import { compileArticle, type MarkdownArticleIssue } from '#lib/markdown.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
+import type { NameResolver } from '#lib/server/adapters/name_resolver.js';
 import { getArticleById, createArticle, updateArticle } from '#lib/server/repositories/article.js';
 
 /** A rejected document is a validation result, not an error; the remote maps `issues` to its `content` field. */
@@ -68,10 +69,10 @@ export async function saveMarkdownArticle(
  * the record. Resolver failures propagate. URL parsing and actor authorization stay with the caller.
  */
 export async function verifyDomainOwnership(
-  deps: { resolveTxt: (hostname: string) => Promise<string[]> },
+  deps: { nameResolver: NameResolver },
   params: { url: URL; verificationCode: string },
 ): Promise<boolean> {
-  return (await deps.resolveTxt(params.url.hostname)).some((record) =>
+  return (await deps.nameResolver.resolveTxt(params.url.hostname)).some((record) =>
     record.includes(`exodus-site-verification=${params.verificationCode}`),
   );
 }
@@ -85,7 +86,7 @@ export async function verifyDomainOwnership(
  * `replyToId` when given.
  */
 export async function saveExternalArticle(
-  deps: { db: AppDatabase; resolveTxt: (hostname: string) => Promise<string[]> },
+  deps: { db: AppDatabase; nameResolver: NameResolver },
   params: { actor: LoggedInUser; articleId?: string; url: URL; content: string; title: string; replyToId?: string },
 ): Promise<SaveExternalArticleResult> {
   requireAuthor(params.actor);

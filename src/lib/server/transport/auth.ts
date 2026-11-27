@@ -9,7 +9,7 @@ import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';
 import type { GitHubOAuth } from '#lib/server/adapters/github_auth.js';
 import { db } from '#lib/server/registry.js';
-import { now } from '#lib/server/adapters/clock.js';
+import { clock } from '#lib/server/adapters/clock.js';
 import { validateSession } from '#lib/server/use-cases/session.js';
 import { findUserById } from '#lib/server/repositories/user.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
@@ -128,7 +128,7 @@ async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
   if (!token) {
     return null;
   }
-  const result = await validateSession({ db, now }, { token });
+  const result = await validateSession({ db, clock }, { token });
   if (!result) {
     return null;
   }

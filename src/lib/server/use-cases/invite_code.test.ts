@@ -40,14 +40,14 @@ describe('acceptInviteCode', () => {
     const db = database.db;
     const invite = await createInviteCode({ db }, { actor: author });
     const now = vi.fn(() => instant);
-    await acceptInviteCode({ db, now }, { actor: reader, code: invite.code });
+    await acceptInviteCode({ db, clock: { now } }, { actor: reader, code: invite.code });
     expect(now).toHaveBeenCalledTimes(1);
   });
 
   it('throws PARAMETER_INVALID on inviteCode for a used code', async () => {
     const db = database.db;
     const invite = await createInviteCode({ db }, { actor: author });
-    const deps = { db, now: () => instant };
+    const deps = { db, clock: { now: () => instant } };
     await acceptInviteCode(deps, { actor: reader, code: invite.code });
     await expect(acceptInviteCode(deps, { actor: reader, code: invite.code })).rejects.toMatchObject({
       status: 400,
@@ -57,7 +57,7 @@ describe('acceptInviteCode', () => {
 
   it('throws PARAMETER_INVALID on inviteCode for a missing code', async () => {
     await expect(
-      acceptInviteCode({ db: database.db, now: () => instant }, { actor: reader, code: 'absent' }),
+      acceptInviteCode({ db: database.db, clock: { now: () => instant } }, { actor: reader, code: 'absent' }),
     ).rejects.toMatchObject({
       status: 400,
       body: { detail: { tag: 'PARAMETER_INVALID', value: { inviteCode: '邀请码不存在' } } },

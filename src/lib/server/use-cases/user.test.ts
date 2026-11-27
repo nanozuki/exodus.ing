@@ -26,7 +26,7 @@ const instant = new Date('2026-06-01T00:00:00Z');
 function deps(sessionId: string, at = instant) {
   return {
     db: database.db,
-    now: () => at,
+    clock: { now: () => at },
     random: { sessionId: () => sessionId, sessionSecret: () => `${sessionId}-secret` },
   };
 }
@@ -88,7 +88,8 @@ describe('signInWithIdentity', () => {
 });
 
 describe('fetchSignUpPrefill', () => {
-  const prefill = (token: string, at = instant) => fetchSignUpPrefill({ db: database.db, now: () => at }, { token });
+  const prefill = (token: string, at = instant) =>
+    fetchSignUpPrefill({ db: database.db, clock: { now: () => at } }, { token });
 
   it('returns the hints and keeps the pending sign-up', async () => {
     const token = await startSignUp('200', { username: 'hinted', name: 'Hinted Name' });
@@ -174,7 +175,7 @@ describe('completeSignUp', () => {
     await expect(complete(token, username, name)).rejects.toMatchObject({
       body: { detail: { tag: 'PARAMETER_INVALID', value } },
     });
-    expect(await fetchSignUpPrefill({ db: database.db, now: () => instant }, { token })).not.toBeNull();
+    expect(await fetchSignUpPrefill({ db: database.db, clock: { now: () => instant } }, { token })).not.toBeNull();
   });
 
   it('rejects a taken name as PARAMETER_INVALID and keeps the pending sign-up', async () => {
@@ -182,7 +183,7 @@ describe('completeSignUp', () => {
     await expect(complete(token, 'fresh-name', author.name)).rejects.toMatchObject({
       body: { detail: { tag: 'PARAMETER_INVALID', value: { name: '昵称已存在' } } },
     });
-    expect(await fetchSignUpPrefill({ db: database.db, now: () => instant }, { token })).not.toBeNull();
+    expect(await fetchSignUpPrefill({ db: database.db, clock: { now: () => instant } }, { token })).not.toBeNull();
   });
 
   it('creates one account when the same pending sign-up completes twice concurrently', async () => {
@@ -202,26 +203,26 @@ describe('completeSignUp', () => {
       body: { detail: { tag: 'DATABASE_ERROR' } },
     });
     expect(await findUserByUsername(database.db, 'raced-again')).toBeNull();
-    expect(await fetchSignUpPrefill({ db: database.db, now: () => instant }, { token })).not.toBeNull();
+    expect(await fetchSignUpPrefill({ db: database.db, clock: { now: () => instant } }, { token })).not.toBeNull();
   });
 });
 
 describe('cancelSignUp', () => {
   it('deletes the pending sign-up so it can no longer complete', async () => {
     const token = await startSignUp('400');
-    await cancelSignUp({ db: database.db, now: () => instant }, { token });
+    await cancelSignUp({ db: database.db, clock: { now: () => instant } }, { token });
     expect(await completeSignUp(deps('after-cancel'), { token, username: 'cancelled', name: 'Cancelled' })).toBeNull();
   });
 
   it('leaves an expired pending sign-up for the next creation to clear', async () => {
     const token = await startSignUp('402');
-    await cancelSignUp({ db: database.db, now: () => new Date(+instant + 10 * 60000) }, { token });
+    await cancelSignUp({ db: database.db, clock: { now: () => new Date(+instant + 10 * 60000) } }, { token });
     expect(await findPreAuthSessionById(database.db, 'pending-402', PreAuthPurpose.SignUp)).not.toBeNull();
   });
 
   it('leaves the pending sign-up for a wrong secret', async () => {
     const token = await startSignUp('401');
-    await cancelSignUp({ db: database.db, now: () => instant }, { token: 'pending-401.wrong' });
-    expect(await fetchSignUpPrefill({ db: database.db, now: () => instant }, { token })).not.toBeNull();
+    await cancelSignUp({ db: database.db, clock: { now: () => instant } }, { token: 'pending-401.wrong' });
+    expect(await fetchSignUpPrefill({ db: database.db, clock: { now: () => instant } }, { token })).not.toBeNull();
   });
 });

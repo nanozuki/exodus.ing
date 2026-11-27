@@ -3,7 +3,7 @@
 Server business operations that need external capabilities. Each operation takes
 `deps`, only the capabilities it uses, and `params`, the invocation data.
 Callers supply trusted authenticated actors, provider identities, parsed URLs,
-and request-independent values; request entry points supply `now` from
+and request-independent values; request entry points supply `clock` from
 `adapters/clock.ts`.
 
 Use cases call repository functions with `deps.db`; repositories own

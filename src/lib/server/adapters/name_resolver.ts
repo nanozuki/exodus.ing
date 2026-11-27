@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { throwError } from '#lib/errors.js';
 
+/** Use cases declare `nameResolver: NameResolver` in their `deps`; tests supply fixed records. */
+export interface NameResolver {
+  /** Returns the raw data of each TXT record of `domain`, or `[]` when it has none; lookup failures throw. */
+  resolveTxt(domain: string): Promise<string[]>;
+}
+
 const dnsResponseSchema = z.object({
   Status: z.number(),
   Answer: z.array(z.object({ data: z.string() })).optional(),
@@ -32,3 +38,6 @@ export async function resolveTxt(domain: string): Promise<string[]> {
   }
   return json.Answer?.map((record) => record.data) ?? [];
 }
+
+/** The production implementation, backed by `resolveTxt`; request entry points supply it as `deps.nameResolver`. */
+export const nameResolver: NameResolver = { resolveTxt };

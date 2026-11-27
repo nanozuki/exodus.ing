@@ -41,9 +41,9 @@ A pure function computes the same result from the same input values without
 observable side effects. Deterministic library calls can be pure; an import or
 an asynchronous signature alone does not establish an external dependency.
 
-- Calling `now()` or `new Date()` to obtain the current time uses an external
-  dependency. Comparing a session's expiration with a supplied `currentTime`
-  value is pure.
+- Calling `clock.now()` or `new Date()` to obtain the current time uses an
+  external dependency. Comparing a session's expiration with a supplied
+  `currentTime` value is pure.
 - Reading `process.env` uses an external dependency. Calculating a quota from
   supplied counts and configuration values is pure.
 - Calling a DNS resolver uses an external dependency. Checking supplied TXT
@@ -77,7 +77,7 @@ For example:
 - **Invite quota query:** `getInviteQuota({ db }, { userId })` belongs in use
   cases. It reads the required statistics consistently through a repository and
   calculates the quota directly in the same function.
-- **Session validation:** `validateSession({ db, now }, { token })` belongs in
+- **Session validation:** `validateSession({ db, clock }, { token })` belongs in
   use cases. It loads the session, compares its expiration with the injected
   clock's current time, and decides whether to renew it through a repository
   operation. The expiration comparison stays in this operation. The repository's
@@ -117,13 +117,16 @@ operation's successful return type.
   import them and pass the database instead of injecting a repository set.
   Acquire dependencies through this argument rather than a global service
   registry.
+- Each capability in `deps` is an object that exposes its operations as named
+  methods, such as `clock.now()` and `random.sessionId()`, even when it has a
+  single operation.
 - `params` contains the data for this invocation, including an authenticated
   actor when needed.
 
-When an operation needs the current time, accept `deps.now: Clock` from
+When an operation needs the current time, accept `deps.clock: Clock` from
 `src/lib/server/adapters/clock.ts`. Request entry points supply the adapter's
-`now`; tests can supply a fixed clock. Read it once when related decisions need
-the same instant, and use that value throughout the operation. Persistence
+`clock`; tests can supply a fixed clock. Read it once when related decisions
+need the same instant, and use that value throughout the operation. Persistence
 timestamps managed by database defaults or repository writes remain persistence
 concerns.
 

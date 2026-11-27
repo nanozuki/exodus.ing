@@ -2,7 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { readGitHubCallbackData, sanitizeNext, setSessionCookie } from '#lib/server/transport/auth.js';
 import { getConfig } from '#lib/server/config.js';
 import { adapters, db } from '#lib/server/registry.js';
-import { now } from '#lib/server/adapters/clock.js';
+import { clock } from '#lib/server/adapters/clock.js';
 import { random } from '#lib/server/adapters/random.js';
 import { signInWithIdentity } from '#lib/server/use-cases/user.js';
 
@@ -17,7 +17,7 @@ export async function GET(request: RequestEvent): Promise<Response> {
   const { code, data } = readGitHubCallbackData(request);
   const githubUser = await adapters.githubOAuth.getUser(code);
   const result = await signInWithIdentity(
-    { db, now, random },
+    { db, clock, random },
     {
       identity: { provider: 'github', subject: String(githubUser.id) },
       hints: { username: githubUser.username, name: githubUser.name ?? undefined },

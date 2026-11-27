@@ -50,11 +50,11 @@ export type SignInResult =
 /**
  * Signs in an identity the provider adapter has verified. When the identity belongs to a user, creates an auth session
  * with `createSession` and changes nothing else. Otherwise creates no user: it starts a pending sign-up, a `sign_up`
- * pre-auth session expiring 10 minutes after `now()` that holds `identity`, the provider's suggested `username` and
- * `name` in `hints`, and `next`, stored unsanitized. OAuth state, cookies, and redirects stay with the caller.
+ * pre-auth session expiring 10 minutes after `clock.now()` that holds `identity`, the provider's suggested `username`
+ * and `name` in `hints`, and `next`, stored unsanitized. OAuth state, cookies, and redirects stay with the caller.
  */
 export async function signInWithIdentity(
-  deps: { db: AppDatabase; now: Clock; random: Random },
+  deps: { db: AppDatabase; clock: Clock; random: Random },
   params: {
     identity: { provider: IdentityProvider; subject: string };
     hints: { username?: string; name?: string };
@@ -79,7 +79,7 @@ export async function signInWithIdentity(
  * not consume the pending sign-up.
  */
 export async function fetchSignUpPrefill(
-  deps: { db: AppDatabase; now: Clock },
+  deps: { db: AppDatabase; clock: Clock },
   params: { token: string },
 ): Promise<{ username: string; name: string } | null> {
   const session = await validatePreAuthSession(deps, { token: params.token, purpose: PreAuthPurpose.SignUp });
@@ -99,7 +99,7 @@ export async function fetchSignUpPrefill(
  * The writes after the user's creation are separate.
  */
 export async function completeSignUp(
-  deps: { db: AppDatabase; now: Clock; random: Random },
+  deps: { db: AppDatabase; clock: Clock; random: Random },
   params: { token: string; username: string; name: string },
 ): Promise<{ session: Session; token: string; next?: string } | null> {
   const pending = await validatePreAuthSession(deps, { token: params.token, purpose: PreAuthPurpose.SignUp });
@@ -119,7 +119,7 @@ export async function completeSignUp(
  * Deletes the live pending sign-up `token` names; any other token is a no-op, since an expired one is cleared when a
  * pre-auth session is next created.
  */
-export async function cancelSignUp(deps: { db: AppDatabase; now: Clock }, params: { token: string }): Promise<void> {
+export async function cancelSignUp(deps: { db: AppDatabase; clock: Clock }, params: { token: string }): Promise<void> {
   const pending = await validatePreAuthSession(deps, { token: params.token, purpose: PreAuthPurpose.SignUp });
   if (pending) await deletePreAuthSession(deps.db, pending.id);
 }

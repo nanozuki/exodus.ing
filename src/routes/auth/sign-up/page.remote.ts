@@ -3,7 +3,7 @@ import { invalid, isHttpError, redirect } from '@sveltejs/kit';
 import z from 'zod';
 import { getConfig } from '#lib/server/config.js';
 import { db } from '#lib/server/registry.js';
-import { now } from '#lib/server/adapters/clock.js';
+import { clock } from '#lib/server/adapters/clock.js';
 import { random } from '#lib/server/adapters/random.js';
 import { deleteSessionCookie, readSessionCookie, sanitizeNext, setSessionCookie } from '#lib/server/transport/auth.js';
 import { cancelSignUp as cancelSignUpUseCase, completeSignUp, fetchSignUpPrefill } from '#lib/server/use-cases/user.js';
@@ -16,7 +16,7 @@ import { cancelSignUp as cancelSignUpUseCase, completeSignUp, fetchSignUpPrefill
 export const loadPageData = query(async (): Promise<{ username: string; name: string }> => {
   const { cookies } = getRequestEvent();
   const token = readSessionCookie(cookies, 'pre_auth');
-  const prefill = token ? await fetchSignUpPrefill({ db, now }, { token }) : null;
+  const prefill = token ? await fetchSignUpPrefill({ db, clock }, { token }) : null;
   if (!prefill) redirect(302, '/auth');
   return prefill;
 });
@@ -38,7 +38,7 @@ export const submitSignUp = form(submitSignUpSchema, async ({ username, name }, 
   let result: Awaited<ReturnType<typeof completeSignUp>> = null;
   if (token) {
     try {
-      result = await completeSignUp({ db, now, random }, { token, username, name });
+      result = await completeSignUp({ db, clock, random }, { token, username, name });
     } catch (error) {
       if (isHttpError(error) && error.body.detail?.tag === 'PARAMETER_INVALID') {
         const fields = error.body.detail.value;
@@ -63,7 +63,7 @@ export const submitSignUp = form(submitSignUpSchema, async ({ username, name }, 
 export const cancelSignUp = form(async () => {
   const { cookies } = getRequestEvent();
   const token = readSessionCookie(cookies, 'pre_auth');
-  if (token) await cancelSignUpUseCase({ db, now }, { token });
+  if (token) await cancelSignUpUseCase({ db, clock }, { token });
   deleteSessionCookie(cookies, 'pre_auth');
   redirect(303, '/auth');
 });

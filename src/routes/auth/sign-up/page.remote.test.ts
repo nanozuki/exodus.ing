@@ -52,7 +52,7 @@ beforeEach(() => {
 // Starts a pending sign-up as the OAuth callback does and stores its token in the sign-up cookie.
 async function pendingSignUp(subject: string, next?: string) {
   const result = await signInWithIdentity(
-    { db: database.db, now: () => new Date(), random },
+    { db: database.db, clock: { now: () => new Date() }, random },
     { identity: { provider: 'github', subject }, hints: { username: `login-${subject}`, name: 'GitHub Name' }, next },
   );
   if (result.status !== 'sign_up_required') throw new Error('expected a pending sign-up');
@@ -96,7 +96,7 @@ describe('submitSignUp', () => {
     const user = await findUserByIdentity(database.db, { provider: 'github', subject: '600' });
     expect(user).toMatchObject({ username: 'page-user', name: 'Page User' });
     const session = await validateSession(
-      { db: database.db, now: () => new Date() },
+      { db: database.db, clock: { now: () => new Date() } },
       { token: values.get('auth_session')! },
     );
     expect(session?.session.userId).toBe(user!.id);
