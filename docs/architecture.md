@@ -273,20 +273,24 @@ and normalize unexpected failures.
 
 ## Testing
 
-Each layer's tests cover the decisions that layer makes, with one representative
-case per branch. A rule decided in a lower layer is tested there and not
-enumerated again above it.
+Every exported function has tests of its own that cover the behavior its doc
+comment promises. A caller's tests therefore cover only the caller's own
+decisions: the arguments it passes to an exported function of this project, and
+what it does with each kind of result that function returns or throws, with one
+representative case for each kind. They leave the callee's cases to the callee's
+tests. A function that is not exported has no tests of its own, so its callers'
+tests cover it.
 
-- **Models, repositories, use cases, and transport** verify the observable
-  behavior their doc comments promise, covering every case of the rules they
-  decide.
-- **Remote functions and route handlers** verify their translation: the request
-  values they read and pass on, how errors become field issues, and the cookies,
-  redirects, and query updates they apply. A rule a callee decides, such as how
-  `sanitizeNext` treats each `next`, needs only the one case that shows the
-  caller applies it.
-- **Pages and layouts** are covered by E2E scenarios. Give one a component test
-  only for display logic of its own, such as `+error.svelte` choosing a title
-  for each status.
-- **E2E scenarios** cover journeys across the layers, as
-  [E2E Testing](e2e-testing.md) describes.
+- `submitSignUp` calls `completeSignUp`, whose tests cover taken usernames and
+  spent pending sign-ups. The remote's tests cover what it does with each
+  outcome: a PARAMETER_INVALID field becomes that field's issue, a null result
+  deletes the pre-auth cookie and redirects to `/auth`, and success sets the
+  auth cookie and the viewer.
+- The GitHub callback, the simulated login, and `submitSignUp` each redirect to
+  `sanitizeNext(next, appUrl)`, whose tests cover every unsafe `next`. Each
+  caller needs one unsafe `next` to show that it applies the function.
+
+Pages and layouts compose remote functions and components, and E2E scenarios
+cover the journeys through them, as [E2E Testing](e2e-testing.md) describes.
+Give one a component test only for display logic it decides itself, such as
+`+error.svelte` choosing a title for each status.
