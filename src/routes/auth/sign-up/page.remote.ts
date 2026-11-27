@@ -7,6 +7,9 @@ import { clock } from '#lib/server/adapters/clock.js';
 import { random } from '#lib/server/adapters/random.js';
 import { deleteSessionCookie, readSessionCookie, sanitizeNext, setSessionCookie } from '#lib/server/transport/auth.js';
 import { cancelSignUp as cancelSignUpUseCase, completeSignUp, fetchSignUpPrefill } from '#lib/server/use-cases/user.js';
+import { findUserById } from '#lib/server/repositories/user.js';
+import { getRolesOfUser } from '#lib/server/repositories/role.js';
+import { loadLayoutData } from '../../layout.remote';
 
 /**
  * Returns the sign-up form's initial `username` and `name` from `fetchSignUpPrefill` for the pre-auth cookie's token.
@@ -28,9 +31,10 @@ const submitSignUpSchema = z.object({
 
 /**
  * Creates the account for the pending sign-up with the trimmed `username` and `name`, sets the auth cookie, deletes the
- * pre-auth cookie, and redirects 303 to the sanitized stored `next`. PARAMETER_INVALID `username` and `name` become
- * field issues. A missing, expired, or already used pending sign-up creates nothing, deletes the cookie, and redirects
- * 303 to `/auth`. Other errors propagate. Field issues and other errors keep the pending sign-up and its cookie.
+ * pre-auth cookie, sets the root layout query to the new viewer, and redirects 303 to the sanitized stored `next`.
+ * PARAMETER_INVALID `username` and `name` become field issues. A missing, expired, or already used pending sign-up
+ * creates nothing, deletes the cookie, and redirects 303 to `/auth`. Other errors propagate. Field issues and other
+ * errors keep the pending sign-up and its cookie.
  */
 export const submitSignUp = form(submitSignUpSchema, async ({ username, name }, issue) => {
   const { cookies } = getRequestEvent();
@@ -51,6 +55,11 @@ export const submitSignUp = form(submitSignUpSchema, async ({ username, name }, 
   deleteSessionCookie(cookies, 'pre_auth');
   if (!result) redirect(303, '/auth');
   setSessionCookie(cookies, 'auth', { token: result.token, expiresAt: result.session.expiresAt });
+  // Locals still hold the anonymous visitor, so set the viewer explicitly; a global refresh would also rerun this
+  // page's spent `loadPageData`, whose redirect to `/auth` can win over the one below.
+  const userId = result.session.userId;
+  const [user, roles] = await Promise.all([findUserById(db, userId), getRolesOfUser(db, userId)]);
+  loadLayoutData().set({ user: user && { ...user, roles } });
   // SvelteKit treats an absolute URL as external unless it matches the request origin, so allow the app's own origin.
   const { appUrl } = getConfig();
   redirect(303, sanitizeNext(result.next, appUrl), { external: [appUrl] });

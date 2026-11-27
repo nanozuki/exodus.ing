@@ -7,19 +7,14 @@
   - `cancelSignUp` form: cancel `Button`
 -->
 <script lang="ts">
-  import { refreshAll } from '$app/navigation';
   import Button from '#lib/component/Button.svelte';
   import Input from '#lib/component/Input.svelte';
   import { cancelSignUp, loadPageData, submitSignUp } from './page.remote';
 
   const prefill = $derived(await loadPageData());
 
-  // Both forms end the pending sign-up, after which `loadPageData` redirects. The default post-submit refresh resets
-  // and reruns it while this page is still mounted, so take over updates and refresh only once the redirect has
-  // navigated away; completing changes the viewer, so the new page's queries must reload.
-  const signUp = submitSignUp.enhance(async ({ submit }) => {
-    if (await submit().updates()) await refreshAll();
-  });
+  // Cancelling ends the pending sign-up, after which `loadPageData` redirects; the default post-submit refresh would
+  // rerun it, so take over updates. `submitSignUp` sets the viewer on the server, which skips that refresh itself.
   const cancel = cancelSignUp.enhance(async ({ submit }) => {
     await submit().updates();
   });
@@ -31,7 +26,7 @@
 </svelte:head>
 
 <p class="font-serif text-2xl font-bold">注册</p>
-<form {...signUp} class="gap-y-m flex flex-col sm:max-w-[60%]">
+<form {...submitSignUp} class="gap-y-m flex flex-col sm:max-w-[60%]">
   <Input
     {...submitSignUp.fields.username.as('text', prefill.username)}
     label="用户名"

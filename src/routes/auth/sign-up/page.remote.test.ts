@@ -5,8 +5,9 @@ import { createUser, findUserByIdentity, findUserByUsername } from '#lib/server/
 import { validateSession } from '#lib/server/use-cases/session.js';
 import { signInWithIdentity } from '#lib/server/use-cases/user.js';
 import { random } from '#lib/server/adapters/random.js';
+import { getRolesOfUser } from '#lib/server/repositories/role.js';
 
-const state = vi.hoisted(() => ({ db: undefined as unknown, cookies: undefined as unknown }));
+const state = vi.hoisted(() => ({ db: undefined as unknown, cookies: undefined as unknown, setLayout: vi.fn() }));
 
 vi.mock('$app/server', () => ({
   form: (...args: unknown[]) => Object.assign(args.at(-1) as object, { __: { type: 'form' } }),
@@ -18,6 +19,7 @@ vi.mock('#lib/server/registry.js', () => ({
     return state.db;
   },
 }));
+vi.mock('../../layout.remote', () => ({ loadLayoutData: () => ({ set: state.setLayout }) }));
 vi.mock('#lib/server/config.js', () => ({ getConfig: () => ({ appUrl: 'https://exodus.test' }) }));
 
 import { cancelSignUp, loadPageData, submitSignUp } from './page.remote';
@@ -42,6 +44,7 @@ afterAll(async () => {
 
 beforeEach(() => {
   values = new Map();
+  state.setLayout.mockClear();
   state.cookies = {
     get: (name: string) => values.get(name),
     set: (name: string, value: string) => void values.set(name, value),
@@ -87,7 +90,7 @@ describe('loadPageData', () => {
 });
 
 describe('submitSignUp', () => {
-  it('creates the account, swaps the sign-up cookie for a session, and returns to next', async () => {
+  it('creates the account, swaps the sign-up cookie for a session, sets the viewer, and returns to next', async () => {
     await pendingSignUp('600', '/console');
     await expect(submit({ username: 'page-user', name: 'Page User' }, issue())).rejects.toMatchObject({
       status: 303,
@@ -101,6 +104,9 @@ describe('submitSignUp', () => {
     );
     expect(session?.session.userId).toBe(user!.id);
     expect(values.has('pre_auth_session')).toBe(false);
+    expect(state.setLayout).toHaveBeenCalledExactlyOnceWith({
+      user: { ...user, roles: await getRolesOfUser(database.db, user!.id) },
+    });
   });
 
   it('redirects a non-path next to the app home page', async () => {
@@ -118,6 +124,7 @@ describe('submitSignUp', () => {
     });
     expect(values.has('pre_auth_session')).toBe(true);
     expect(await load()).toEqual({ username: 'login-602', name: 'GitHub Name' });
+    expect(state.setLayout).not.toHaveBeenCalled();
   });
 
   it('reports a taken name on its field', async () => {
@@ -149,6 +156,7 @@ describe('submitSignUp', () => {
   it('creates nothing without a sign-up cookie and returns to /auth', async () => {
     await expect(submit({ username: 'no-cookie', name: 'No Cookie' }, issue())).rejects.toMatchObject(toAuth);
     expect(await findUserByUsername(database.db, 'no-cookie')).toBeNull();
+    expect(state.setLayout).not.toHaveBeenCalled();
   });
 });
 
