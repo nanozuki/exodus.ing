@@ -57,8 +57,9 @@ type Declaration = Contract & {
   bodyKey: string;
 };
 
-// Only executable declarations can be tested, so types, interfaces, enums and plain values show no test section
-// unless a test does name them.
+// Only executable declarations can be tested, so only they show a test section without linked tests, marked N/A;
+// types, interfaces, enums and plain values show one only when a test does name them. Whether a declaration needs
+// tests is the project's decision, so a missing one is shown, not warned about.
 const testableKinds = new Set<Declaration['kind']>(['function', 'method', 'getter', 'setter', 'component']);
 
 // A test's name is the titles of its enclosing `describe` blocks followed by its own, outermost first.
@@ -79,7 +80,6 @@ type Warning =
   | { kind: 'test-unlinked'; file: string; test: string[] }
   | { kind: 'covers-unknown'; file: string; test: string[]; symbol: string }
   | { kind: 'covers-unreferenced'; file: string; test: string[]; key: string }
-  | { kind: 'declaration-untested'; key: string }
   | { kind: 'test-removed'; file: string; test: string[] };
 
 // A source file's overview comment, taken from the head snapshot. In a diff report `before` holds the base
@@ -811,9 +811,6 @@ function takeSnapshot(source: string, layout: Layout, mode: CommentMode): Snapsh
     }
   }
 
-  for (const declaration of declarations.values())
-    if (testableKinds.has(declaration.kind) && !tests.some((test) => test.covers.includes(declaration.key)))
-      warnings.push({ kind: 'declaration-untested', key: declaration.key });
   return { declarations, files: overviews, tests, warnings, paths };
 }
 
@@ -1070,8 +1067,6 @@ function warningText(warning: Warning): string {
       return `${warning.file}：测试「${testTitle(warning.test)}」关联的声明 ${warning.symbol} 不存在`;
     case 'covers-unreferenced':
       return `${warning.file}：测试「${testTitle(warning.test)}」没有引用 ${warning.key}`;
-    case 'declaration-untested':
-      return `${warning.key}：没有任何测试`;
     case 'test-removed':
       return `${warning.file}：测试「${testTitle(warning.test)}」被删除`;
   }

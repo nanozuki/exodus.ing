@@ -57,8 +57,9 @@ of its own.
   spaces and only blank lines separate paragraphs, so reflowing never counts as
   a change.
 - **Only executable declarations take tests**: functions, methods, getters,
-  setters, and components. Only they show a test section and only they are
-  reported as untested.
+  setters, and components. Only they show a test section without linked tests,
+  marked N/A. Which declarations need tests is the project's decision, so a
+  missing test is shown, not warned about.
 
 ### Svelte components
 
