@@ -1,5 +1,6 @@
 # src/routes/auth
 
-The sign-in page: separate GitHub OAuth registration and login forms that carry
-the requested `next` destination through the OAuth round trip. Outside
-production builds it also links to the simulated login in `testing/`.
+The sign-in page: one GitHub button that carries the requested `next`
+destination through the OAuth round trip. A new identity continues to `sign-up/`
+after the callback. Outside production builds the page also links to the
+simulated login in `testing/`.

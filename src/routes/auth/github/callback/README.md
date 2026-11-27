@@ -1,4 +1,4 @@
 # src/routes/auth/github/callback
 
-The GitHub OAuth callback: completes sign-in or account creation, starts a
-session, sets its cookie, and returns to the requested destination.
+The GitHub OAuth callback: signs in a known GitHub identity and returns to the
+requested destination, or hands an unknown one to the sign-up page.

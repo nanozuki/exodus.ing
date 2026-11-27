@@ -1,13 +1,13 @@
-// user.ts reads user identity and profile data, and persists supplied profile changes.
+// user.ts reads users, their sign-in identities, and profile data, and persists new users and supplied profile changes.
 
-import type { User } from '#lib/models/user.js';
-import { asc, eq } from 'drizzle-orm';
-import { tUser, type AppDatabase, type UserRow } from '#lib/server/db/schema.js';
+import type { IdentityProvider, User, UserIdentity } from '#lib/models/user.js';
+import { and, asc, eq, getTableColumns } from 'drizzle-orm';
+import { tUser, tUserIdentity, type AppDatabase, type UserRow } from '#lib/server/db/schema.js';
 import { newNanoId, newVerifyCode, wrap } from './utils';
 
 function model(row: UserRow): User {
-  const { id, username, githubId, name, aboutMe, verifyCode } = row;
-  return { id, username, githubId, name, aboutMe, verifyCode };
+  const { id, username, name, aboutMe, verifyCode } = row;
+  return { id, username, name, aboutMe, verifyCode };
 }
 
 /** Looks up a 16-character legacy ID by its first six characters; other IDs are used as given. */
@@ -35,11 +35,30 @@ export async function findUserByName(db: AppDatabase, name: string): Promise<Use
   });
 }
 
-export async function findUserByGitHubId(db: AppDatabase, githubId: number): Promise<User | null> {
-  return wrap('findUserByGitHubId', async () => {
-    const [row] = await db.select().from(tUser).where(eq(tUser.githubId, githubId));
+/** Returns the user that owns the identity `subject` at `provider`. */
+export async function findUserByIdentity(
+  db: AppDatabase,
+  identity: { provider: IdentityProvider; subject: string },
+): Promise<User | null> {
+  return wrap('findUserByIdentity', async () => {
+    const [row] = await db
+      .select(getTableColumns(tUser))
+      .from(tUserIdentity)
+      .innerJoin(tUser, eq(tUser.id, tUserIdentity.userId))
+      .where(and(eq(tUserIdentity.provider, identity.provider), eq(tUserIdentity.subject, identity.subject)));
     return row ? model(row) : null;
   });
+}
+
+/** Returns every sign-in identity of the user, oldest first; `[]` also for an unknown user. */
+export async function getIdentitiesOfUser(db: AppDatabase, userId: string): Promise<UserIdentity[]> {
+  return wrap('getIdentitiesOfUser', async () =>
+    db
+      .select({ provider: tUserIdentity.provider, subject: tUserIdentity.subject, userId: tUserIdentity.userId })
+      .from(tUserIdentity)
+      .where(eq(tUserIdentity.userId, userId))
+      .orderBy(asc(tUserIdentity.createdAt)),
+  );
 }
 
 /** Returns every user ordered by ID, without truncation. */
@@ -47,31 +66,37 @@ export async function getUsers(db: AppDatabase): Promise<User[]> {
   return wrap('getUsers', async () => (await db.select().from(tUser).orderBy(asc(tUser.id))).map(model));
 }
 
+/** `identity` is the sign-in method the new user signs up with. */
 export interface CreateUserParams {
   username: string;
-  githubId: number | null;
   name: string;
   aboutMe: string;
+  identity: { provider: IdentityProvider; subject: string };
 }
 
 /**
  * Creates a user with a generated unique six-character ID, a 32-character verification code, and the current time as
- * both timestamps. A uniqueness conflict throws DATABASE_ERROR.
+ * both timestamps, together with its identity, in one transaction. A taken username or name throws PARAMETER_INVALID
+ * on `username` or `name`; an identity that already belongs to a user throws DATABASE_ERROR. Either failure writes
+ * nothing.
  */
-export async function createUser(db: AppDatabase, params: CreateUserParams): Promise<User> {
-  return wrap('createUser', async () => {
-    let id = newNanoId();
-    while (await db.$count(tUser, eq(tUser.id, id))) id = newNanoId();
-    const now = new Date();
-    const [row] = await db
-      .insert(tUser)
-      .values({ ...params, id, verifyCode: newVerifyCode(), createdAt: now, updatedAt: now })
-      .returning();
-    return model(row);
-  });
+export async function createUser(db: AppDatabase, { identity, ...profile }: CreateUserParams): Promise<User> {
+  return wrap('createUser', async () =>
+    db.transaction(async (tx) => {
+      let id = newNanoId();
+      while (await tx.$count(tUser, eq(tUser.id, id))) id = newNanoId();
+      const now = new Date();
+      const [row] = await tx
+        .insert(tUser)
+        .values({ ...profile, id, verifyCode: newVerifyCode(), createdAt: now, updatedAt: now })
+        .returning();
+      await tx.insert(tUserIdentity).values({ ...identity, userId: id, createdAt: now });
+      return model(row);
+    }),
+  );
 }
 
-/** Omitted fields stay unchanged; GitHub identity and verification code cannot change through `updateUser`. */
+/** Omitted fields stay unchanged; the verification code cannot change through `updateUser`. */
 export interface UpdateUserParams {
   id: string;
   username?: string;

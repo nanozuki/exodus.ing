@@ -1,4 +1,4 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { resolveTxt } from './name_resolver';
 
 afterEach(() => vi.unstubAllGlobals());
@@ -27,4 +27,17 @@ it('propagates DNS service, HTTP, network and response failures', async () => {
   await expect(resolveTxt('failure.test')).rejects.toMatchObject({ status: 502 });
   await expect(resolveTxt('failure.test')).rejects.toThrow('network unavailable');
   await expect(resolveTxt('failure.test')).rejects.toBeInstanceOf(SyntaxError);
+});
+
+describe('resolveTxt', () => {
+  it.each([{}, { Status: '0' }, { Status: 0, Answer: [{ type: 16 }] }, { Status: 0, Answer: 'record' }])(
+    'throws EXTERNAL_API_ERROR for a response shaped %j',
+    async (body) => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(body)));
+      await expect(resolveTxt('malformed.test')).rejects.toMatchObject({
+        status: 502,
+        body: { detail: { tag: 'EXTERNAL_API_ERROR' } },
+      });
+    },
+  );
 });

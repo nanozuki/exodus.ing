@@ -1,6 +1,5 @@
-// auth.ts adapts requests for hooks, remote functions, and route handlers: the session and OAuth state cookies,
-// post-sign-in redirect targets, and `App.Locals`. Models and use cases must not import it. Importing it performs no
-// database, network, or cookie operation.
+// auth.ts handles authentication at the request boundary: the auth session, pre-auth session, and OAuth state cookies,
+// post-sign-in redirect targets, and `App.Locals`.
 
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { generateState } from 'arctic';
@@ -9,25 +8,17 @@ import type { Permission } from '#lib/models/role.js';
 import { userHasPermission, type LoggedInUser } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';
 import type { GitHubOAuth } from '#lib/server/adapters/github_auth.js';
-import { db } from './registry';
-import { now } from '#lib/server/adapters/clock.js';
+import { db } from '#lib/server/registry.js';
+import { clock } from '#lib/server/adapters/clock.js';
 import { validateSession } from '#lib/server/use-cases/session.js';
 import { findUserById } from '#lib/server/repositories/user.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 
 const GITHUB_OAUTH_COOKIE_NAME = 'github_oauth_state';
 
-export const AUTH_COOKIE_NAME = 'auth_session';
-
 const OAuthCookieDataSchema = z.object({
   state: z.string(),
   next: z.string().optional(),
-  signUp: z
-    .object({
-      username: z.string().optional(),
-      name: z.string().optional(),
-    })
-    .optional(),
 });
 
 /** The GitHub OAuth state cookie's contents, as validated by `readGitHubCallbackData`. */
@@ -35,18 +26,35 @@ export type OAuthCookieData = z.infer<typeof OAuthCookieDataSchema>;
 
 export type OAuthCookieDataInput = Omit<OAuthCookieData, 'state'>;
 
+/** Which session a session cookie carries; the cookie is named `<kind>_session`. */
+export type SessionCookieKind = 'auth' | 'pre_auth';
+
 /**
- * Sets the `auth_session` cookie to the session token: path `/`, HTTP-only, SameSite lax, expiring at `expiresAt`, and
+ * Sets the `kind` session cookie to the session token: path `/`, HTTP-only, SameSite lax, expiring at `expiresAt`, and
  * secure in production. Call only at request boundaries where cookie writes are permitted.
  */
-export function setAuthCookie(cookies: Cookies, session: { token: string; expiresAt: Date }): void {
-  cookies.set(AUTH_COOKIE_NAME, session.token, {
+export function setSessionCookie(
+  cookies: Cookies,
+  kind: SessionCookieKind,
+  session: { token: string; expiresAt: Date },
+): void {
+  cookies.set(`${kind}_session`, session.token, {
     path: '/',
     secure: import.meta.env.PROD,
     httpOnly: true,
     sameSite: 'lax',
     expires: session.expiresAt,
   });
+}
+
+/** Returns the `kind` session cookie's token, unvalidated, or undefined when the request has none. */
+export function readSessionCookie(cookies: Cookies, kind: SessionCookieKind): string | undefined {
+  return cookies.get(`${kind}_session`);
+}
+
+/** Deletes the `kind` session cookie set by `setSessionCookie`; the stored session is the caller's to delete. */
+export function deleteSessionCookie(cookies: Cookies, kind: SessionCookieKind): void {
+  cookies.delete(`${kind}_session`, { path: '/' });
 }
 
 /**
@@ -83,8 +91,8 @@ export function createGitHubAuthUrl(cookies: Cookies, githubOAuth: GitHubOAuth, 
 /**
  * Reads the callback's `code` and `state` and checks them against the `github_oauth_state` cookie. Deletes the cookie
  * before validating, so it is removed on every callback outcome, including later provider-exchange failures. Missing
- * `code` or `state`, a missing or schema-invalid cookie, or a state mismatch throws BAD_REQUEST; malformed cookie JSON
- * propagates its parse error for the callback route to normalize. The caller exchanges the code and sanitizes `next`.
+ * `code` or `state`, a missing, malformed, or schema-invalid cookie, or a state mismatch throws BAD_REQUEST. The caller
+ * exchanges the code and sanitizes `next`.
  */
 export function readGitHubCallbackData(request: RequestEvent): { code: string; data: OAuthCookieData } {
   const { cookies, url } = request;
@@ -98,7 +106,13 @@ export function readGitHubCallbackData(request: RequestEvent): { code: string; d
   if (!stateCookie) {
     return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie not found');
   }
-  const stateResult = OAuthCookieDataSchema.safeParse(JSON.parse(stateCookie));
+  let cookieJson: unknown;
+  try {
+    cookieJson = JSON.parse(stateCookie);
+  } catch {
+    return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie parse error');
+  }
+  const stateResult = OAuthCookieDataSchema.safeParse(cookieJson);
   if (!stateResult.success) {
     return throwError('BAD_REQUEST', 'OAuth 验证错误: state cookie parse error');
   }
@@ -110,16 +124,16 @@ export function readGitHubCallbackData(request: RequestEvent): { code: string; d
 }
 
 async function loadSession(event: RequestEvent): Promise<LoggedInUser | null> {
-  const token = event.cookies.get(AUTH_COOKIE_NAME);
+  const token = readSessionCookie(event.cookies, 'auth');
   if (!token) {
     return null;
   }
-  const result = await validateSession({ db, now }, { token });
+  const result = await validateSession({ db, clock }, { token });
   if (!result) {
     return null;
   }
   if (result.refresh) {
-    setAuthCookie(event.cookies, { token, expiresAt: result.session.expiresAt });
+    setSessionCookie(event.cookies, 'auth', { token, expiresAt: result.session.expiresAt });
   }
   const [user, roles] = await Promise.all([
     findUserById(db, result.session.userId),

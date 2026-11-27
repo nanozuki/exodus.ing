@@ -9,12 +9,14 @@ import { testDataset } from '#lib/testing/data.js';
 import { databaseSuffix } from './names';
 
 type Scenario = { prepare: (db: Client) => Promise<void> };
+type PendingSignUp = { subject: string; username?: string; name?: string; next?: string };
 type Fixtures = {
   scenario: Scenario;
   db: Client;
   sessions: Map<string, string>;
   app: string;
   actor: (username: string) => Promise<Page>;
+  pendingSignUp: (signUp: PendingSignUp) => Promise<Page>;
 };
 
 async function availablePort(): Promise<number> {
@@ -36,9 +38,11 @@ async function availablePort(): Promise<number> {
  * with a matching `APP_URL`, waiting up to 20 seconds for readiness. The adapter derives the local HTTP origin from
  * `PROTOCOL_HEADER`, so requests must send `x-forwarded-proto: http`: the `extraHTTPHeaders` fixture does, and custom
  * browser contexts must inherit it. `actor(username)` opens a page in a separate browser context carrying that user's
- * session cookie. Teardown follows dependency order: contexts close, the application stops (SIGTERM, then SIGKILL after
- * five seconds), then the database connection closes and a passed test's database is deleted. A failed test keeps its
- * database and attaches its name and the application log.
+ * session cookie. `pendingSignUp` stores a pending sign-up for the GitHub identity `subject`, with the given hints and
+ * `next`, expiring in ten minutes, and opens a page in a separate context carrying its `pre_auth_session` cookie, as the
+ * OAuth callback leaves a new identity. Teardown follows dependency order: contexts close, the application stops
+ * (SIGTERM, then SIGKILL after five seconds), then the database connection closes and a passed test's database is
+ * deleted. A failed test keeps its database and attaches its name and the application log.
  */
 export const test = base.extend<Fixtures>({
   scenario: [{ prepare: async () => {} }, { option: true }],
@@ -151,6 +155,29 @@ export const test = base.extend<Fixtures>({
         const context = await browser.newContext({ baseURL: app, extraHTTPHeaders: { 'x-forwarded-proto': 'http' } });
         contexts.push(context);
         await context.addCookies([{ name: 'auth_session', value: session, url: app, httpOnly: true, sameSite: 'Lax' }]);
+        return context.newPage();
+      });
+    } finally {
+      await Promise.all(contexts.map((context) => context.close()));
+    }
+  },
+  pendingSignUp: async ({ browser, app, db }, use) => {
+    const contexts: BrowserContext[] = [];
+    try {
+      await use(async ({ subject, username, name, next }) => {
+        // Mirror the application's `<id>.<secret>` token and its `sign_up` payload.
+        const id = randomBytes(24).toString('hex');
+        const secret = randomBytes(32).toString('base64url');
+        const payload = { identity: { provider: 'github', subject }, hints: { username, name }, next };
+        await db.query(
+          'INSERT INTO pre_auth_session (id, secret_hash, purpose, payload, expires_at) VALUES ($1, $2, $3, $4, $5)',
+          [id, createHash('sha256').update(secret).digest('hex'), 'sign_up', payload, new Date(Date.now() + 600_000)],
+        );
+        const context = await browser.newContext({ baseURL: app, extraHTTPHeaders: { 'x-forwarded-proto': 'http' } });
+        contexts.push(context);
+        await context.addCookies([
+          { name: 'pre_auth_session', value: `${id}.${secret}`, url: app, httpOnly: true, sameSite: 'Lax' },
+        ]);
         return context.newPage();
       });
     } finally {

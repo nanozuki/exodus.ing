@@ -213,21 +213,6 @@ test('Identity conflicts stay on their fields and preserve unsaved input', async
   await expect(page.locator('input[name^="username/"]')).toHaveValue('alice');
 });
 
-test('Registration identity conflicts display on the matching field', async ({ page }) => {
-  await page.goto('/auth');
-  await page.locator('input[name^="username/"]').fill('alice');
-  await page.locator('input[name^="name/"]').fill('Unreserved Registration Name');
-  await page.getByRole('button', { name: '使用 GitHub 注册', exact: true }).click();
-  await expect(page.locator('input[name^="username/"]')).toHaveAttribute('aria-invalid', 'true');
-  await expect(page.getByText('用户名已存在', { exact: true })).toBeVisible();
-  await expect(page.locator('input[name^="name/"]')).toHaveValue('Unreserved Registration Name');
-  await page.locator('input[name^="username/"]').fill('unreserved-registration-user');
-  await page.locator('input[name^="name/"]').fill('Alice');
-  await page.getByRole('button', { name: '使用 GitHub 注册', exact: true }).click();
-  await expect(page.locator('input[name^="name/"]')).toHaveAttribute('aria-invalid', 'true');
-  await expect(page.getByText('昵称已存在', { exact: true })).toBeVisible();
-});
-
 test('Profile field errors preserve values without JavaScript', async ({
   browser,
   app,

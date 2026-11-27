@@ -1,12 +1,12 @@
 # src/lib/server/repositories
 
 Database reads, writes, model mapping, and internal transactions for articles,
-bookmarks, comments, invitations, roles, sessions, and users. Each operation is
-a standalone exported function that takes `AppDatabase` from
-`src/lib/server/db/schema.ts` as its first parameter; operation-specific object
-parameters are exported as `XxxParams` beside their function, and shared models
-such as `Session` can serve directly as inputs. Importing a module performs no
-queries.
+bookmarks, comments, invitations, roles, sessions, pre-auth sessions, and users
+with their sign-in identities. Each operation is a standalone exported function
+that takes `AppDatabase` from `src/lib/server/db/schema.ts` as its first
+parameter; operation-specific object parameters are exported as `XxxParams`
+beside their function, and shared models such as `Session` can serve directly as
+inputs. Importing a module performs no queries.
 
 Follow the
 [repository conventions](../../../../docs/architecture.md#repositories) for

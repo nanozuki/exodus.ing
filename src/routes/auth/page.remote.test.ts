@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   cookies: { set: vi.fn() },
   createAuthUrl: vi.fn(),
-  validateSignUp: vi.fn(),
 }));
 
 vi.mock('$app/server', () => ({
@@ -16,11 +15,7 @@ vi.mock('#lib/server/registry.js', () => ({
   adapters: { githubOAuth: { createAuthUrl: mocks.createAuthUrl } },
 }));
 
-vi.mock('#lib/server/use-cases/user.js', () => ({ validateSignUp: mocks.validateSignUp }));
-
-import { loginByGithub, registerByGithub } from './page.remote';
-import { throwError } from '#lib/errors.js';
-import { error, invalid, redirect } from '@sveltejs/kit';
+import { loginByGithub } from './page.remote';
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -32,9 +27,8 @@ beforeEach(() => {
 });
 
 // The form mock exposes each server handler so the real cookie and redirect helpers run.
-type Handler = (input: object, issue?: object) => Promise<never>;
+type Handler = (input: object) => Promise<never>;
 const login = loginByGithub as unknown as Handler;
-const register = registerByGithub as unknown as Handler;
 
 const githubRedirect = {
   status: 302,
@@ -54,65 +48,13 @@ describe('loginByGithub', () => {
     expect(mocks.createAuthUrl).toHaveBeenCalledWith(data.state);
   });
 
-  it('carries no signup values', async () => {
+  it('keeps only the state and next in the state cookie', async () => {
     await expect(login({ next: '/console' })).rejects.toMatchObject(githubRedirect);
-    expect(stateCookie().signUp).toBeUndefined();
+    expect(Object.keys(stateCookie()).sort()).toEqual(['next', 'state']);
   });
 
   it('rejects an OAuth URL outside the redirect allowlist', async () => {
     mocks.createAuthUrl.mockReturnValue(new URL('https://unexpected.example/authorize'));
     await expect(login({ next: '/console' })).rejects.toThrow('redirect_external_not_in_allowlist');
-  });
-});
-
-describe('registerByGithub', () => {
-  const input = { next: '/console', username: ' alice ', name: ' Alice ' };
-
-  it('redirects to GitHub with the OAuth state that the state cookie keeps with next', async () => {
-    await expect(register(input)).rejects.toMatchObject(githubRedirect);
-    const data = stateCookie();
-    expect(data).toMatchObject({ state: expect.any(String), next: '/console' });
-    expect(mocks.createAuthUrl).toHaveBeenCalledWith(data.state);
-  });
-
-  it('checks the trimmed signup values and carries them in the state cookie', async () => {
-    await expect(register(input)).rejects.toMatchObject(githubRedirect);
-    expect(mocks.validateSignUp).toHaveBeenCalledWith({ db: {} }, { username: 'alice', name: 'Alice' });
-    expect(stateCookie().signUp).toEqual({ username: 'alice', name: 'Alice' });
-  });
-
-  it('rejects an OAuth URL outside the redirect allowlist', async () => {
-    mocks.createAuthUrl.mockReturnValue(new URL('https://unexpected.example/authorize'));
-    await expect(register(input)).rejects.toThrow('redirect_external_not_in_allowlist');
-  });
-
-  it.each(['username', 'name'] as const)('maps a business %s error to the matching form field', async (field) => {
-    mocks.validateSignUp.mockImplementation(() => throwError('PARAMETER_INVALID', { [field]: '已被使用' }));
-    const issue = { username: vi.fn(), name: vi.fn() };
-    issue[field].mockReturnValue({ path: [field], message: '已被使用' });
-
-    await expect(register({}, issue)).rejects.toMatchObject({
-      issues: [{ path: [field], message: '已被使用' }],
-    });
-    expect(issue[field]).toHaveBeenCalledWith('已被使用');
-    expect(mocks.createAuthUrl).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    () => throwError('FORBIDDEN', { operation: '注册' }),
-    () => error(404, 'Not Found'),
-    () => redirect(303, '/auth'),
-    () => invalid('输入无效'),
-    () => {
-      throw new Error('offline');
-    },
-  ])('preserves errors and control flow that registration cannot map to a field', async (fail) => {
-    const failure = await Promise.resolve()
-      .then(fail)
-      .catch((caught: unknown) => caught);
-    mocks.validateSignUp.mockRejectedValue(failure);
-
-    await expect(register({}, {})).rejects.toBe(failure);
-    expect(mocks.createAuthUrl).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,7 @@ import { userHasPermission } from '#lib/models/user.js';
 import { Permission, Role } from '#lib/models/role.js';
 import { throwError } from '#lib/errors.js';
 import type { AppDatabase } from '#lib/server/db/schema.js';
+import type { Clock } from '#lib/server/adapters/clock.js';
 import * as invites from '#lib/server/repositories/invite_code.js';
 import { createRoleOfUserByInviteCode } from '#lib/server/repositories/role.js';
 
@@ -36,17 +37,17 @@ export async function createInviteCode(
 }
 
 /**
- * Redeems `code` for the actor: grants the code's role and marks it used at `now()` in one transaction, so a
+ * Redeems `code` for the actor: grants the code's role and marks it used at `clock.now()` in one transaction, so a
  * concurrent redemption cannot grant a second role. A missing or already used code throws PARAMETER_INVALID on
  * `inviteCode`. The code is consumed even when the actor already has its role; self-invitation is allowed.
  */
 export async function acceptInviteCode(
-  deps: { db: AppDatabase; now: () => Date },
+  deps: { db: AppDatabase; clock: Clock },
   params: { actor: LoggedInUser; code: string },
 ): Promise<void> {
   const code = await invites.findInviteCodeByCode(deps.db, params.code);
   if (!code) return throwError('PARAMETER_INVALID', { inviteCode: '邀请码不存在' });
   if (code.usedAt) return throwError('PARAMETER_INVALID', { inviteCode: '邀请码已被使用' });
-  const usedAt = deps.now();
+  const usedAt = deps.clock.now();
   await createRoleOfUserByInviteCode(deps.db, { code: params.code, userId: params.actor.id, usedAt });
 }

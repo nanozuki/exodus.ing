@@ -76,7 +76,9 @@ describe('getEditableArticle', () => {
 describe('verifyDomainOwnership', () => {
   it("accepts a TXT record of the URL's hostname that contains the verification token among other text", async () => {
     const resolveTxt = vi.fn(async () => ['prefix exodus-site-verification=correct suffix']);
-    expect(await verifyDomainOwnership({ resolveTxt }, { url: site, verificationCode: 'correct' })).toBe(true);
+    expect(
+      await verifyDomainOwnership({ nameResolver: { resolveTxt } }, { url: site, verificationCode: 'correct' }),
+    ).toBe(true);
     expect(resolveTxt).toHaveBeenCalledWith('example.test');
   });
 
@@ -84,9 +86,9 @@ describe('verifyDomainOwnership', () => {
     const resolveTxt = vi.fn(async (): Promise<string[]> => {
       throw new Error('DNS unavailable');
     });
-    await expect(verifyDomainOwnership({ resolveTxt }, { url: site, verificationCode: '' })).rejects.toThrow(
-      'DNS unavailable',
-    );
+    await expect(
+      verifyDomainOwnership({ nameResolver: { resolveTxt } }, { url: site, verificationCode: '' }),
+    ).rejects.toThrow('DNS unavailable');
   });
 });
 
@@ -95,7 +97,7 @@ describe('saveExternalArticle', () => {
     const resolveTxt = vi.fn(async () => []);
     expect(
       await saveExternalArticle(
-        { db: database.db, resolveTxt },
+        { db: database.db, nameResolver: { resolveTxt } },
         { actor: author, articleId: 'absent', title: '', content: site.href, url: site },
       ),
     ).toEqual({ ok: false, reason: 'unverified-domain' });
@@ -105,7 +107,7 @@ describe('saveExternalArticle', () => {
     const resolveTxt = vi.fn(async () => [`exodus-site-verification=${author.verifyCode}`]);
     const content = 'https://example.test';
     const result = await saveExternalArticle(
-      { db: database.db, resolveTxt },
+      { db: database.db, nameResolver: { resolveTxt } },
       { actor: author, title: 'Verbatim external', content, url: new URL(content) },
     );
     if (!result.ok) throw new Error('expected a saved article');

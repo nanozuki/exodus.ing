@@ -1,8 +1,16 @@
-import { form, getRequestEvent } from '$app/server';
+import { form, getRequestEvent, query } from '$app/server';
 import z from 'zod';
 import { invalid, isHttpError, redirect } from '@sveltejs/kit';
 import { db } from '#lib/server/registry.js';
+import { getIdentitiesOfUser } from '#lib/server/repositories/user.js';
 import { updateUsername as updateUsernameUseCase } from '#lib/server/use-cases/user.js';
+
+/** Requires login and returns the viewer's GitHub ID from their `github` identity, or null when they have none. */
+export const loadPageData = query(async (): Promise<{ githubId: string | null }> => {
+  const user = getRequestEvent().locals.requireLoggedInUser('settings');
+  const identities = await getIdentitiesOfUser(db, user.id);
+  return { githubId: identities.find((identity) => identity.provider === 'github')?.subject ?? null };
+});
 
 const updateUsernameSchema = z.object({
   username: z.string().min(1, '用户名不能为空'),

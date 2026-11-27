@@ -14,6 +14,7 @@ exported declarations, as described under [Comments](code-style.md#comments).
 | Repositories     | Database reads, writes, result mapping, and internal transactions.                                  | `src/lib/server/repositories/`                    |
 | Use cases        | Business functions that require external capabilities and run on the server.                        | `src/lib/server/use-cases/`                       |
 | Adapters         | Request-independent implementations of external capabilities.                                       | `src/lib/server/adapters/`                        |
+| Transport        | Request handling shared by several entry points: cookies, request data, redirect targets, locals.   | `src/lib/server/transport/`                       |
 | Remote functions | Adapt frontend component inputs and outputs, and organize component-specific data and interactions. | Beside the page, layout, or component they serve. |
 
 ### Business Function Boundaries
@@ -40,13 +41,22 @@ A pure function computes the same result from the same input values without
 observable side effects. Deterministic library calls can be pure; an import or
 an asynchronous signature alone does not establish an external dependency.
 
-- Calling `now()` or `new Date()` to obtain the current time uses an external
-  dependency. Comparing a session's expiration with a supplied `currentTime`
-  value is pure.
+- Calling `clock.now()` or `new Date()` to obtain the current time uses an
+  external dependency. Comparing a session's expiration with a supplied
+  `currentTime` value is pure.
 - Reading `process.env` uses an external dependency. Calculating a quota from
   supplied counts and configuration values is pure.
 - Calling a DNS resolver uses an external dependency. Checking supplied TXT
   records for a verification code is pure.
+
+### External Data
+
+Parse every value that enters from outside the program with zod in the module
+where it enters, so code past that point works with checked types. Outside data
+includes request inputs, cookies, environment variables, provider and DNS
+responses, and stored JSON whose shape the database does not enforce. Derive the
+TypeScript type from the schema with `z.infer` so the two stay in step. A value
+that fails parsing throws, and the entering module's contract names the error.
 
 ### Business Rules and Data Access
 
@@ -67,10 +77,11 @@ For example:
 - **Invite quota query:** `getInviteQuota({ db }, { userId })` belongs in use
   cases. It reads the required statistics consistently through a repository and
   calculates the quota directly in the same function.
-- **Session validation:** `validateSession({ db, now }, { sessionId })` belongs
-  in use cases. It loads the session, compares its expiration with the injected
-  clock's current time, and decides whether to delete or renew it through
-  repository operations. The expiration comparison stays in this operation.
+- **Session validation:** `validateSession({ db, clock }, { token })` belongs in
+  use cases. It loads the session, compares its expiration with the injected
+  clock's current time, and decides whether to renew it through a repository
+  operation. The expiration comparison stays in this operation. The repository's
+  create deletes expired rows, taking the current time from the use case.
 
 ### Data and Type Placement
 
@@ -106,13 +117,16 @@ operation's successful return type.
   import them and pass the database instead of injecting a repository set.
   Acquire dependencies through this argument rather than a global service
   registry.
+- Each capability in `deps` is an object that exposes its operations as named
+  methods, such as `clock.now()` and `random.sessionId()`, even when it has a
+  single operation.
 - `params` contains the data for this invocation, including an authenticated
   actor when needed.
 
-When an operation needs the current time, accept a clock such as
-`deps.now: () => Date`. Request entry points supply the clock adapter's `now`;
-tests can supply a fixed clock. Read it once when related decisions need the
-same instant, and use that value throughout the operation. Persistence
+When an operation needs the current time, accept `deps.clock: Clock` from
+`src/lib/server/adapters/clock.ts`. Request entry points supply the adapter's
+`clock`; tests can supply a fixed clock. Read it once when related decisions
+need the same instant, and use that value throughout the operation. Persistence
 timestamps managed by database defaults or repository writes remain persistence
 concerns.
 
@@ -123,6 +137,11 @@ functions for component calls, and hooks or route handlers for other entry
 points. This includes `getRequestEvent()`, cookies, redirects, input parsing,
 serialization, and remote-query refreshes. Entry points supply explicit
 dependencies and parameters to use cases.
+
+Transport modules translate between requests and use-case inputs and outputs.
+Use cases make the business decisions, such as lifetimes, sign-in outcomes, and
+input rules; transport applies their results to the request and response.
+Request handling used by one entry point stays beside it.
 
 Preserve the framework query refresh, form fields, enhancement, and pending APIs
 for remote interactions.
@@ -254,5 +273,24 @@ and normalize unexpected failures.
 
 ## Testing
 
-Repository and use-case tests verify the observable behavior promised by the doc
-comments of the declarations they test.
+Every exported function has tests of its own that cover the behavior its doc
+comment promises. A caller's tests therefore cover only the caller's own
+decisions: the arguments it passes to an exported function of this project, and
+what it does with each kind of result that function returns or throws, with one
+representative case for each kind. They leave the callee's cases to the callee's
+tests. A function that is not exported has no tests of its own, so its callers'
+tests cover it.
+
+- `submitSignUp` calls `completeSignUp`, whose tests cover taken usernames and
+  spent pending sign-ups. The remote's tests cover what it does with each
+  outcome: a PARAMETER_INVALID field becomes that field's issue, a null result
+  deletes the pre-auth cookie and redirects to `/auth`, and success sets the
+  auth cookie and the viewer.
+- The GitHub callback, the simulated login, and `submitSignUp` each redirect to
+  `sanitizeNext(next, appUrl)`, whose tests cover every unsafe `next`. Each
+  caller needs one unsafe `next` to show that it applies the function.
+
+Pages and layouts compose remote functions and components, and E2E scenarios
+cover the journeys through them, as [E2E Testing](e2e-testing.md) describes.
+Give one a component test only for display logic it decides itself, such as
+`+error.svelte` choosing a title for each status.

@@ -1,9 +1,11 @@
 // schema.ts declares the Drizzle tables and their inferred row types; insert shapes come from each table's
 // $inferInsert. `createdAt` and `updatedAt` columns are required and default to now. Tables declare no foreign keys.
 
-import { index, integer, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, uniqueIndex, primaryKey, timestamp, serial } from 'drizzle-orm/pg-core';
 import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ArticleContentType } from '#lib/models/article.js';
+import type { PreAuthPurpose } from '#lib/models/session.js';
+import type { IdentityProvider } from '#lib/models/user.js';
 
 const timestamps = {
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -20,6 +22,7 @@ export const tUser = pgTable('user', {
   verifyCode: text('verify_code').notNull(),
 });
 
+/** Indexed on `user_id` and on `expires_at`. Expired rows are deleted whenever a session is created. */
 export const tSession = pgTable(
   'session',
   {
@@ -31,6 +34,40 @@ export const tSession = pgTable(
   (table) => [index('session_user_id_idx').on(table.userId), index('expires_at_idx').on(table.expiresAt)],
 );
 
+/**
+ * Short-lived, single-use state for flows that run before an auth session exists, such as sign-up. `id` is a non-secret
+ * lookup key and `secret_hash` the hash of the token's secret. The `payload` shape depends on `purpose` and is not
+ * validated by the database. Expired rows are deleted whenever a pre-auth session is created. `expires_at` has no
+ * index, so that delete scans the table, which stays small because rows expire after a short lifetime.
+ */
+export const tPreAuthSession = pgTable('pre_auth_session', {
+  id: text('id').notNull().primaryKey(),
+  secretHash: text('secret_hash').notNull(),
+  purpose: text('purpose').$type<PreAuthPurpose>().notNull(),
+  payload: jsonb('payload').notNull(),
+  createdAt: timestamps.createdAt,
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
+/**
+ * A user's sign-in method. `subject` is the provider's user ID as text. The primary key is (`subject`, `provider`), so
+ * an identity belongs to at most one user; `user_id` is indexed to list a user's identities.
+ */
+export const tUserIdentity = pgTable(
+  'user_identity',
+  {
+    provider: text('provider').$type<IdentityProvider>().notNull(),
+    subject: text('subject').notNull(),
+    userId: text('user_id').notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (table) => [
+    primaryKey({ columns: [table.subject, table.provider] }),
+    index('user_identity_user_id_idx').on(table.userId),
+  ],
+);
+
+/** Indexed on `inviter_id`. */
 export const tInviteCode = pgTable(
   'invite_code',
   {
@@ -43,7 +80,10 @@ export const tInviteCode = pgTable(
   (table) => [index('invite_code_inviter_id_idx').on(table.inviterId)],
 );
 
-/** `path` holds trailing-slash strings; the database validates neither ancestry nor `contentType`. */
+/**
+ * `path` holds trailing-slash strings; the database validates neither ancestry nor `contentType`. The unique index
+ * `article_title_idx` on (`title`, `user_id`) keeps one author's titles distinct; `user_id` and `path` are indexed.
+ */
 export const tArticle = pgTable(
   'article',
   {
@@ -65,6 +105,7 @@ export const tArticle = pgTable(
   ],
 );
 
+/** Indexed on `article_id`, `user_id`, and `path`. */
 export const tComment = pgTable(
   'comment',
   {
@@ -82,7 +123,10 @@ export const tComment = pgTable(
   ],
 );
 
-/** Duplicate user/article pairs are permitted; counts are of relationships, not distinct users. */
+/**
+ * Duplicate user/article pairs are permitted; counts are of relationships, not distinct users. Indexed on `user_id`
+ * and on `article_id`.
+ */
 export const tBookmark = pgTable(
   'bookmark',
   {
@@ -93,6 +137,7 @@ export const tBookmark = pgTable(
   (table) => [index('bookmark_user_id_idx').on(table.userId), index('bookmark_article_id_idx').on(table.articleId)],
 );
 
+/** The primary key is (`user_id`, `role_key`), so a user holds each role once; `inviter_id` is indexed. */
 export const tUserRole = pgTable(
   'user_role',
   {
@@ -113,8 +158,10 @@ export const schema = {
   tBookmark,
   tComment,
   tInviteCode,
+  tPreAuthSession,
   tSession,
   tUser,
+  tUserIdentity,
 };
 
 /** Transaction contexts stay inside repository operations. */
@@ -128,8 +175,12 @@ export type CommentRow = typeof tComment.$inferSelect;
 
 export type InviteCodeRow = typeof tInviteCode.$inferSelect;
 
+export type PreAuthSessionRow = typeof tPreAuthSession.$inferSelect;
+
 export type SessionRow = typeof tSession.$inferSelect;
 
 export type UserRow = typeof tUser.$inferSelect;
+
+export type UserIdentityRow = typeof tUserIdentity.$inferSelect;
 
 export type UserRoleRow = typeof tUserRole.$inferSelect;

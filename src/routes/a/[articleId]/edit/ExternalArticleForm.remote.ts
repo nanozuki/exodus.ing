@@ -18,7 +18,7 @@ export const createOrUpdateExternalArticle = form(
     try {
       // Pass the original URL string alongside its parsed value so persistence keeps the submitted text.
       const result = await saveExternalArticle(
-        { db, resolveTxt: adapters.name_resolver.resolveTxt },
+        { db, nameResolver: adapters.name_resolver },
         { actor, ...input, content: url, url: new URL(url) },
       );
       if (!result.ok) invalid(issue.url('无法验证站点所有权，请按照说明添加 TXT 记录后重试'));

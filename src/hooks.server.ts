@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
 import { building, dev } from '$app/env';
-import { attachLocals } from '#lib/server/auth.js';
+import { attachLocals } from '#lib/server/transport/auth.js';
 import { getConfig } from '#lib/server/config.js';
 import { buildServices, adapters, db } from '#lib/server/registry.js';
 

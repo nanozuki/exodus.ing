@@ -3,7 +3,7 @@ import { listArticlesOfUser } from '#lib/server/repositories/article.js';
 import { listCommentsOfUser } from '#lib/server/repositories/comment.js';
 import { getRolesOfUser } from '#lib/server/repositories/role.js';
 import { findUserByUsername, findUserById } from '#lib/server/repositories/user.js';
-import { AUTH_COOKIE_NAME } from '#lib/server/auth.js';
+import { deleteSessionCookie, readSessionCookie } from '#lib/server/transport/auth.js';
 import { Permission, hasPermission } from '#lib/models/role.js';
 import type { User } from '#lib/models/user.js';
 import { throwError } from '#lib/errors.js';
@@ -38,7 +38,7 @@ async function getUser(param: string): Promise<User> {
  * Loads a profile page. `@<username>` finds a user by exact username and any other value by user ID, with the legacy
  * 16-character ID rule; an unknown user throws NOT_FOUND. Writers have the `articles` and `comments` tabs and get
  * `articles` unless `tab` is exactly `comments`; readers have only `comments`. `page` must be at least 1 and defaults
- * to 1; pages hold 20 items. Returns the user, including `githubId` and `verifyCode`, with the biography compiled,
+ * to 1; pages hold 20 items. Returns the user, including `verifyCode`, with the biography compiled,
  * plus whether the viewer is that user and whether the user is a writer.
  */
 export const loadPageData = query(
@@ -84,15 +84,15 @@ export const loadPageData = query(
 );
 
 /**
- * Signs out: deletes the stored session of the `auth_session` token, if any, then the cookie at `/`, and redirects 303
- * to `/`. Replaying the token afterward yields an anonymous request.
+ * Signs out: deletes the stored session of the auth cookie's token, if any, then the cookie, and redirects 303 to `/`.
+ * Replaying the token afterward yields an anonymous request.
  */
 export const logout = form(async () => {
   const { cookies } = getRequestEvent();
-  const token = cookies.get(AUTH_COOKIE_NAME);
+  const token = readSessionCookie(cookies, 'auth');
   if (token) {
     await invalidateSession({ db }, { token });
   }
-  cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+  deleteSessionCookie(cookies, 'auth');
   redirect(303, '/');
 });

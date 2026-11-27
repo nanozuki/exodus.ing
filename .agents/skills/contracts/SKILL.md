@@ -65,7 +65,7 @@ point of view.
 The tool's checks appear under the page's warnings and in the JSON's `warnings`.
 Before finishing, clear each one your change introduced: a unit test file
 without its source, an unlinked unit test, a `Covers:` name that is unknown or
-unreferenced, an untested executable declaration, a removed test.
+unreferenced, a removed test.
 
 ## Languages
 

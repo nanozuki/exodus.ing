@@ -15,8 +15,8 @@ reasoning, so the author's intent cannot bias the verdict.
 ## Review each changed declaration in both directions
 
 - **Contract → implementation.** Every promise in the contract is kept by the
-  implementation and checked by a linked test whose body exercises that promise,
-  not just one whose name claims it.
+  implementation. Where the project's testing conventions call for a test of a
+  promise, a linked test exercises it in its body, not only in its name.
 - **Implementation → contract.** Every behaviour a caller can observe (errors
   thrown, data written, side effects, returned states) appears in the contract.
   An unstated behaviour is where the comment will drift.

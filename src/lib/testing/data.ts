@@ -282,7 +282,6 @@ function buildTestDataset(): TestDataset {
       name: 'Alice',
       aboutMe: 'Writes about engineering and design systems.',
       verifyCode: 'verify_alice',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -291,7 +290,6 @@ function buildTestDataset(): TestDataset {
       name: 'Bob',
       aboutMe: 'Focuses on product insights and growth.',
       verifyCode: 'verify_bob',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -300,7 +298,6 @@ function buildTestDataset(): TestDataset {
       name: 'Carol',
       aboutMe: 'Enjoys reading long-form essays.',
       verifyCode: 'verify_carol',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -309,7 +306,6 @@ function buildTestDataset(): TestDataset {
       name: 'Dave',
       aboutMe: 'Reads and bookmarks external articles.',
       verifyCode: 'verify_dave',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -318,7 +314,6 @@ function buildTestDataset(): TestDataset {
       name: 'Frank',
       aboutMe: 'Prefers exploring new articles and bookmarks.',
       verifyCode: 'verify_frank',
-      githubId: null,
       ...nextTimestamps(),
     },
     {
@@ -327,7 +322,6 @@ function buildTestDataset(): TestDataset {
       name: 'Erin',
       aboutMe: 'Invited author exploring markdown workflows.',
       verifyCode: 'verify_erin',
-      githubId: null,
       ...nextTimestamps(),
     },
   ];
